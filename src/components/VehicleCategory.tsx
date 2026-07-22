@@ -6,22 +6,46 @@ import Link from "next/link";
 import { X } from "lucide-react";
 
 const products = [
-  { id: 'p1', src: '/images/vehiclecategory/dongco.png', alt: 'Động Cơ', desc: 'Hệ thống động cơ diesel mạnh mẽ, bền bỉ, tiết kiệm nhiên liệu, phù hợp cho các dòng xe tải nặng và máy công trình. Đảm bảo sức kéo vượt trội trên mọi địa hình.' },
-  { id: 'p2', src: '/images/vehiclecategory/ben.png', alt: 'Ben', desc: 'Hệ thống thủy lực ben chịu tải siêu trường siêu trọng, hoạt động mượt mà và cực kỳ ổn định trong điều kiện làm việc khắc nghiệt tại các mỏ đá, công trường.' },
-  { id: 'p3', src: '/images/vehiclecategory/cabin.png', alt: 'Cabin', desc: 'Các chi tiết thân vỏ và nội thất cabin chất lượng cao (ghế hơi, mặt ga lăng, đèn pha), đảm bảo an toàn và sự thoải mái tối đa cho người lái trong các chuyến đi dài.' },
-  { id: 'p4', src: '/images/vehiclecategory/gam.png', alt: 'Gầm', desc: 'Hệ thống khung gầm đúc chắc chắn, nhíp và giảm xóc chịu lực cực tốt, rô tuyn tay lái chuẩn xác, giúp xe vận hành đầm chắc trên mọi cung đường phức tạp.' },
-  { id: 'p5', src: '/images/vehiclecategory/hopso.png', alt: 'Hộp Số', desc: 'Hộp số đa cấp truyền động mượt mà, bộ đồng tốc cao cấp giúp sang số nhẹ nhàng, tối ưu hóa toàn bộ công suất từ động cơ truyền đến các trục bánh xe.' },
-  { id: 'p6', src: '/images/vehiclecategory/romooc.png', alt: 'RƠ-MOOC', desc: 'Linh kiện rơ-mooc chuyên dụng: chân chống, mâm phanh, trục cầu, búp sen phanh, móc kéo... Đạt tiêu chuẩn an toàn cao nhất và chịu tải trọng siêu cường.' },
-  { id: 'p7', src: '/images/vehiclecategory/sealphot.png', alt: 'Seal Phốt', desc: 'Bộ phớt làm kín (sin, phớt git, phớt trục khuỷu) từ vật liệu cao cấp chịu nhiệt độ cao, chịu hóa chất và dầu nhớt cực tốt, ngăn chặn rò rỉ triệt để.' },
-  { id: 'p8', src: '/images/vehiclecategory/vongbi.png', alt: 'Vòng Bi', desc: 'Các loại vòng bi, bạc đạn công nghiệp (bi moay ơ, bi hộp số, bi chữ thập) có độ chính xác tuyệt đối, giảm ma sát tối đa và tăng cường tuổi thọ chi tiết máy.' }
+  { id: 'p1', src: '/images/vehicle-category/dongco.png', alt: 'Động Cơ', desc: 'Hệ thống động cơ diesel mạnh mẽ, bền bỉ, tiết kiệm nhiên liệu, phù hợp cho các dòng xe tải nặng và máy công trình. Đảm bảo sức kéo vượt trội trên mọi địa hình.' },
+  { id: 'p2', src: '/images/vehicle-category/ben.png', alt: 'Ben', desc: 'Hệ thống thủy lực ben chịu tải siêu trường siêu trọng, hoạt động mượt mà và cực kỳ ổn định trong điều kiện làm việc khắc nghiệt tại các mỏ đá, công trường.' },
+  { id: 'p3', src: '/images/vehicle-category/cabin.png', alt: 'Cabin', desc: 'Các chi tiết thân vỏ và nội thất cabin chất lượng cao (ghế hơi, mặt ga lăng, đèn pha), đảm bảo an toàn và sự thoải mái tối đa cho người lái trong các chuyến đi dài.' },
+  { id: 'p4', src: '/images/vehicle-category/gam.png', alt: 'Gầm', desc: 'Hệ thống khung gầm đúc chắc chắn, nhíp và giảm xóc chịu lực cực tốt, rô tuyn tay lái chuẩn xác, giúp xe vận hành đầm chắc trên mọi cung đường phức tạp.' },
+  { id: 'p5', src: '/images/vehicle-category/hopso.png', alt: 'Hộp Số', desc: 'Hộp số đa cấp truyền động mượt mà, bộ đồng tốc cao cấp giúp sang số nhẹ nhàng, tối ưu hóa toàn bộ công suất từ động cơ truyền đến các trục bánh xe.' },
+  { id: 'p6', src: '/images/vehicle-category/romooc.png', alt: 'RƠ-MOOC', desc: 'Linh kiện rơ-mooc chuyên dụng: chân chống, mâm phanh, trục cầu, búp sen phanh, móc kéo... Đạt tiêu chuẩn an toàn cao nhất và chịu tải trọng siêu cường.' },
+  { id: 'p7', src: '/images/vehicle-category/sealphot.png', alt: 'Seal Phốt', desc: 'Bộ phớt làm kín (sin, phớt git, phớt trục khuỷu) từ vật liệu cao cấp chịu nhiệt độ cao, chịu hóa chất và dầu nhớt cực tốt, ngăn chặn rò rỉ triệt để.' },
+  { id: 'p8', src: '/images/vehicle-category/vongbi.png', alt: 'Vòng Bi', desc: 'Các loại vòng bi, bạc đạn công nghiệp (bi moay ơ, bi hộp số, bi chữ thập) có độ chính xác tuyệt đối, giảm ma sát tối đa và tăng cường tuổi thọ chi tiết máy.' }
 ];
+
+function CardImageWithLoader({ src, alt }: { src: string; alt: string }) {
+  const [loading, setLoading] = useState(true);
+
+  return (
+    <>
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-950 z-10">
+          <div className="w-8 h-8 border-3 border-brand/20 border-t-brand rounded-full animate-spin"></div>
+        </div>
+      )}
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="280px"
+        onLoad={() => setLoading(false)}
+        className={`object-cover transition-opacity duration-500 ${loading ? 'opacity-0' : 'opacity-100'}`}
+      />
+    </>
+  );
+}
 
 export default function VehicleCategory() {
   const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
+  const [isModalImageLoading, setIsModalImageLoading] = useState(true);
 
-  // Khóa scroll body khi mở Modal
+  // Khóa scroll body khi mở Modal & reset loading state
   useEffect(() => {
     if (selectedProduct) {
+      setIsModalImageLoading(true);
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -32,11 +56,11 @@ export default function VehicleCategory() {
   }, [selectedProduct]);
 
   return (
-    <section className="bg-[#111317] py-20 relative overflow-hidden">
+    <section id="products" className="bg-[#111317] py-20 relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image 
-          src="/images/vehiclecategory/baxe.png"
+          src="/images/vehicle-category/baxe.png"
           alt="Q.BA Vehicles Background"
           fill
           className="object-cover"
@@ -63,16 +87,16 @@ export default function VehicleCategory() {
                     onClick={() => setSelectedProduct(product)}
                     className="group cursor-pointer w-[280px] h-[420px] rounded-xl shadow-2xl shrink-0 overflow-hidden border-2 border-brand hover:scale-105 transition-transform motion-reduce:transition-none bg-gray-900 relative"
                   >
-                    <Image src={product.src} alt={product.alt} fill className="object-cover" sizes="280px" />
+                    <CardImageWithLoader src={product.src} alt={product.alt} />
                     {/* Overlay Text */}
-                    <div className="absolute top-0 left-0 w-full pt-6 pb-12 px-4 bg-gradient-to-b from-black/90 via-black/40 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-0">
+                    <div className="absolute top-0 left-0 w-full pt-6 pb-12 px-4 bg-gradient-to-b from-black/90 via-black/40 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-0 z-10">
                       <h3 className="text-[#EF233C] text-lg md:text-xl font-bold font-heading uppercase text-center tracking-[0.2em] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                         {product.alt}
                       </h3>
                     </div>
 
                     {/* Hover Overlay Hint */}
-                    <div className="absolute inset-0 bg-brand/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+                    <div className="absolute inset-0 bg-brand/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300 z-10">
                       <span className="text-white font-bold uppercase tracking-widest border-2 border-white px-6 py-2 rounded-full">
                         Xem chi tiết
                       </span>
@@ -84,7 +108,7 @@ export default function VehicleCategory() {
           </div>
         </div>
 
-        <Link href="/featured-products" className="bg-brand text-white uppercase font-bold tracking-wider py-4 px-10 rounded-full shadow-[0_0_20px_rgba(217,4,41,0.4)] hover:bg-white hover:text-brand hover:scale-105 transition-all duration-300 motion-reduce:transition-none cursor-pointer">
+        <Link href="#products" className="bg-brand text-white uppercase font-bold tracking-wider py-4 px-10 rounded-full shadow-[0_0_20px_rgba(217,4,41,0.4)] hover:bg-white hover:text-brand hover:scale-105 transition-all duration-300 motion-reduce:transition-none cursor-pointer">
           Khám phá thêm
         </Link>
       </div>
@@ -109,16 +133,23 @@ export default function VehicleCategory() {
               <X size={24} />
             </button>
             
-            {/* Image Side */}
-            <div className="w-full md:w-5/12 h-[300px] md:h-auto relative bg-black overflow-hidden group">
+            {/* Image Side with Loading Spinner */}
+            <div className="w-full md:w-5/12 h-[300px] md:h-auto relative bg-gray-950 overflow-hidden group flex items-center justify-center min-h-[250px]">
+              {isModalImageLoading && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-950 z-20 gap-3">
+                  <div className="w-10 h-10 border-4 border-brand/30 border-t-brand rounded-full animate-spin"></div>
+                  <span className="text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">Đang tải ảnh...</span>
+                </div>
+              )}
               <Image 
                 src={selectedProduct.src} 
                 alt={selectedProduct.alt} 
                 fill 
-                className="object-cover opacity-70 group-hover:scale-110 transition-transform duration-700" 
+                onLoad={() => setIsModalImageLoading(false)}
+                className={`object-cover transition-all duration-700 ${isModalImageLoading ? 'opacity-0 scale-95' : 'opacity-70 group-hover:scale-110'}`} 
                 sizes="(max-width: 768px) 100vw, 40vw" 
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#111317] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#111317]"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#111317] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#111317] z-10 pointer-events-none"></div>
             </div>
             
             {/* Content Side */}
@@ -139,11 +170,11 @@ export default function VehicleCategory() {
               
               <div className="mt-auto">
                 <Link 
-                  href="/featured-products" 
+                  href="#contact" 
                   onClick={() => setSelectedProduct(null)}
                   className="inline-flex items-center justify-center w-full sm:w-auto bg-gradient-to-r from-brand to-orange-600 text-white font-bold py-4 px-10 rounded-full hover:shadow-[0_10px_25px_rgba(217,4,41,0.4)] transition-all duration-300 group"
                 >
-                  XEM CHI TIẾT CÁC MÃ SẢN PHẨM 
+                  LIÊN HỆ BÁO GIÁ CÁC MÃ SẢN PHẨM 
                   <span className="ml-2 group-hover:translate-x-2 transition-transform duration-300">→</span>
                 </Link>
               </div>

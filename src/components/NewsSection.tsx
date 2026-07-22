@@ -6,25 +6,25 @@ const cards = [
     id: "news-1",
     title: "THÔNG TIN DOANH NGHIỆP",
     desc: "Các bài viết giới thiệu về hoạt động, sự kiện, thông báo của công ty Q.BA.",
-    imgUrl: "/images/NewsSection/quyba.png"
+    imgUrl: "/images/news-section/quyba.png"
   },
   {
     id: "news-2",
     title: "THÔNG TIN SẢN PHẨM",
-    desc: "Các bài viết giới thiệu sản phẩm của các thương hiệu mà Q.BA phân phối.",
-    imgUrl: "/images/NewsSection/sanpham.png"
+    desc: "Các danh mục phụ tùng tại Q.BA.",
+    imgUrl: "/images/news-section/sanpham.png"
   },
   {
     id: "news-3",
-    title: "CẨM NANG KỸ THUẬT LÁI XE",
-    desc: "Cẩm nang kỹ thuật, bảo dưỡng xe, luật giao thông, tin tức hữu ích.",
-    imgUrl: "/images/NewsSection/sanpham.png"
+    title: "CẨM NANG KỸ THUẬT",
+    desc: "Cẩm nang kỹ thuật, bảo dưỡng, lái xe.",
+    imgUrl: "/images/news-section/sanpham.png"
   }
 ];
 
 export default function NewsSection() {
   return (
-    <section className="py-20 relative bg-white overflow-hidden">
+    <section id="news" className="py-20 relative bg-white overflow-hidden">
       {/* Blueprint Grid Overlay for Industrial Feel */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
 

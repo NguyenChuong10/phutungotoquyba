@@ -2,12 +2,12 @@ import React from "react";
 import Image from "next/image";
 
 const brands = [
-  { id: "brand-1", name: "WEICHAI", bg: "/images/PioneerSection/hopsoxetai.png" },
-  { id: "brand-2", name: "HOWO", bg: "/images/PioneerSection/bomcaoap.png" },
-  { id: "brand-3", name: "YUCHAI", bg: "/images/vehiclecategory/dongco.png" },
-  { id: "brand-4", name: "CUMMINS", bg: "/images/vehiclecategory/hopso.png" },
-  { id: "brand-5", name: "BOSCH", bg: "/images/vehiclecategory/sealphot.png" },
-  { id: "brand-6", name: "FAW", bg: "/images/vehiclecategory/cabin.png" },
+  { id: "brand-1", name: "WEICHAI", bg: "/images/pioneer-section/hopsoxetai.png" },
+  { id: "brand-2", name: "HOWO", bg: "/images/pioneer-section/bomcaoap.png" },
+  { id: "brand-3", name: "YUCHAI", bg: "/images/vehicle-category/dongco.png" },
+  { id: "brand-4", name: "CUMMINS", bg: "/images/vehicle-category/hopso.png" },
+  { id: "brand-5", name: "BOSCH", bg: "/images/vehicle-category/sealphot.png" },
+  { id: "brand-6", name: "FAW", bg: "/images/vehicle-category/cabin.png" },
 ];
 
 export default function BrandSlider() {

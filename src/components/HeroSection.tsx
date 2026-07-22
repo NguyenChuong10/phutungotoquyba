@@ -6,13 +6,55 @@ import Image from "next/image";
 
 // 1 & 3 & 4. Dùng ảnh local cho production thay vì Unsplash, thêm ID để làm key
 const slides = [
-  { id: "slide-1", bgImage: "/images/HeroSection/phutungxedaukeo.png", alt: "Phụ tùng xe đầu kéo" },
-  { id: "slide-2", bgImage: "/images/HeroSection/phutungxeben.png", alt: "Phụ tùng xe ben" },
-  { id: "slide-3", bgImage: "/images/HeroSection/phutungromooc.png", alt: "Phụ tùng rơ moóc" },
-  { id: "slide-4", bgImage: "/images/HeroSection/phutunghopso.png", alt: "Phụ tùng hộp số" },
-  { id: "slide-5", bgImage: "/images/HeroSection/phutunggam.png", alt: "Phụ tùng gầm" },
-  { id: "slide-6", bgImage: "/images/HeroSection/phutungdongcomayphat.png", alt: "Phụ tùng động cơ máy phát" },
-  { id: "slide-7", bgImage: "/images/HeroSection/phutungdongcomaycongtrinh.png", alt: "Phụ tùng động cơ máy công trình" }
+  { 
+    id: "slide-1", 
+    bgImage: "/images/hero-section/phutungxedaukeo.png", 
+    alt: "Phụ tùng xe đầu kéo",
+    blackText: "PHỤ TÙNG",
+    redText: "XE ĐẦU KÉO"
+  },
+  { 
+    id: "slide-2", 
+    bgImage: "/images/hero-section/phutungxeben.png", 
+    alt: "Phụ tùng xe ben",
+    blackText: "PHỤ TÙNG",
+    redText: "XE BEN"
+  },
+  { 
+    id: "slide-3", 
+    bgImage: "/images/hero-section/phutungromooc.png", 
+    alt: "Phụ tùng rơ moóc",
+    blackText: "PHỤ TÙNG",
+    redText: "RƠ-MOÓC"
+  },
+  { 
+    id: "slide-4", 
+    bgImage: "/images/hero-section/phutunghopso.png", 
+    alt: "Phụ tùng hộp số",
+    blackText: "PHỤ TÙNG",
+    redText: "HỘP SỐ"
+  },
+  { 
+    id: "slide-5", 
+    bgImage: "/images/hero-section/phutunggam.png", 
+    alt: "Phụ tùng gầm",
+    blackText: "PHỤ TÙNG",
+    redText: "GẦM"
+  },
+  { 
+    id: "slide-6", 
+    bgImage: "/images/hero-section/phutungdongcomayphat.png", 
+    alt: "Phụ tùng động cơ máy phát",
+    blackText: "PHỤ TÙNG",
+    redText: "ĐỘNG CƠ MÁY PHÁT"
+  },
+  { 
+    id: "slide-7", 
+    bgImage: "/images/hero-section/phutungdongcomaycongtrinh.png", 
+    alt: "Phụ tùng động cơ máy công trình",
+    blackText: "PHỤ TÙNG",
+    redText: "ĐỘNG CƠ MÁY CÔNG TRÌNH"
+  }
 ];
 
 export default function HeroSection() {
@@ -38,7 +80,7 @@ export default function HeroSection() {
             index === currentSlide ? 'opacity-100' : 'opacity-0'
             }`}
         >
-          {/* Actual Sharp Image */}
+          {/* Full size object-cover image stretching top to bottom under transparent navbar */}
           <div className="absolute inset-0 flex items-center justify-center">
             <Image
               src={slide.bgImage}
@@ -53,7 +95,24 @@ export default function HeroSection() {
         </div>
       ))}
 
-
+      {/* Slide Text Captions - Under the slide image */}
+      {slides.map((slide, index) => (
+        <div
+          key={`caption-${slide.id}`}
+          className={`absolute bottom-16 md:bottom-20 left-1/2 -translate-x-1/2 z-10 text-center transition-all duration-700 ease-out transform px-4 w-full flex justify-center ${
+            index === currentSlide
+              ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
+              : "opacity-0 translate-y-6 scale-95 pointer-events-none"
+          }`}
+        >
+          <div className="inline-flex items-center justify-center bg-white/95 backdrop-blur-md px-6 py-2.5 md:px-10 md:py-3.5 rounded-2xl shadow-xl border border-slate-200/80 max-w-[92vw]">
+            <h2 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-extrabold uppercase tracking-wider font-heading leading-tight text-center">
+              <span className="text-black">{slide.blackText} </span>
+              <span className="text-[#FF0000]">{slide.redText}</span>
+            </h2>
+          </div>
+        </div>
+      ))}
 
       {/* Left Navigation Arrow */}
       <button 
