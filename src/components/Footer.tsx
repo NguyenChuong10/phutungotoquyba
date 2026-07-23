@@ -92,7 +92,7 @@ export default function Footer() {
             
             <ul className="space-y-3.5 text-sm text-gray-300">
               <li>
-                <Link href="#about" className="hover:text-brand transition-colors inline-flex items-center gap-1.5 group">
+                <Link href="/about" className="hover:text-brand transition-colors inline-flex items-center gap-1.5 group">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand group-hover:scale-125 transition-transform"></span>
                   Giới thiệu
                 </Link>
