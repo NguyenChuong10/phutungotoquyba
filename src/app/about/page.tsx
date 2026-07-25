@@ -43,7 +43,7 @@ const warehouseImages = [
     src: "/images/about/giao-hang-van-chuyen.jpg",
     alt: "Đội xe vận chuyển giao hàng hỏa tốc Q.BA",
     title: "Vận chuyển hỏa tốc",
-    desc: "Giao hàng tận nơi tại Đà Nẵng và đóng gói gửi chành xe toàn quốc"
+    desc: "Giao hàng tận nơi tại Đà Nẵng và đóng gói gửi hàng toàn quốc"
   }
 ];
 
@@ -77,10 +77,10 @@ const qualityCommitments = [
 
 export default function AboutPage() {
   return (
-    <div className="bg-white pt-28 pb-20">
+    <div>
       
       {/* 1. Header Banner */}
-      <section className="bg-[#111317] text-white py-16 md:py-24 relative overflow-hidden">
+      <section className="bg-[#111317] text-white pt-32 md:pt-40 pb-16 md:pb-24 relative overflow-hidden">
         {/* Background Glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -140,7 +140,7 @@ export default function AboutPage() {
                   <Truck className="w-8 h-8 text-brand shrink-0" />
                   <div>
                     <h4 className="font-bold text-slate-900 text-sm uppercase">Gửi Hàng Toàn Quốc</h4>
-                    <p className="text-xs text-gray-600">Gửi chành xe toàn quốc</p>
+                    <p className="text-xs text-gray-600">Gửi hàng toàn quốc</p>
                   </div>
                 </div>
               </div>

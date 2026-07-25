@@ -69,14 +69,14 @@ export default function Navbar() {
             </Link>
 
             <Link 
-              href="/#products" 
+              href="/products" 
               className={`${
-                isTransparent 
-                  ? "text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] hover:text-white" 
-                  : "text-slate-800 hover:text-[#FF0000]"
-              } font-bold font-heading transition-colors text-sm uppercase tracking-wider flex items-center gap-1`}
+                pathname.startsWith("/products") 
+                  ? (isTransparent ? "text-white border-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] border-b-2 pb-1" : "text-[#FF0000] border-[#FF0000] border-b-2 pb-1") 
+                  : (isTransparent ? "text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] hover:text-white" : "text-slate-800 hover:text-[#FF0000]")
+              } font-bold font-heading text-sm uppercase tracking-wider transition-colors`}
             >
-              Sản phẩm ▾
+              Sản phẩm
             </Link>
 
             <Link 
@@ -91,23 +91,23 @@ export default function Navbar() {
             </Link>
 
             <Link 
-              href="/#recruit" 
+              href="/careers" 
               className={`${
-                isTransparent 
-                  ? "text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] hover:text-white" 
-                  : "text-slate-800 hover:text-[#FF0000]"
-              } font-bold font-heading transition-colors text-sm uppercase tracking-wider flex items-center gap-1`}
+                pathname === "/careers" 
+                  ? (isTransparent ? "text-white border-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] border-b-2 pb-1" : "text-[#FF0000] border-[#FF0000] border-b-2 pb-1") 
+                  : (isTransparent ? "text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] hover:text-white" : "text-slate-800 hover:text-[#FF0000]")
+              } font-bold font-heading text-sm uppercase tracking-wider transition-colors`}
             >
-              Tuyển dụng ▾
+              Tuyển dụng
             </Link>
 
             <Link 
-              href="/#contact" 
+              href="/contact" 
               className={`${
-                isTransparent 
-                  ? "text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] hover:text-white" 
-                  : "text-slate-800 hover:text-[#FF0000]"
-              } font-bold font-heading transition-colors text-sm uppercase tracking-wider`}
+                pathname === "/contact" 
+                  ? (isTransparent ? "text-white border-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] border-b-2 pb-1" : "text-[#FF0000] border-[#FF0000] border-b-2 pb-1") 
+                  : (isTransparent ? "text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] hover:text-white" : "text-slate-800 hover:text-[#FF0000]")
+              } font-bold font-heading text-sm uppercase tracking-wider transition-colors`}
             >
               Liên hệ
             </Link>

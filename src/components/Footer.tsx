@@ -98,13 +98,19 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="#recruitment" className="hover:text-brand transition-colors inline-flex items-center gap-1.5 group">
+                <Link href="/products" className="hover:text-brand transition-colors inline-flex items-center gap-1.5 group">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand group-hover:scale-125 transition-transform"></span>
+                  Sản phẩm phụ tùng
+                </Link>
+              </li>
+              <li>
+                <Link href="/careers" className="hover:text-brand transition-colors inline-flex items-center gap-1.5 group">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand group-hover:scale-125 transition-transform"></span>
                   Tuyển dụng
                 </Link>
               </li>
               <li>
-                <Link href="#contact" className="hover:text-brand transition-colors inline-flex items-center gap-1.5 group">
+                <Link href="/contact" className="hover:text-brand transition-colors inline-flex items-center gap-1.5 group">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand group-hover:scale-125 transition-transform"></span>
                   Liên hệ
                 </Link>
@@ -135,7 +141,7 @@ export default function Footer() {
                 loading="lazy" 
                 referrerPolicy="no-referrer-when-downgrade"
                 title="Q.Ba Auto Parts Map"
-                className="grayscale group-hover:grayscale-0 transition-all duration-500 opacity-90 group-hover:opacity-100"
+                className="w-full h-full border-0"
               ></iframe>
             </div>
           </div>
