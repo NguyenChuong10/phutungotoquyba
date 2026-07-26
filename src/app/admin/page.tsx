@@ -149,7 +149,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-8 pb-10">
       {/* Top Welcome Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-red-950 rounded-2xl p-6 md:p-8 text-white shadow-xl border border-slate-800 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-red-950 rounded-2xl p-5 sm:p-6 md:p-8 text-white shadow-xl border border-slate-800 relative overflow-hidden">
         <div className="absolute right-0 top-0 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -158,25 +158,25 @@ export default function AdminDashboardPage() {
               <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
               <span>Phiên Làm Việc Quản Trị Hệ Thống Q.BA</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
               Bảng Điều Khiển Quản Trị <span className="text-red-500">Q.BA Auto Parts</span>
             </h1>
-            <p className="text-slate-300 text-sm mt-1 max-w-2xl">
+            <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl">
               Quản lý danh mục 10,000+ mã phụ tùng xe tải nặng Trung Quốc, tiếp nhận yêu cầu báo giá Zalo hỏa tốc và theo dõi kho hàng Đà Nẵng 24/7.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap sm:flex-nowrap">
             <Link
               href="/admin/products"
-              className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-lg shadow-red-900/50 transition-all flex items-center gap-2"
+              className="flex-1 sm:flex-none justify-center px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-lg shadow-red-900/50 transition-all flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               <span>Quản Lý Phụ Tùng</span>
             </Link>
             <button
               onClick={() => alert('Xuất báo cáo tổng quan kho hàng thành công!')}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer"
+              className="flex-1 sm:flex-none justify-center px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer"
             >
               <Download className="w-4 h-4 text-emerald-400" />
               <span>Xuất Báo Cáo</span>
@@ -186,25 +186,25 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Grid KPI 4 Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {KPIS.map((kpi, idx) => {
           const Icon = kpi.icon;
           return (
             <div
               key={idx}
-              className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all group"
+              className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all group"
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500">{kpi.title}</span>
                 <div
-                  className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${kpi.color} text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}
+                  className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr ${kpi.color} text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
               </div>
 
               <div className="mt-3">
-                <div className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+                <div className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
                   {kpi.value}
                 </div>
                 <div className="mt-2 flex items-center gap-1.5">
@@ -219,12 +219,12 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Main Content Split: Quotation Requests (Left) + Stock Alerts & Analytics (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Left Column (2 Cols): Recent Quotations Table */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
             {/* Table Header Controls */}
-            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="font-bold text-slate-900 text-base">
@@ -240,11 +240,11 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="pl-3 pr-8 py-1.5 text-xs font-semibold border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                    className="w-full sm:w-auto pl-3 pr-8 py-1.5 text-xs font-semibold border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500/20"
                   >
                     <option value="ALL">Tất cả trạng thái</option>
                     <option value="MỚI GỬI">Mới gửi</option>
@@ -256,8 +256,69 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Data Table */}
-            <div className="overflow-x-auto">
+            {/* Mobile Card List View (Visible on Mobile screens < md) */}
+            <div className="block md:hidden divide-y divide-slate-100">
+              {RECENT_QUOTATIONS.filter(
+                (q) => filterStatus === 'ALL' || q.status === filterStatus
+              ).map((item) => (
+                <div key={item.id} className="p-4 space-y-3 hover:bg-slate-50/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold font-mono text-slate-800 text-xs">{item.id}</span>
+                    <span
+                      className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${item.statusColor}`}
+                    >
+                      {item.status}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm">{item.customerName}</h3>
+                    <a
+                      href={`tel:${item.phone.replace(/\./g, '')}`}
+                      className="text-red-600 hover:underline text-xs font-semibold inline-flex items-center gap-1 mt-0.5"
+                    >
+                      <PhoneCall className="w-3 h-3" />
+                      {item.phone}
+                    </a>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-xs">
+                    <p className="font-semibold text-slate-800">{item.partName}</p>
+                    <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                      {item.vehicleBrand} • SKU: {item.sku}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center gap-1 text-slate-400 text-[11px]">
+                      <Clock className="w-3 h-3" />
+                      <span>{item.createdAt}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`https://zalo.me/${item.phone.replace(/\./g, '')}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-bold text-xs flex items-center gap-1"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>Zalo</span>
+                      </a>
+                      <button
+                        onClick={() => alert(`Xem chi tiết yêu cầu ${item.id}`)}
+                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs"
+                      >
+                        Xử lý
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Data Table (Visible on md and larger) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-slate-100/70 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200/60">
@@ -337,11 +398,11 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Table Footer */}
-            <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-xs text-slate-500">
+            <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500">
               <span>Hiển thị 5 / 18 yêu cầu báo giá mới nhất</span>
               <Link
                 href="/admin/orders"
-                className="font-bold text-red-600 hover:text-red-700 flex items-center gap-1"
+                className="font-bold text-red-600 hover:text-red-700 flex items-center gap-1 self-end sm:self-auto"
               >
                 <span>Xem tất cả yêu cầu báo giá</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />

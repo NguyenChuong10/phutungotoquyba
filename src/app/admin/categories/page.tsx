@@ -87,10 +87,10 @@ export default function AdminCategoriesPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header Bar */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
               Quản Lý Danh Mục & Dòng Xe
             </h1>
             <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 font-extrabold text-xs">
@@ -104,7 +104,7 @@ export default function AdminCategoriesPage() {
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md shadow-red-900/30 transition-all flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+          className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md shadow-red-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer self-start sm:self-auto w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Thêm {activeTab === 'CATEGORIES' ? 'Danh Mục Mới' : 'Thương Hiệu Mới'}</span>
@@ -112,30 +112,30 @@ export default function AdminCategoriesPage() {
       </div>
 
       {/* Navigation Tabs & Search */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-100 p-1 rounded-xl overflow-x-auto w-full sm:w-auto">
           <button
             onClick={() => setActiveTab('CATEGORIES')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
               activeTab === 'CATEGORIES'
                 ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <Layers className="w-4 h-4 text-red-600" />
-            <span>Danh Mục Phụ Tùng ({CATEGORIES_MOCK.length})</span>
+            <span>Danh Mục ({CATEGORIES_MOCK.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('BRANDS')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
               activeTab === 'BRANDS'
                 ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <Truck className="w-4 h-4 text-red-600" />
-            <span>Thương Hiệu & Hãng Xe ({BRANDS_MOCK.length})</span>
+            <span>Thương Hiệu ({BRANDS_MOCK.length})</span>
           </button>
         </div>
 
@@ -153,32 +153,32 @@ export default function AdminCategoriesPage() {
 
       {/* Tab 1: Categories View */}
       {activeTab === 'CATEGORIES' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {CATEGORIES_MOCK.filter((c) =>
             c.name.toLowerCase().includes(searchQuery.toLowerCase())
           ).map((cat) => (
             <div
               key={cat.id}
-              className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+              className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-2 rounded-xl bg-slate-100 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl sm:text-3xl p-2 rounded-xl bg-slate-100 group-hover:scale-110 transition-transform">
                     {cat.icon}
                   </span>
-                  <span className="px-3 py-1 rounded-full bg-red-50 text-red-700 text-xs font-extrabold border border-red-100">
+                  <span className="px-2.5 py-1 rounded-full bg-red-50 text-red-700 text-[11px] font-extrabold border border-red-100">
                     {cat.productCount} mã phụ tùng
                   </span>
                 </div>
 
-                <h3 className="font-bold text-slate-900 text-base mt-4 group-hover:text-red-600 transition-colors">
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base mt-3 sm:mt-4 group-hover:text-red-600 transition-colors">
                   {cat.name}
                 </h3>
                 <p className="text-xs text-slate-500 mt-1.5 leading-relaxed line-clamp-2">
                   {cat.description}
                 </p>
 
-                <div className="mt-4 flex flex-wrap gap-1.5">
+                <div className="mt-3 sm:mt-4 flex flex-wrap gap-1.5">
                   {cat.brands.map((b, idx) => (
                     <span
                       key={idx}
@@ -190,7 +190,7 @@ export default function AdminCategoriesPage() {
                 </div>
               </div>
 
-              <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div className="mt-4 sm:mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
                 <span className="text-[11px] font-mono text-slate-400">/{cat.slug}</span>
                 <div className="flex items-center gap-1.5">
                   <button
@@ -217,77 +217,128 @@ export default function AdminCategoriesPage() {
       {/* Tab 2: Brands View */}
       {activeTab === 'BRANDS' && (
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-100/80 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
-                <th className="p-3.5 pl-5">Logo & Tên Hãng</th>
-                <th className="p-3.5">Xuất Xứ</th>
-                <th className="p-3.5">Trạng Thái Hợp Tác</th>
-                <th className="p-3.5 pr-5 text-right">Thao Tác</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {BRANDS_MOCK.filter((b) =>
-                b.name.toLowerCase().includes(searchQuery.toLowerCase())
-              ).map((brand) => (
-                <tr key={brand.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="p-3.5 pl-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-white border border-slate-200 p-1 relative flex-shrink-0">
-                        <Image
-                          src={brand.logo}
-                          alt={brand.name}
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
-                      <span className="font-bold text-slate-900 text-sm">{brand.name}</span>
-                    </div>
-                  </td>
+          {/* Mobile Card List View (< md) */}
+          <div className="block md:hidden divide-y divide-slate-100">
+            {BRANDS_MOCK.filter((b) =>
+              b.name.toLowerCase().includes(searchQuery.toLowerCase())
+            ).map((brand) => (
+              <div key={brand.id} className="p-4 space-y-3 hover:bg-slate-50/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 p-1 relative flex-shrink-0">
+                    <Image
+                      src={brand.logo}
+                      alt={brand.name}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm">{brand.name}</h3>
+                    <p className="text-[11px] text-slate-400">Xuất xứ: {brand.origin}</p>
+                  </div>
+                </div>
 
-                  <td className="p-3.5 font-medium text-slate-700">{brand.origin}</td>
+                <div className="flex items-center justify-between pt-1 text-xs">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-200">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                    {brand.status}
+                  </span>
 
-                  <td className="p-3.5">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-200">
-                      <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                      {brand.status}
-                    </span>
-                  </td>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => alert(`Sửa thương hiệu: ${brand.name}`)}
+                      className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-bold text-xs flex items-center gap-1"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                      <span>Sửa</span>
+                    </button>
+                    <button
+                      onClick={() => alert(`Xoá thương hiệu: ${brand.name}`)}
+                      className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 font-bold text-xs flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Xoá</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
-                  <td className="p-3.5 pr-5 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <button
-                        onClick={() => alert(`Sửa thương hiệu: ${brand.name}`)}
-                        className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => alert(`Xoá thương hiệu: ${brand.name}`)}
-                        className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
+          {/* Desktop Table View (>= md) */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-100/80 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
+                  <th className="p-3.5 pl-5">Logo & Tên Hãng</th>
+                  <th className="p-3.5">Xuất Xứ</th>
+                  <th className="p-3.5">Trạng Thái Hợp Tác</th>
+                  <th className="p-3.5 pr-5 text-right">Thao Tác</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {BRANDS_MOCK.filter((b) =>
+                  b.name.toLowerCase().includes(searchQuery.toLowerCase())
+                ).map((brand) => (
+                  <tr key={brand.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="p-3.5 pl-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-white border border-slate-200 p-1 relative flex-shrink-0">
+                          <Image
+                            src={brand.logo}
+                            alt={brand.name}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                        <span className="font-bold text-slate-900 text-sm">{brand.name}</span>
+                      </div>
+                    </td>
+
+                    <td className="p-3.5 font-medium text-slate-700">{brand.origin}</td>
+
+                    <td className="p-3.5">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-200">
+                        <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                        {brand.status}
+                      </span>
+                    </td>
+
+                    <td className="p-3.5 pr-5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => alert(`Sửa thương hiệu: ${brand.name}`)}
+                          className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => alert(`Xoá thương hiệu: ${brand.name}`)}
+                          className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
       {/* Add Modal Mock */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900 text-base">
                 Thêm {activeTab === 'CATEGORIES' ? 'Danh Mục' : 'Thương Hiệu'} Mới
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center flex-shrink-0"
               >
                 ✕
               </button>

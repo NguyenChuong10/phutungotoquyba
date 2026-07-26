@@ -23,14 +23,14 @@ export default function AdminSettingsPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header Bar */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
               Cấu Hình Hệ Thống Q.BA
             </h1>
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-xs">
-              Hệ Thống Hoạt Động BÌNH THƯỜNG
+              Hoạt Động BÌNH THƯỜNG
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
@@ -40,7 +40,7 @@ export default function AdminSettingsPage() {
 
         <button
           onClick={() => alert('Đã lưu cấu hình hệ thống thành công!')}
-          className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md shadow-red-900/30 transition-all flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+          className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md shadow-red-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer self-start sm:self-auto w-full sm:w-auto"
         >
           <Save className="w-4 h-4" />
           <span>Lưu Cấu Hình</span>

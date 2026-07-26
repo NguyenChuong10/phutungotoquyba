@@ -88,10 +88,10 @@ export default function AdminOrdersPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header Bar */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
               Quản Lý Yêu Cầu Báo Giá & Đơn Hàng
             </h1>
             <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 font-extrabold text-xs">
@@ -114,7 +114,7 @@ export default function AdminOrdersPage() {
 
       {/* Toolbar Search & Status Filter */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 max-w-md w-full">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -125,12 +125,12 @@ export default function AdminOrdersPage() {
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 max-w-full">
           {['ALL', 'MỚI GỬI', 'ĐÃ GỌI TƯ VẤN', 'ĐÃ GỬI BÁO GIÁ ZALO', 'HOÀN THÀNH'].map((st) => (
             <button
               key={st}
               onClick={() => setFilterStatus(st)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                 filterStatus === st
                   ? 'bg-red-600 text-white shadow-xs'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -142,9 +142,66 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Main Table */}
+      {/* Main Data Container */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile Card List View (< md) */}
+        <div className="block md:hidden divide-y divide-slate-100">
+          {filteredOrders.map((ord) => (
+            <div key={ord.id} className="p-4 space-y-3 hover:bg-slate-50/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <span className="font-bold font-mono text-slate-800 text-xs">{ord.id}</span>
+                <span
+                  className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${ord.statusColor}`}
+                >
+                  {ord.status}
+                </span>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">{ord.customerName}</h3>
+                <a
+                  href={`tel:${ord.phone.replace(/\./g, '')}`}
+                  className="text-red-600 hover:underline text-xs font-semibold inline-flex items-center gap-1 mt-0.5"
+                >
+                  <PhoneCall className="w-3 h-3" />
+                  {ord.phone}
+                </a>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-xs space-y-1">
+                <p className="font-semibold text-slate-800">{ord.vehicleBrand}</p>
+                <p className="text-[11px] text-slate-500 line-clamp-2">
+                  {ord.parts.map((p) => `${p.name} (x${p.qty})`).join(', ')}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between pt-1 text-xs">
+                <span className="text-slate-400 text-[11px]">{ord.createdAt}</span>
+
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`https://zalo.me/${ord.phone.replace(/\./g, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-bold text-xs flex items-center gap-1"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Zalo</span>
+                  </a>
+                  <button
+                    onClick={() => setSelectedOrder(ord)}
+                    className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs"
+                  >
+                    Chi Tiết
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Data Table (>= md) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-100/80 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
@@ -217,25 +274,25 @@ export default function AdminOrdersPage() {
 
       {/* Order Detail Modal */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <h3 className="font-bold text-slate-900 text-base">
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base">
                   Chi Tiết Yêu Cầu Báo Giá #{selectedOrder.id}
                 </h3>
                 <p className="text-xs text-slate-400">Khách gửi lúc: {selectedOrder.createdAt}</p>
               </div>
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center flex-shrink-0"
               >
                 ✕
               </button>
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <span className="text-slate-400 font-semibold block">Họ và tên:</span>
                   <span className="font-bold text-slate-800 text-sm">{selectedOrder.customerName}</span>
@@ -246,7 +303,7 @@ export default function AdminOrdersPage() {
                     {selectedOrder.phone}
                   </a>
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <span className="text-slate-400 font-semibold block">Dòng xe thương mại:</span>
                   <span className="font-bold text-slate-800">{selectedOrder.vehicleBrand}</span>
                 </div>
@@ -258,13 +315,13 @@ export default function AdminOrdersPage() {
                   {selectedOrder.parts.map((p, idx) => (
                     <div
                       key={idx}
-                      className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/60 flex items-center justify-between"
+                      className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/60 flex items-center justify-between gap-2"
                     >
                       <div>
                         <div className="font-bold text-slate-800">{p.name}</div>
                         <div className="text-[10px] text-slate-400 font-mono">SKU: {p.sku}</div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right flex-shrink-0">
                         <span className="font-extrabold text-slate-900 block">Số lượng: x{p.qty}</span>
                         <span className="text-[10px] font-bold text-red-600">{p.price}</span>
                       </div>
@@ -281,12 +338,12 @@ export default function AdminOrdersPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100 pt-4">
               <a
                 href={`https://zalo.me/${selectedOrder.phone.replace(/\./g, '')}`}
                 target="_blank"
                 rel="noreferrer"
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md"
+                className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>Mở Chat Zalo Báo Giá</span>
@@ -297,7 +354,7 @@ export default function AdminOrdersPage() {
                   alert(`Đã cập nhật trạng thái đơn ${selectedOrder.id}`);
                   setSelectedOrder(null);
                 }}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white font-bold text-xs shadow-md"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-red-600 text-white font-bold text-xs shadow-md"
               >
                 Đổi Trạng Thái
               </button>

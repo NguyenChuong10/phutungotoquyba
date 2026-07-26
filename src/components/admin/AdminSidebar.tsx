@@ -14,7 +14,9 @@ import {
   ArrowLeft,
   ShieldCheck,
   ChevronRight,
+  X,
 } from 'lucide-react';
+import { useAdminSidebar } from './AdminSidebarContext';
 
 const MENU_ITEMS = [
   {
@@ -62,31 +64,43 @@ const MENU_ITEMS = [
   },
 ];
 
-export default function AdminSidebar() {
+function SidebarInner({ onNavItemClick }: { onNavItemClick?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 text-slate-300 flex flex-col justify-between h-screen sticky top-0 z-30 transition-all">
+    <div className="flex flex-col justify-between h-full text-slate-300">
       {/* Top Section: Brand Logo */}
       <div>
-        <div className="p-5 border-b border-slate-800 flex items-center gap-3">
-          <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-white p-1 shadow-md flex-shrink-0">
-            <Image
-              src="/images/logo/logo-quy-ba.jpg"
-              alt="Logo Phụ Tùng Ô Tô Q.BA"
-              fill
-              className="object-contain"
-            />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-white tracking-wider text-sm">
-                Q.BA <span className="text-red-500">ADMIN</span>
-              </span>
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-white p-1 shadow-md flex-shrink-0">
+              <Image
+                src="/images/logo/logo-quy-ba.jpg"
+                alt="Logo Phụ Tùng Ô Tô Q.BA"
+                fill
+                className="object-contain"
+              />
             </div>
-            <p className="text-[11px] text-slate-400 font-medium">Hệ Thống Quản Trị Phụ Tùng</p>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-white tracking-wider text-sm">
+                  Q.BA <span className="text-red-500">ADMIN</span>
+                </span>
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              </div>
+              <p className="text-[11px] text-slate-400 font-medium">Hệ Thống Quản Trị Phụ Tùng</p>
+            </div>
           </div>
+
+          {onNavItemClick && (
+            <button
+              onClick={onNavItemClick}
+              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+              aria-label="Đóng Menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Navigation Menu */}
@@ -96,12 +110,14 @@ export default function AdminSidebar() {
           </p>
           {MENU_ITEMS.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+            const isActive =
+              pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => onNavItemClick?.()}
                 className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all group ${
                   isActive
                     ? 'bg-red-600 text-white shadow-lg shadow-red-900/40 font-semibold'
@@ -121,7 +137,8 @@ export default function AdminSidebar() {
                   {item.badge && (
                     <span
                       className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                        item.badgeColor || (isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400')
+                        item.badgeColor ||
+                        (isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400')
                       }`}
                     >
                       {item.badge}
@@ -136,9 +153,9 @@ export default function AdminSidebar() {
       </div>
 
       {/* Bottom Section: User Info & Back to Site */}
-      <div className="p-3 border-t border-slate-800 space-y-2">
+      <div className="p-3 border-t border-slate-800 space-y-2 mt-auto">
         <div className="p-3 rounded-lg bg-slate-800/60 border border-slate-800 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center font-bold text-white shadow-md text-sm">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center font-bold text-white shadow-md text-sm flex-shrink-0">
             QB
           </div>
           <div className="overflow-hidden">
@@ -152,12 +169,42 @@ export default function AdminSidebar() {
 
         <Link
           href="/"
+          onClick={() => onNavItemClick?.()}
           className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition-all border border-slate-700/60"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Về trang chủ Q.BA</span>
         </Link>
       </div>
-    </aside>
+    </div>
+  );
+}
+
+export default function AdminSidebar() {
+  const { isMobileOpen, closeMobileSidebar } = useAdminSidebar();
+
+  return (
+    <>
+      {/* Desktop Sidebar (Fixed Left) */}
+      <aside className="hidden lg:flex w-64 bg-slate-900 border-r border-slate-800 flex-col h-screen sticky top-0 z-30 transition-all flex-shrink-0">
+        <SidebarInner />
+      </aside>
+
+      {/* Mobile Off-Canvas Sidebar Drawer */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          {/* Backdrop Blur Overlay */}
+          <div
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
+            onClick={closeMobileSidebar}
+          />
+
+          {/* Drawer Menu Container */}
+          <aside className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-slate-900 border-r border-slate-800 shadow-2xl z-50 overflow-y-auto animate-in slide-in-from-left duration-300">
+            <SidebarInner onNavItemClick={closeMobileSidebar} />
+          </aside>
+        </div>
+      )}
+    </>
   );
 }
