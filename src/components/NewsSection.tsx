@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 const cards = [
   {
@@ -31,7 +32,7 @@ export default function NewsSection() {
       <div className="container mx-auto px-4 max-w-7xl relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {cards.map((card) => (
-            <div key={card.id} className="flex flex-col h-full bg-white group cursor-pointer border border-[#111317]/10 hover:border-brand/30 transition-colors duration-300 shadow-xl hover:shadow-2xl">
+            <Link key={card.id} href="/news" className="flex flex-col h-full bg-white group cursor-pointer border border-[#111317]/10 hover:border-brand/30 transition-colors duration-300 shadow-xl hover:shadow-2xl">
               {/* Image */}
               <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#111317]">
                 <Image
@@ -60,7 +61,7 @@ export default function NewsSection() {
                   </svg>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Send, UserCheck, Briefcase, FileText, CheckCircle2 } from "lucide-react";
+import { Send, Briefcase, CheckCircle2 } from "lucide-react";
+
 
 const positions = [
   "Nhân Viên Kinh Doanh Phụ Tùng Xe Tải",

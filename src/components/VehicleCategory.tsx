@@ -42,10 +42,9 @@ export default function VehicleCategory() {
   const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
   const [isModalImageLoading, setIsModalImageLoading] = useState(true);
 
-  // Khóa scroll body khi mở Modal & reset loading state
+  // Khóa scroll body khi mở Modal
   useEffect(() => {
     if (selectedProduct) {
-      setIsModalImageLoading(true);
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -54,6 +53,7 @@ export default function VehicleCategory() {
       document.body.style.overflow = 'unset';
     };
   }, [selectedProduct]);
+
 
   return (
     <section id="products" className="bg-[#111317] py-20 relative overflow-hidden">
@@ -84,9 +84,13 @@ export default function VehicleCategory() {
                 {products.map((product) => (
                   <div 
                     key={`${setIndex}-${product.id}`} 
-                    onClick={() => setSelectedProduct(product)}
+                    onClick={() => {
+                      setIsModalImageLoading(true);
+                      setSelectedProduct(product);
+                    }}
                     className="group cursor-pointer w-[280px] h-[420px] rounded-xl shadow-2xl shrink-0 overflow-hidden border-2 border-brand hover:scale-105 transition-transform motion-reduce:transition-none bg-gray-900 relative"
                   >
+
                     <CardImageWithLoader src={product.src} alt={product.alt} />
                     {/* Overlay Text */}
                     <div className="absolute top-0 left-0 w-full pt-6 pb-12 px-4 bg-gradient-to-b from-black/90 via-black/40 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-0 z-10">
@@ -108,7 +112,7 @@ export default function VehicleCategory() {
           </div>
         </div>
 
-        <Link href="#products" className="bg-brand text-white uppercase font-bold tracking-wider py-4 px-10 rounded-full shadow-[0_0_20px_rgba(217,4,41,0.4)] hover:bg-white hover:text-brand hover:scale-105 transition-all duration-300 motion-reduce:transition-none cursor-pointer">
+        <Link href="/products" className="bg-brand text-white uppercase font-bold tracking-wider py-4 px-10 rounded-full shadow-[0_0_20px_rgba(217,4,41,0.4)] hover:bg-white hover:text-brand hover:scale-105 transition-all duration-300 motion-reduce:transition-none cursor-pointer">
           Khám phá thêm
         </Link>
       </div>

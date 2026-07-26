@@ -80,14 +80,14 @@ export default function Navbar() {
             </Link>
 
             <Link 
-              href="/#news" 
+              href="/news" 
               className={`${
-                isTransparent 
-                  ? "text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] hover:text-white" 
-                  : "text-slate-800 hover:text-[#FF0000]"
-              } font-bold font-heading transition-colors text-sm uppercase tracking-wider flex items-center gap-1`}
+                pathname.startsWith("/news") 
+                  ? (isTransparent ? "text-white border-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] border-b-2 pb-1" : "text-[#FF0000] border-[#FF0000] border-b-2 pb-1") 
+                  : (isTransparent ? "text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] hover:text-white" : "text-slate-800 hover:text-[#FF0000]")
+              } font-bold font-heading text-sm uppercase tracking-wider transition-colors`}
             >
-              Tin tức ▾
+              Tin tức
             </Link>
 
             <Link 
@@ -121,16 +121,20 @@ export default function Navbar() {
               Tiếng Việt ▾
             </div>
 
-            <button className={`${
-              isTransparent 
-                ? "bg-white text-black hover:bg-[#FF0000] hover:text-white" 
-                : "bg-[#FF0000] text-white hover:bg-[#111317]"
-            } p-2 rounded-full transition-colors cursor-pointer shadow-lg`} aria-label="Search">
+            <Link 
+              href="/products"
+              className={`${
+                isTransparent 
+                  ? "bg-white text-black hover:bg-[#FF0000] hover:text-white" 
+                  : "bg-[#FF0000] text-white hover:bg-[#111317]"
+              } p-2 rounded-full transition-colors cursor-pointer shadow-lg`} 
+              aria-label="Tìm kiếm phụ tùng"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-            </button>
+            </Link>
 
             {/* Mobile Menu Toggle */}
             <button className={`lg:hidden p-2 cursor-pointer ${

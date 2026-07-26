@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { MessageSquare, Phone, ShoppingCart } from "lucide-react";
+import { Phone, ShoppingCart } from "lucide-react";
+
 import { Product } from "@/data/productsData";
 import QuotationModal from "@/components/QuotationModal";
 

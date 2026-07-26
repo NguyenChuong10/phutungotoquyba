@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Montserrat, Inter } from "next/font/google";
 import "./globals.css";
-import FloatingContact from "@/components/FloatingContact";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import MainLayout from "@/components/MainLayout";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -35,18 +33,14 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="vi"
       className={`${inter.variable} ${montserrat.variable} h-full antialiased`}
       suppressHydrationWarning={true}
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning={true}>
-        <Navbar />
-        <main className="flex-grow">
-          {children}
-        </main>
-        <Footer />
-        <FloatingContact />
+        <MainLayout>{children}</MainLayout>
       </body>
     </html>
   );
 }
+

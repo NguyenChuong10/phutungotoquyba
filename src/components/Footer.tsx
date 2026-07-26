@@ -104,6 +104,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/news" className="hover:text-brand transition-colors inline-flex items-center gap-1.5 group">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand group-hover:scale-125 transition-transform"></span>
+                  Tin tức & Cẩm nang
+                </Link>
+              </li>
+              <li>
                 <Link href="/careers" className="hover:text-brand transition-colors inline-flex items-center gap-1.5 group">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand group-hover:scale-125 transition-transform"></span>
                   Tuyển dụng

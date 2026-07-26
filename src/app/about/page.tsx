@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { CheckCircle2, ShieldCheck, Truck, Package, Clock, Award, Phone, ArrowRight, MapPin } from "lucide-react";
+import { ShieldCheck, Truck, Package, Award, Phone, ArrowRight, MapPin } from "lucide-react";
+
 
 export const metadata = {
   title: "Giới Thiệu - Phụ Tùng Ô Tô Q.BA | 25 Năm Uy Tín Hàng Đầu",

@@ -3,7 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ShieldCheck, Truck, CheckCircle2, ChevronRight, FileText } from "lucide-react";
-import { productsData, Product } from "@/data/productsData";
+import { productsData } from "@/data/productsData";
+
 import ProductDetailActions from "@/components/ProductDetailActions";
 
 interface PageProps {

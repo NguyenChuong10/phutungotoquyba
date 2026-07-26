@@ -3,7 +3,8 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Filter, ShieldCheck, CheckCircle2, ChevronRight, RefreshCw, Phone, MessageSquare, ArrowRight, Tag, ShoppingCart } from "lucide-react";
+import { Search, Filter, CheckCircle2, ChevronRight, RefreshCw, Tag, ShoppingCart } from "lucide-react";
+
 import { productsData, categoriesList, brandsList, Product } from "@/data/productsData";
 import QuotationModal from "@/components/QuotationModal";
 

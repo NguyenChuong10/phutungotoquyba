@@ -1,5 +1,5 @@
-import React from "react";
-import { Briefcase, Award, TrendingUp, Users, ShieldCheck, MapPin, DollarSign, Clock, CheckCircle, PhoneCall } from "lucide-react";
+import { Briefcase, Users, CheckCircle, DollarSign, TrendingUp, MapPin, PhoneCall } from "lucide-react";
+
 import ApplicationForm from "@/components/ApplicationForm";
 
 export const metadata = {

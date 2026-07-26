@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 export default function IntroSection() {
   return (
@@ -69,6 +70,15 @@ export default function IntroSection() {
                 <span className="text-slate-900 font-bold text-lg tracking-wide">Chất lượng sản phẩm trên giá thành</span>
               </li>
             </ul>
+
+            <div className="pt-4">
+              <Link 
+                href="/about" 
+                className="inline-flex items-center gap-2 bg-[#111317] hover:bg-brand text-white font-black px-8 py-3.5 rounded-full uppercase text-xs tracking-wider transition-all duration-300 shadow-lg hover:scale-105"
+              >
+                TÌM HIỂU THÊM VỀ Q.BA →
+              </Link>
+            </div>
           </div>
 
         </div>
