@@ -159,6 +159,7 @@ export default function AdminNewsPage() {
                   <Link
                     href={`/news/${article.slug}`}
                     target="_blank"
+                    rel="noreferrer"
                     className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs flex items-center gap-1"
                   >
                     <Eye className="w-3.5 h-3.5" />
@@ -250,6 +251,7 @@ export default function AdminNewsPage() {
                       <Link
                         href={`/news/${article.slug}`}
                         target="_blank"
+                        rel="noreferrer"
                         className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all"
                         title="Xem bài public"
                       >

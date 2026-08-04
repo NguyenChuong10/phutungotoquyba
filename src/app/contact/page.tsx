@@ -1,7 +1,8 @@
 import React from "react";
 
 import { MapPin, Phone, Mail, Clock, ShieldCheck, Truck, MessageSquare } from "lucide-react";
-import ContactForm from "@/components/ContactForm";
+import ContactForm from "@/components/public/ContactForm";
+
 
 export const metadata = {
   title: "Liên Hệ & Báo Giá - Phụ Tùng Ô Tô Q.BA Đà Nẵng",
@@ -135,7 +136,8 @@ export default function ContactPage() {
                     <ShieldCheck size={22} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 text-sm uppercase">Cam Kết 80% Chuẩn OEM</h4>
+                    <h4 className="font-bold text-slate-900 text-sm uppercase">Cam Kết Hàng Chuẩn Loại 1</h4>
+
                     <p className="text-xs text-gray-600 mt-1">Phân phối các mặt hàng loại 1 cao cấp, vật liệu chịu tải siêu trường siêu trọng.</p>
                   </div>
                 </div>

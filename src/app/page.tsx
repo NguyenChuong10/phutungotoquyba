@@ -1,8 +1,9 @@
-import HeroSection from "@/components/HeroSection";
-import VehicleCategory from "@/components/VehicleCategory";
-import IntroSection from "@/components/IntroSection";
-import BrandSlider from "@/components/BrandSlider";
-import NewsSection from "@/components/NewsSection";
+import HeroSection from "@/components/public/HeroSection";
+import VehicleCategory from "@/components/public/VehicleCategory";
+import IntroSection from "@/components/public/IntroSection";
+import BrandSlider from "@/components/public/BrandSlider";
+import NewsSection from "@/components/public/NewsSection";
+
 export default function Home() {
   return (
     <div className="flex flex-col">

@@ -1,9 +1,10 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import FloatingContact from '@/components/FloatingContact';
+import Navbar from '@/components/public/Navbar';
+import Footer from '@/components/public/Footer';
+import FloatingContact from '@/components/public/FloatingContact';
+
 
 export default function MainLayout({
   children,

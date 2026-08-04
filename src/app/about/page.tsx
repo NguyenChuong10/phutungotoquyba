@@ -60,7 +60,8 @@ const qualityCommitments = [
   },
   {
     number: "03",
-    title: "Cam kết 80% hàng OEM",
+    title: "Cam kết hàng chuẩn loại 1",
+
     desc: "Chỉ phân phối dòng phụ tùng loại 1 cao cấp, vật liệu chịu tải siêu trường siêu trọng."
   },
   {
@@ -123,15 +124,17 @@ export default function AboutPage() {
               </p>
 
               <p className="text-gray-700 leading-relaxed text-base md:text-lg text-justify">
-                Nằm tại trung tâm giao thương Đà Nẵng (43-45 Nguyễn Văn Tạo), <strong className="text-brand font-black">Q.BA</strong> sở hữu kho linh kiện quy mô lớn, sẵn sàng đáp ứng hỏa tốc nhu cầu thay thế, đại tu động cơ, hộp số, khung gầm cho các đơn vị vận tải trên khắp miền Trung & Tây Nguyên.
+                Nằm tại trung tâm giao thương Đà Nẵng (43-45 Nguyễn Văn Tạo), <strong className="text-brand font-black">Q.BA</strong> sở hữu kho linh kiện quy mô lớn, sẵn sàng đáp ứng hỏa tốc nhu cầu thay thế, đại tu động cơ, hộp số, khung gầm cho các đơn vị vận tải trên khắp miền Trung, Tây Nguyên và toàn quốc.
               </p>
+
 
               {/* Highlight Badges */}
               <div className="grid grid-cols-2 gap-4 pt-4">
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-3">
                   <ShieldCheck className="w-8 h-8 text-brand shrink-0" />
                   <div>
-                    <h4 className="font-bold text-slate-900 text-sm uppercase">Cam kết 80% OEM</h4>
+                    <h4 className="font-bold text-slate-900 text-sm uppercase">Cam kết chất lượng</h4>
+
                     <p className="text-xs text-gray-600">Hàng chuẩn loại 1 cao cấp</p>
                   </div>
                 </div>
@@ -179,69 +182,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 3. Vision, Mission & Core Values */}
-      <section className="py-20 bg-[#111317] text-white relative overflow-hidden">
-        <div className="container mx-auto px-4 max-w-7xl relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-            <h2 className="text-3xl sm:text-5xl font-black font-heading uppercase tracking-wider">
-              TẦM NHÌN & <span className="text-brand">SỨ MỆNH</span>
-            </h2>
-            <p className="text-gray-400 text-base md:text-lg">
-              Nền tảng cốt lõi định hình mọi hoạt động của Phụ Tùng Ô Tô Q.BA trên thị trường
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Card 1: Vision */}
-            <div className="p-8 rounded-3xl bg-slate-900/90 border border-slate-800 hover:border-brand transition-all duration-500 shadow-xl flex flex-col justify-between group">
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-brand/10 border border-brand/30 text-brand flex items-center justify-center mb-6 group-hover:bg-brand group-hover:text-white transition-colors duration-300">
-                  <Award size={28} />
-                </div>
-                <h3 className="text-2xl font-black font-heading uppercase mb-4 text-white group-hover:text-brand transition-colors">
-                  TẦM NHÌN
-                </h3>
-                <p className="text-gray-300 text-sm leading-relaxed">
-                  Trở thành thương hiệu phân phối phụ tùng ô tô xe tải nặng Trung Quốc uy tín số 1 tại Đà Nẵng, Miền Trung và Tây Nguyên, mở rộng chuỗi cung ứng linh kiện chất lượng cao trên toàn quốc.
-                </p>
-              </div>
-            </div>
-
-            {/* Card 2: Mission */}
-            <div className="p-8 rounded-3xl bg-slate-900/90 border border-slate-800 hover:border-brand transition-all duration-500 shadow-xl flex flex-col justify-between group">
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-brand/10 border border-brand/30 text-brand flex items-center justify-center mb-6 group-hover:bg-brand group-hover:text-white transition-colors duration-300">
-                  <Truck size={28} />
-                </div>
-                <h3 className="text-2xl font-black font-heading uppercase mb-4 text-white group-hover:text-brand transition-colors">
-                  SỨ MỆNH
-                </h3>
-                <p className="text-gray-300 text-sm leading-relaxed">
-                  Cung cấp phụ tùng chuẩn mã, đúng thông số kỹ thuật, sẵn kho tức thì với giá thành tối ưu nhất, tiếp sức cho mọi đoàn xe luôn vận hành liên tục và an toàn trên mọi nẻo đường.
-                </p>
-              </div>
-            </div>
-
-            {/* Card 3: Core Values */}
-            <div className="p-8 rounded-3xl bg-slate-900/90 border border-slate-800 hover:border-brand transition-all duration-500 shadow-xl flex flex-col justify-between group">
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-brand/10 border border-brand/30 text-brand flex items-center justify-center mb-6 group-hover:bg-brand group-hover:text-white transition-colors duration-300">
-                  <ShieldCheck size={28} />
-                </div>
-                <h3 className="text-2xl font-black font-heading uppercase mb-4 text-white group-hover:text-brand transition-colors">
-                  GIÁ TRỊ CỐT LÕI
-                </h3>
-                <p className="text-gray-300 text-sm font-bold uppercase tracking-wider mb-2 text-brand">
-                  Chất Lượng • Uy Tín • Bền Bỉ
-                </p>
-                <p className="text-gray-300 text-sm leading-relaxed">
-                  Lấy sự tin tưởng của khách hàng làm thước đo thành công. Mỗi chi tiết phụ tùng bán ra đều mang trách nhiệm và sự tận tâm của đội ngũ 25 năm kinh nghiệm.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* 4. Real Warehouse Bento Grid Gallery */}
       <section className="py-20 bg-slate-50">

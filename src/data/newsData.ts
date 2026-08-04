@@ -106,7 +106,8 @@ export const newsData: Article[] = [
     summary: "Phân tích xu hướng chuyển dịch từ phụ tùng giá rẻ sang linh kiện OEM chính hãng của các doanh nghiệp vận tải hàng hóa và kho bãi tại Đà Nẵng.",
     content: `
       <h2>1. Doanh nghiệp vận tải chú trọng tính ổn định</h2>
-      <p>Thay vì sử dụng linh kiện trôi nổi hư hỏng vặt, các hạm đội xe tải ben và sơ-mi rơ-moóc tại Miền Trung ưu tiên lựa chọn phụ tùng <strong>OEM chuẩn 80%</strong> từ các nhà cung cấp có kho hàng sẵn tại Đà Nẵng như Q.BA.</p>
+      <p>Thay vì sử dụng linh kiện trôi nổi hư hỏng vặt, các hạm đội xe tải ben và sơ-mi rơ-moóc tại Miền Trung ưu tiên lựa chọn phụ tùng <strong>chất lượng loại 1</strong> từ các nhà cung cấp có kho hàng sẵn tại Đà Nẵng như Q.BA.</p>
+
     `,
     category: "Tin Thị Trường Xe Tải",
     author: "Ban Biên Tập Q.BA",

@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import { Phone, ShoppingCart } from "lucide-react";
 
 import { Product } from "@/data/productsData";
-import QuotationModal from "@/components/QuotationModal";
+import QuotationModal from "@/components/public/QuotationModal";
+
 
 interface ProductDetailActionsProps {
   product: Product;

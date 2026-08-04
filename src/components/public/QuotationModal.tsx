@@ -32,10 +32,26 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
     };
   }, [isOpen, onClose]);
 
+  const [phoneError, setPhoneError] = useState("");
+
   if (!isOpen) return null;
+
+  // Anti-XSS Sanitizer
+  const sanitize = (str: string) => str.replace(/[<>'"&]/g, "").trim();
+
+  // Vietnamese Phone Validator
+  const isValidPhone = (num: string) => {
+    const clean = num.replace(/\D/g, "");
+    return clean.length >= 9 && clean.length <= 11;
+  };
 
   const handleSubmitForm = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValidPhone(phone)) {
+      setPhoneError("Số điện thoại không hợp lệ. Vui lòng nhập từ 9-11 chữ số.");
+      return;
+    }
+    setPhoneError("");
     setSubmitted(true);
     setTimeout(() => {
       setSubmitted(false);
@@ -44,12 +60,21 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
   };
 
   const handleZaloQuickQuote = () => {
+    if (!isValidPhone(phone)) {
+      setPhoneError("Số điện thoại không hợp lệ. Vui lòng nhập từ 9-11 chữ số.");
+      return;
+    }
+    setPhoneError("");
+    const safeName = sanitize(fullName) || "Khách hàng";
+    const safePhone = sanitize(phone);
+    const safeNote = sanitize(note);
     const prodInfo = product 
-      ? `[Báo giá: ${product.name} - Part No: ${product.partNumber} - Mã QB: ${product.internalCode}]`
+      ? `[Báo giá: ${product.name} - Part No: ${product.partNumber}]`
       : "[Yêu cầu báo giá phụ tùng xe tải Q.BA]";
-    const message = encodeURIComponent(`Xin chào Q.BA, tôi là ${fullName || "Khách hàng"} (SĐT: ${phone || "..."}). Tôi cần báo giá: ${prodInfo}. Ghi chú: ${note}`);
+    const message = encodeURIComponent(`Xin chào Q.BA, tôi là ${safeName} (SĐT: ${safePhone}). Tôi cần báo giá: ${prodInfo}. Ghi chú: ${safeNote}`);
     window.open(`https://zalo.me/0903588167?text=${message}`, "_blank");
   };
+
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
@@ -92,10 +117,11 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
             </div>
             <div className="text-xs">
               <span className="font-bold text-slate-900 block truncate max-w-xs">{product.name}</span>
-              <span className="text-gray-500 font-mono">Part No: {product.partNumber} | Mã QB: {product.internalCode}</span>
+              <span className="text-gray-500 font-mono">Part No: {product.partNumber}</span>
             </div>
           </div>
         )}
+
 
         {/* Modal Body */}
         <div className="p-6 sm:p-8">
@@ -111,7 +137,7 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
             <form className="space-y-4" onSubmit={handleSubmitForm}>
               {/* Họ và tên */}
               <div className="relative">
-                <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Họ và tên *</label>
+                <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Họ và tên</label>
                 <div className="relative">
                   <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input 
@@ -119,11 +145,11 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
                     placeholder="Nguyễn Văn A"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    required
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
                   />
                 </div>
               </div>
+
 
               {/* Số điện thoại */}
               <div className="relative">
@@ -134,16 +160,24 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
                     type="tel"
                     placeholder="0903.xxx.xxx"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      if (phoneError) setPhoneError("");
+                    }}
                     required
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
                   />
                 </div>
+                {phoneError && (
+                  <p className="text-[11px] font-bold text-red-600 mt-1">{phoneError}</p>
+                )}
               </div>
 
               {/* Email */}
+
               <div className="relative">
-                <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Email (Không bắt buộc)</label>
+                <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Email</label>
+
                 <div className="relative">
                   <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input 

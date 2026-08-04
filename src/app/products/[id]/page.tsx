@@ -5,7 +5,8 @@ import { notFound } from "next/navigation";
 import { ShieldCheck, Truck, CheckCircle2, ChevronRight, FileText } from "lucide-react";
 import { productsData } from "@/data/productsData";
 
-import ProductDetailActions from "@/components/ProductDetailActions";
+import ProductDetailActions from "@/components/public/ProductDetailActions";
+
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: PageProps) {
 
   return {
     title: `${product.name} (Part No: ${product.partNumber}) - Phụ Tùng Ô Tô Q.BA`,
-    description: `Báo giá ${product.name} chính hãng Mã Part No: ${product.partNumber}, Mã nội bộ: ${product.internalCode}. Cam kết ${product.qualityStandard} sẵn kho Q.BA Đà Nẵng. Hotline 0903.588.167.`,
+    description: `Báo giá ${product.name} chính hãng Mã Part No: ${product.partNumber}. Cam kết ${product.qualityStandard} sẵn kho Q.BA Đà Nẵng. Hotline 0903.588.167.`,
   };
 }
 
@@ -45,24 +46,23 @@ export default async function ProductDetailPage({ params }: PageProps) {
     <div>
 
       {/* 1. Header Banner */}
-      <section className="bg-[#111317] text-white pt-32 md:pt-40 pb-12 md:pb-16 relative overflow-hidden">
+      <section className="bg-[#111317] text-white pt-32 md:pt-36 pb-8 md:pb-10 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="container mx-auto px-4 max-w-7xl relative z-10 space-y-4">
+        <div className="container mx-auto px-4 max-w-7xl relative z-10">
           {/* Breadcrumb Navigation */}
-          <nav className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+          <nav className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
             <Link href="/" className="hover:text-white transition-colors">Trang chủ</Link>
             <ChevronRight size={14} />
             <Link href="/products" className="hover:text-white transition-colors">Danh mục Phụ tùng</Link>
             <ChevronRight size={14} />
+            <Link href="/products" className="hover:text-white transition-colors">{product.categoryName}</Link>
+            <ChevronRight size={14} />
             <span className="text-brand truncate max-w-xs">{product.name}</span>
           </nav>
-
-          <h1 className="text-2xl sm:text-3xl md:text-5xl font-black font-heading uppercase text-white tracking-wide leading-tight">
-            {product.name}
-          </h1>
         </div>
       </section>
+
 
       {/* 2. Main Product Content */}
       <section className="py-16 bg-white">
@@ -113,7 +113,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3">
                   <ShieldCheck className="w-8 h-8 text-brand shrink-0" />
                   <div>
-                    <h4 className="font-bold text-slate-900 text-xs uppercase">Cam Kết 80% OEM</h4>
+                    <h4 className="font-bold text-slate-900 text-xs uppercase">Cam Kết Chất Lượng</h4>
+
                     <p className="text-[11px] text-gray-500">Hàng chuẩn loại 1 cao cấp</p>
                   </div>
                 </div>
@@ -131,29 +132,27 @@ export default async function ProductDetailPage({ params }: PageProps) {
             {/* Right Column: Product Detail & Quotation CTA (Col 6) */}
             <div className="lg:col-span-6 space-y-8">
               
-              {/* Product Identifiers & Tags */}
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-3 py-1 rounded-md bg-slate-900 text-white font-mono font-bold text-xs">
-                    Part No: {product.partNumber}
-                  </span>
-                  <span className="px-3 py-1 rounded-md bg-brand/10 text-brand font-bold text-xs uppercase">
-                    Mã Nội Bộ: {product.internalCode}
-                  </span>
-                  <span className="px-3 py-1 rounded-md bg-emerald-100 text-emerald-800 font-bold text-xs uppercase flex items-center gap-1">
-                    <CheckCircle2 size={14} /> Sẵn Kho Đà Nẵng
-                  </span>
-                </div>
-
-                <h2 className="text-2xl sm:text-3xl font-black font-heading text-slate-900 uppercase leading-snug">
-                  {product.name}
-                </h2>
-
-                {/* Admin Internal Name View */}
-                <div className="p-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-xs font-mono">
-                  <strong className="text-slate-900">Tên nội bộ (Admin):</strong> {product.internalName}
-                </div>
+              {/* Availability Badge at top */}
+              <div>
+                <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs uppercase border border-emerald-200">
+                  <CheckCircle2 size={14} /> Sẵn Kho Đà Nẵng
+                </span>
               </div>
+
+              {/* Product Title */}
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black font-heading text-slate-900 uppercase leading-snug">
+                {product.name}
+              </h2>
+
+              {/* Product Identifiers & Tags (Moved down below Title) */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-3.5 py-1.5 rounded-lg bg-slate-900 text-white font-mono font-bold text-xs shadow-sm">
+                  Part No: {product.partNumber}
+                </span>
+              </div>
+
+
+
 
               {/* Compatibility Vehicle Tags */}
               <div className="space-y-2">

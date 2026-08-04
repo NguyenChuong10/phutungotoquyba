@@ -6,7 +6,8 @@ import Image from "next/image";
 import { Search, Filter, CheckCircle2, ChevronRight, RefreshCw, Tag, ShoppingCart } from "lucide-react";
 
 import { productsData, categoriesList, brandsList, Product } from "@/data/productsData";
-import QuotationModal from "@/components/QuotationModal";
+import QuotationModal from "@/components/public/QuotationModal";
+
 
 export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,8 +69,9 @@ export default function ProductsPage() {
           </h1>
 
           <p className="text-gray-300 text-base md:text-xl max-w-3xl mx-auto leading-relaxed">
-            Tra cứu theo Mã nhà máy (Part No.), Mã quản lý nội bộ và Chủng loại xe. Cam kết 80% hàng OEM cao cấp sẵn kho Đà Nẵng.
+            Tra cứu theo Mã nhà máy (Part No.), Mã quản lý nội bộ và Chủng loại xe. Cam kết hàng chuẩn loại 1 cao cấp sẵn kho Đà Nẵng.
           </p>
+
         </div>
       </section>
 
@@ -83,11 +85,12 @@ export default function ProductsPage() {
               <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input 
                 type="text"
-                placeholder="Nhập Mã Phụ Tùng (vd: VG1560080012, JS160T...), Mã Nội Bộ (QB-DC...) hoặc Tên phụ tùng..."
+                placeholder="Nhập Mã Phụ Tùng (vd: VG1560080012, JS160T...) hoặc Tên phụ tùng..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-brand focus:bg-white transition-all"
               />
+
             </div>
 
             <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
@@ -228,15 +231,13 @@ export default function ProductsPage() {
 
                         {/* Card Content */}
                         <div className="p-6 space-y-3">
-                          {/* Part Number & Internal Code */}
-                          <div className="flex items-center justify-between gap-2 text-xs">
+                          {/* Part Number */}
+                          <div className="flex items-center gap-2 text-xs">
                             <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
                               Part: {product.partNumber}
                             </span>
-                            <span className="text-[11px] font-bold text-gray-500 uppercase">
-                              {product.internalCode}
-                            </span>
                           </div>
+
 
                           {/* Product Title */}
                           <h3 className="text-base font-black font-heading text-slate-900 leading-snug group-hover:text-brand transition-colors line-clamp-2">

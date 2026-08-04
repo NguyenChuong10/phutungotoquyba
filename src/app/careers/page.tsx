@@ -1,6 +1,7 @@
 import { Briefcase, Users, CheckCircle, DollarSign, TrendingUp, MapPin, PhoneCall } from "lucide-react";
 
-import ApplicationForm from "@/components/ApplicationForm";
+import ApplicationForm from "@/components/public/ApplicationForm";
+
 
 export const metadata = {
   title: "Tuyển Dụng Nhân Sự - Phụ Tùng Ô Tô Q.BA Đà Nẵng",
@@ -40,7 +41,8 @@ const jobs = [
     ],
     responsibilities: [
       "Báo giá và tư vấn bán lẻ/bán sỉ phụ tùng cho khách hàng trực tiếp và qua Zalo/Điện thoại",
-      "Chăm sóc danh sách garage, hạm đội xe ben, xe đầu kéo khu vực Miền Trung & Tây Nguyên",
+      "Chăm sóc danh sách garage, hạm đội xe ben, xe đầu kéo khu vực Miền Trung, Tây Nguyên và toàn quốc",
+
       "Phối hợp với kho hàng chuẩn bị đơn hàng gửi xe toàn quốc"
     ]
   },
@@ -100,8 +102,9 @@ export default function CareersPage() {
           </h1>
 
           <p className="text-gray-300 text-base md:text-xl max-w-3xl mx-auto leading-relaxed">
-            Cùng đồng hành với thương hiệu 25 năm uy tín cung ứng phụ tùng xe tải nặng hàng đầu tại Đà Nẵng, Miền Trung và Tây Nguyên.
+            Cùng đồng hành với thương hiệu 25 năm uy tín cung ứng phụ tùng xe tải nặng hàng đầu tại Đà Nẵng, Miền Trung, Tây Nguyên và toàn quốc.
           </p>
+
         </div>
       </section>
 

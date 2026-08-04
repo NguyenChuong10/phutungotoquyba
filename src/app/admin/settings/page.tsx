@@ -48,7 +48,7 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* Settings Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Left 2 Cols: Main Company & Hotline Info */}
         <div className="lg:col-span-2 space-y-6">
           {/* Company Info Box */}
@@ -124,7 +124,8 @@ export default function AdminSettingsPage() {
                 <label className="font-bold text-slate-700 block mb-1">Mô Tả SEO (Meta Description)</label>
                 <textarea
                   rows={3}
-                  defaultValue="Công ty TNHH Cơ Khí Ô Tô Q.BA cung cấp phụ tùng xe tải nặng Trung Quốc HOWO, Shacman, FAW, Weichai chuẩn OEM 80% tại Đà Nẵng và giao hàng toàn quốc."
+                  defaultValue="Công ty TNHH Cơ Khí Ô Tô Q.BA cung cấp phụ tùng xe tải nặng Trung Quốc HOWO, Shacman, FAW, Weichai chất lượng loại 1 tại Đà Nẵng và giao hàng toàn quốc."
+
                   className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white text-slate-800 font-medium"
                 ></textarea>
               </div>
