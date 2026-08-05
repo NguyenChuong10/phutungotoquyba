@@ -6,7 +6,7 @@
   "mcpServers": {
     "project-brain-context": {
       "command": "node",
-      "args": ["./project-brain/brain-server.js"],
+      "args": ["./project-brain/brain-server.cjs"],
       "description": "Provides brain.search(), brain.feature(), brain.api(), brain.table(), brain.commit(), brain.history()"
     },
     "git-context": {
