@@ -2,27 +2,32 @@
 
 ## 🏗️ 1. ARCHITECTURE OVERVIEW
 
-Hệ thống được thiết kế theo mô hình **Clean Layered Architecture** trên nền tảng **Next.js 16 App Router** + **Tailwind CSS v4** + **TypeScript**.
+Hệ thống được thiết kế theo mô hình **Enterprise Clean Layered Architecture** với sự phân định rõ ràng giữa Root Workspace, Frontend Platform (`web/`), và Backend Platform (`server/`).
 
 ```text
-src/
-├── app/                  # App Router (Pages, Layouts, API Routes)
-│   ├── page.tsx          # Homepage
-│   ├── about/            # Page About (/about)
-│   ├── contact/          # Page Contact (/contact)
-│   ├── products/         # Page E-Catalogue (/products)
-│   └── layout.tsx        # Root Layout with Navbar & Footer
-├── components/           # UI Components (Atomic Design Structure)
-│   ├── Navbar.tsx        # Navigation Bar
-│   ├── Footer.tsx        # Footer 12-col Grid
-│   ├── HeroSection.tsx   # Fullsize Slide Hero
-│   ├── IntroSection.tsx  # Brand Introduction 2-col
-│   ├── VehicleCategory.tsx # Product Categories Slider & Modal
-│   ├── BrandSlider.tsx   # Partner Brand Marquee
-│   ├── NewsSection.tsx   # News & Technical Guides
-│   └── FloatingContact.tsx # Zalo & Green Hotline Call Button
-└── data/                 # Static Mock Datasets & Types
-    └── productsData.ts   # Product Schema & Mock Data
+PhuTungOtoQuyBa/                          # ROOT WORKSPACE
+├── .agents/                              # AIOS Rule Engine & Workflows (10 Virtual Roles)
+├── .mcp.json                             # Model Context Protocol Configuration
+├── README.md                             # Enterprise Architecture Master Guide
+├── docs/                                 # Business & Technical Architecture Specs
+├── memory/                               # AIOS Memory-First Repository Brain
+├── tasks/                                # Agile Sprint Planning
+├── web/                                  # FRONTEND PLATFORM (Next.js 15 App Router)
+│   └── src/
+│       ├── app/                          # App Router (Pages, Layouts, SSG Routes)
+│       ├── components/                   # UI Components (admin/ & public/)
+│       ├── config/                       # Brand Metadata & Navigation Items
+│       ├── data/                         # Static Datasets & Seeds
+│       ├── hooks/                        # Custom React State Hooks
+│       ├── lib/                          # Formatters, Validators & Utilities
+│       ├── services/                     # Business Logic Services & Data Access
+│       └── types/                        # Enterprise TypeScript Definitions
+└── server/                               # BACKEND PLATFORM (Node.js/Express + Prisma ORM)
+    └── src/
+        ├── controllers/                  # RESTful API Controllers
+        ├── services/                     # Business Logic Services
+        ├── repositories/                 # Database Query Layer
+        └── routes/                       # Express Endpoints
 ```
 
 ---

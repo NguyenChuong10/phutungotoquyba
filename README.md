@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚚 DỰ ÁN PHỤ TÙNG Ô TÔ Q.BA (QUY BA AUTO PARTS)
+> **Hệ Thống Phân Phối Phụ Tùng Xe Tải, Xe Đầu Kéo & Động Cơ Máy Công Trình Hàng Đầu Tại Đà Nẵng, Miền Trung, Tây Nguyên & Toàn Quốc.**
 
-## Getting Started
+---
 
-First, run the development server:
+## 🌟 1. TỔNG QUAN DỰ ÁN (PROJECT OVERVIEW)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Dự án **Phụ Tùng Ô Tô Q.BA** là nền tảng thương mại điện tử chuyên nghiệp và hệ thống quản trị danh mục phụ tùng xe tải nặng, xe đầu kéo, xe ben và máy công trình (Sinotruk Howo, Shacman, Dongfeng, Faw, Hyundai, Isuzu, Weichai, Yuchai...).
+
+Hệ thống được phát triển theo **Mô hình Kiến trúc Doanh nghiệp (Enterprise Clean Layered Architecture)** với Next.js 15 App Router Frontend và Express + Prisma ORM + PostgreSQL Backend.
+
+---
+
+## 🏛️ 2. CẤU TRÚC THƯ MỤC DỰ ÁN
+
+```text
+PhuTungOtoQuyBa/
+├── frontend/                             # FRONTEND PLATFORM (Next.js 15 App Router + Tailwind)
+│   ├── package.json                      # Dependencies & NPM Scripts
+│   ├── public/                           # Static Assets (Images, Logos, Icons)
+│   └── src/                              # Clean Layered Frontend Source Code
+│       ├── app/                          # App Router Pages & SSG Routes
+│       ├── components/                   # UI Component Library (admin/ & public/)
+│       ├── config/                       # Enterprise Site Metadata & Navigation Menus
+│       ├── services/                     # Business Logic Services & API Clients
+│       └── types/                        # Enterprise TypeScript Type Specifications
+│
+└── backend/                              # BACKEND PLATFORM (Node.js/Express + Prisma ORM + PostgreSQL)
+    ├── package.json                      # Backend Dependencies & NPM Scripts
+    ├── prisma/                           # Database Schema & Migrations
+    └── src/                              # Clean Controller-Service-Repository Backend Code
+        ├── config/                       # DB & Environment Configurations
+        ├── controllers/                  # RESTful API Controllers
+        ├── middlewares/                  # Auth JWT & Validation Middlewares
+        ├── routes/                       # Express Router Handlers
+        └── services/                     # Backend Business Logic Services
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ 3. CÔNG NGHỆ SỬ DỤNG (TECH STACK)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Frontend Core:** Next.js 15 (App Router), React 19, TypeScript 5.
+- **Styling:** Tailwind CSS, Lucide Icons, Glassmorphism, Responsive Breakpoints.
+- **Backend:** Node.js, Express.js, Prisma ORM, PostgreSQL (Port 5430).
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 📞 4. THÔNG TIN THƯƠNG HIỆU PHỤ TÙNG Ô TÔ Q.BA
+- **Thương hiệu:** Phụ Tùng Ô Tô Q.BA (Quy Ba Auto Parts)
+- **Tổng kho:** 351 Điện Biên Phủ, Phường Hòa Khê, Quận Thanh Khê, TP. Đà Nẵng
+- **Hotline Zalo Báo Giá 24/7:** 0903.588.167
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

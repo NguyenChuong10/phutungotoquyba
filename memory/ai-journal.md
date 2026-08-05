@@ -35,4 +35,8 @@
   - Tạo tệp `.mcp.json` định nghĩa các MCP context server (Git context, Memory context, Filesystem context, Database context).
   - Bổ sung quy định `07-MCP-Protocol.md` thuộc hệ thống quy tắc `.agents/rules/`.
   - Cập nhật 12 tiêu chí Definition of Done trong `06-Git.md` và đồng bộ `AI_RULES.md` & `current-state.md`.
+- **Tái Thiết Kế Cấu Trúc Thư Mục Chuẩn Doanh Nghiệp (Enterprise Architecture)**:
+  - Bổ sung `README.md` tại thư mục gốc tổng quan toàn bộ hệ thống.
+  - Tổ chức `web/src/` theo Clean Layered Architecture: `types/` (product, news, quotation, admin, common), `config/` (siteConfig, navigation), `lib/` (utils, formatters, validators), `services/` (productService, newsService, quotationService), `hooks/` (useProductFilter).
+  - Dựng sẵn khung Backend `server/` (Node.js/Express + Prisma ORM + PostgreSQL) cho Sprint 03.
 - **Kiểm thử**: Chạy `npm run build` thành công 100% (**0 Error, 0 Warning**, 27 Static Routes SSG).

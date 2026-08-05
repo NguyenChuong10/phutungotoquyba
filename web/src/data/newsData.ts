@@ -1,17 +1,5 @@
-export interface Article {
-  id: string;
-  slug: string;
-  title: string;
-  summary: string;
-  content: string;
-  category: string;
-  author: string;
-  publishedAt: string;
-  readTime: string;
-  imageSrc: string;
-  isFeatured?: boolean;
-  tags: string[];
-}
+import { Article } from "@/types/news";
+export type { Article };
 
 export const newsCategories = [
   "Tất cả tin tức",
