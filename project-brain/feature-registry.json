@@ -1,0 +1,11 @@
+{
+  "project": "Phụ Tùng Ô Tô Q.BA",
+  "version": "1.0.0",
+  "features": [
+    { "key": "auth", "name": "Authentication & JWT", "status": "planned" },
+    { "key": "product", "name": "Products & E-Catalogue", "status": "completed" },
+    { "key": "quotation", "name": "Quick Quotation Form", "status": "completed" },
+    { "key": "news", "name": "Technical Articles & News", "status": "completed" },
+    { "key": "admin", "name": "Admin Management Dashboard", "status": "completed" }
+  ]
+}

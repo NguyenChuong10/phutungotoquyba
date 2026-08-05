@@ -37,6 +37,11 @@
   - Cập nhật 12 tiêu chí Definition of Done trong `06-Git.md` và đồng bộ `AI_RULES.md` & `current-state.md`.
 - **Tái Thiết Kế Cấu Trúc Thư Mục Chuẩn Doanh Nghiệp (Enterprise Architecture)**:
   - Bổ sung `README.md` tại thư mục gốc tổng quan toàn bộ hệ thống.
-  - Tổ chức `web/src/` theo Clean Layered Architecture: `types/` (product, news, quotation, admin, common), `config/` (siteConfig, navigation), `lib/` (utils, formatters, validators), `services/` (productService, newsService, quotationService), `hooks/` (useProductFilter).
-  - Dựng sẵn khung Backend `server/` (Node.js/Express + Prisma ORM + PostgreSQL) cho Sprint 03.
-- **Kiểm thử**: Chạy `npm run build` thành công 100% (**0 Error, 0 Warning**, 27 Static Routes SSG).
+  - Tổ chức `frontend/src/` theo Clean Layered Architecture: `types/`, `config/`, `lib/`, `services/`, `hooks/`.
+  - Dựng sẵn khung Backend `backend/` (Node.js/Express + Prisma ORM + PostgreSQL) cho Sprint 03.
+- **Hoàn Tất Triển Khai Mô Hình Project Brain Enterprise (10 Bước Chuẩn)**:
+  - Chuyển đổi toàn bộ thư mục `docs/` thành đúng 10 subfolder: `business/`, `requirements/`, `meeting/`, `architecture/`, `api/`, `database/`, `deployment/`, `sprint/`, `testing/`, `decisions/`.
+  - Xây dựng thư mục `project-brain/` chứa `memory-graph.json`, `feature-registry.json` và `brain-server.js` (cung cấp 6 MCP tools: `brain.search`, `brain.feature`, `brain.api`, `brain.table`, `brain.commit`, `brain.history`).
+  - Viết script tự động hóa `scripts/brain-sync.js` phân tích `git diff` để cập nhật Memory Graph tự động sau mỗi commit.
+  - Cấu hình GitHub Actions `.github/workflows/ci.yml` kiểm thử tự động.
+- **Kiểm thử**: Chạy `npm run build` trong `frontend/` thành công 100% (**0 Error, 0 Warning**, 27 Static Routes SSG) và `npx tsc --noEmit` trong `backend/` đạt **0 Error**.

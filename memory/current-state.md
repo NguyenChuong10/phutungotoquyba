@@ -4,9 +4,9 @@
 - **Dự án:** Phụ Tùng Ô Tô Q.BA (`web/`)
 - **Ngày cập nhật:** 05/08/2026
 - **Hệ điều hành AI & MCP Protocol:** **AIOS (AI Operating System)** kết hợp giao thức **MCP (Model Context Protocol)** vận hành mượt mà 100%. Tệp cấu hình `.mcp.json` và quy chuẩn `07-MCP-Protocol.md` đã được áp dụng.
-- **Kiến trúc Doanh nghiệp (Enterprise Architecture):** Chuẩn hóa cấu trúc thư mục toàn dự án theo mô hình Clean Layered Architecture. Bổ sung các tầng `types/`, `config/`, `lib/`, `services/`, `hooks/` cho `web/src/` và dựng sẵn khung Backend `server/` (Express + Prisma).
-- **Git Version Control:** Khởi tạo Git Repository tại gốc dự án (`PhuTungOtoQuyBa/`), cấu hình `.gitignore` chuẩn hóa, quản lý commit theo chuẩn Conventional Commits.
-- **Trạng thái Build:** Biên dịch thành công 100% (0 Error, 0 Warning). 27 Static Routes SSG prerendered.
+- **Project Brain Enterprise System (10 Bước Chuẩn):** Repository được chuyển đổi toàn diện sang mô hình Project Brain Enterprise với 8 phân khu cấp cao (`frontend/`, `backend/`, `database/`, `project-brain/`, `docs/`, `scripts/`, `.github/`, `.agents/`). Thư mục `docs/` được quy hoạch thành đúng 10 subfolder tri thức.
+- **Git Version Control & Auto Sync:** Khởi tạo Git Repository tại gốc dự án (`PhuTungOtoQuyBa/`), tích hợp script `scripts/brain-sync.js` tự động cập nhật Memory Graph sau mỗi commit.
+- **Trạng thái Build:** Biên dịch thành công 100% (0 Error, 0 Warning). 27 Static Routes SSG prerendered cho `frontend/` và backend TypeScript check 0 error cho `backend/`.
 - **Mã nguồn:** Thư mục `web/` chứa toàn bộ Project Next.js (App Router, Tailwind CSS v4). Thư mục `src/components/` được phân nhóm gọn gàng 100% gồm 2 thư mục con: `admin/` (Component quản trị) & `public/` (Component bán hàng & trang tĩnh).
 
 ---

@@ -1,21 +1,21 @@
 {
   "$schema": "https://modelcontextprotocol.io/schema/mcp-config.json",
-  "name": "PhuTungOtoQuyBa-MCP",
-  "description": "MCP Context Protocol Configuration for Phu Tung Oto Q.BA Enterprise AIOS",
-  "version": "1.0.0",
+  "name": "PhuTungOtoQuyBa-ProjectBrain-MCP",
+  "description": "Project Brain MCP Context Protocol Configuration for Phu Tung Oto Q.BA",
+  "version": "2.0.0",
   "mcpServers": {
+    "project-brain-context": {
+      "command": "node",
+      "args": ["./project-brain/brain-server.js"],
+      "description": "Provides brain.search(), brain.feature(), brain.api(), brain.table(), brain.commit(), brain.history()"
+    },
     "git-context": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-git", "--repository", "."],
       "env": {
         "GIT_PYTHON_REFRESH": "quiet"
       },
-      "description": "Provides Git history, commit staging, and branch status context to AI Agents"
-    },
-    "memory-context": {
-      "command": "node",
-      "args": ["./.agents/mcp-memory-server.js"],
-      "description": "Provides Memory-First journal, state, and rules context from memory/ directory"
+      "description": "Provides Git history, commit staging, and branch status context"
     },
     "filesystem-context": {
       "command": "npx",
@@ -26,12 +26,12 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://postgres:postgres@localhost:5432/phutungoto_db"],
       "disabled": true,
-      "description": "Provides Database schema and query inspection context for Sprint 03 backend"
+      "description": "Provides Database schema and query inspection context"
     }
   },
   "settings": {
     "autoSyncMemory": true,
     "strictGitCommitDoD": true,
-    "requirePlanApproval": true
+    "enforceSixStepRule": true
   }
 }

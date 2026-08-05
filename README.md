@@ -1,17 +1,13 @@
 # 🚚 DỰ ÁN PHỤ TÙNG Ô TÔ Q.BA (QUY BA AUTO PARTS)
-> **Hệ Thống Phân Phối Phụ Tùng Xe Tải, Xe Đầu Kéo & Động Cơ Máy Công Trình Hàng Đầu Tại Đà Nẵng, Miền Trung, Tây Nguyên & Toàn Quốc.**
+> **Hệ Thống Phân Phối Phụ Tùng Xe Tải Nặng, Xe Đầu Kéo & Động Cơ Máy Công Trình Hàng Đầu Tại Đà Nẵng, Miền Trung, Tây Nguyên & Toàn Quốc.**
 
 ---
 
-## 🌟 1. TỔNG QUAN DỰ ÁN (PROJECT OVERVIEW)
+## 🏛️ 1. CẤU TRÚC THƯ MỤC DỰ ÁN (PROJECT STRUCTURE)
 
 Dự án **Phụ Tùng Ô Tô Q.BA** là nền tảng thương mại điện tử chuyên nghiệp và hệ thống quản trị danh mục phụ tùng xe tải nặng, xe đầu kéo, xe ben và máy công trình (Sinotruk Howo, Shacman, Dongfeng, Faw, Hyundai, Isuzu, Weichai, Yuchai...).
 
 Hệ thống được phát triển theo **Mô hình Kiến trúc Doanh nghiệp (Enterprise Clean Layered Architecture)** với Next.js 15 App Router Frontend và Express + Prisma ORM + PostgreSQL Backend.
-
----
-
-## 🏛️ 2. CẤU TRÚC THƯ MỤC DỰ ÁN
 
 ```text
 PhuTungOtoQuyBa/
@@ -38,11 +34,31 @@ PhuTungOtoQuyBa/
 
 ---
 
-## 🛠️ 3. CÔNG NGHỆ SỬ DỤNG (TECH STACK)
+## 🛠️ 2. CÔNG NGHỆ SỬ DỤNG (TECH STACK)
 
 - **Frontend Core:** Next.js 15 (App Router), React 19, TypeScript 5.
 - **Styling:** Tailwind CSS, Lucide Icons, Glassmorphism, Responsive Breakpoints.
 - **Backend:** Node.js, Express.js, Prisma ORM, PostgreSQL (Port 5430).
+
+---
+
+## 🚀 3. HƯỚNG DẪN KHỞI CHẠY (QUICK START)
+
+### 1. Khởi chạy Frontend Platform:
+```bash
+cd frontend
+npm install
+npm run dev
+npm run build
+```
+
+### 2. Khởi chạy Backend Platform:
+```bash
+cd backend
+npm install
+npm run dev
+npx tsc --noEmit
+```
 
 ---
 

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/memory-graph.json",
+  "name": "PhuTungOtoQuyBa-MemoryGraph",
+  "updatedAt": "2026-08-05T22:20:00Z",
+  "entities": {
+    "features": [
+      {
+        "id": "product",
+        "name": "E-Catalogue & Product Details",
+        "requirementsDoc": "docs/requirements/product.md",
+        "apiDoc": "docs/api/product.md",
+        "databaseDoc": "docs/database/products.md",
+        "testingDoc": "docs/testing/product.md",
+        "frontendComponents": [
+          "frontend/src/app/products/page.tsx",
+          "frontend/src/app/products/[id]/page.tsx",
+          "frontend/src/components/public/VehicleCategory.tsx"
+        ],
+        "backendServices": [
+          "backend/src/services/productService.ts",
+          "backend/src/controllers/productController.ts"
+        ],
+        "databaseTable": "products"
+      },
+      {
+        "id": "quotation",
+        "name": "Quick Quotation Request",
+        "requirementsDoc": "docs/requirements/quotation.md",
+        "apiDoc": "docs/api/quotation.md",
+        "databaseDoc": "docs/database/quotations.md",
+        "testingDoc": "docs/testing/quotation.md",
+        "frontendComponents": [
+          "frontend/src/components/public/QuotationModal.tsx",
+          "frontend/src/components/public/ContactForm.tsx"
+        ],
+        "backendServices": [
+          "backend/src/services/quotationService.ts"
+        ],
+        "databaseTable": "quotation_requests"
+      }
+    ]
+  }
+}
