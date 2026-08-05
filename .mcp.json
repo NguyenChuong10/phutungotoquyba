@@ -1,0 +1,37 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/mcp-config.json",
+  "name": "PhuTungOtoQuyBa-MCP",
+  "description": "MCP Context Protocol Configuration for Phu Tung Oto Q.BA Enterprise AIOS",
+  "version": "1.0.0",
+  "mcpServers": {
+    "git-context": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-git", "--repository", "."],
+      "env": {
+        "GIT_PYTHON_REFRESH": "quiet"
+      },
+      "description": "Provides Git history, commit staging, and branch status context to AI Agents"
+    },
+    "memory-context": {
+      "command": "node",
+      "args": ["./.agents/mcp-memory-server.js"],
+      "description": "Provides Memory-First journal, state, and rules context from memory/ directory"
+    },
+    "filesystem-context": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./"],
+      "description": "Provides high-speed scoped workspace filesystem access"
+    },
+    "postgres-prisma-context": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://postgres:postgres@localhost:5432/phutungoto_db"],
+      "disabled": true,
+      "description": "Provides Database schema and query inspection context for Sprint 03 backend"
+    }
+  },
+  "settings": {
+    "autoSyncMemory": true,
+    "strictGitCommitDoD": true,
+    "requirePlanApproval": true
+  }
+}
