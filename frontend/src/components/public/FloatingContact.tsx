@@ -42,7 +42,7 @@ const contacts: ContactItem[] = [
 export default function FloatingContact() {
   return (
     // 8. Tối ưu responsive: bottom-6 trên mobile, bottom-10 trên md tránh đè Navigation Bar
-    <div className="fixed left-4 md:left-6 bottom-6 md:bottom-10 flex flex-col gap-4 md:gap-5 z-50">
+    <div className="fixed right-4 md:right-6 bottom-6 md:bottom-10 flex flex-col gap-4 md:gap-5 z-50">
       {/* 4. Khắc phục lỗi Duplicate Code bằng vòng lặp map từ Config Array */}
       {contacts.map((contact) => (
         <a 

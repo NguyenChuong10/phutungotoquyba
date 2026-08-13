@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useQuotation } from "@/context/QuotationContext";
 import { quotationService } from "@/services/quotationService";
-import MainLayout from "@/components/public/MainLayout";
 import { Trash2, Plus, Minus, Send, CheckCircle2, Package, ArrowLeft, ShieldCheck, Truck, Clock } from "lucide-react";
 
 export default function QuotationPage() {
@@ -46,8 +45,7 @@ export default function QuotationPage() {
   };
 
   return (
-    <MainLayout>
-      <div className="bg-[#111317] min-h-screen text-white pt-32 pb-24 px-4 sm:px-6">
+    <div className="bg-[#111317] min-h-screen text-white pt-32 pb-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           
           {/* Header & Breadcrumb */}
@@ -304,6 +302,5 @@ export default function QuotationPage() {
 
         </div>
       </div>
-    </MainLayout>
   );
 }

@@ -17,6 +17,8 @@ import {
   Upload,
   Sparkles,
   FileText,
+  Star,
+  Lightbulb,
 } from 'lucide-react';
 import { AdminApiService } from '@/services/adminApiService';
 
@@ -594,8 +596,9 @@ export default function AdminNewsPage() {
           <span>
             Hiển thị <strong className="text-slate-900">{articles.length}</strong> bài viết cẩm nang kỹ thuật Q.BA
           </span>
-          <span className="font-semibold text-slate-600">
-            ⭐ {articles.filter((a) => a.isFeatured).length} Bài viết nổi bật
+          <span className="font-semibold text-slate-600 flex items-center gap-1">
+            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+            <span>{articles.filter((a) => a.isFeatured).length} Bài viết nổi bật</span>
           </span>
         </div>
       </div>
@@ -653,7 +656,9 @@ export default function AdminNewsPage() {
                       onChange={(e) => setIsFeatured(e.target.checked)}
                       className="w-4 h-4 text-red-600 rounded-md focus:ring-red-500"
                     />
-                    <span>⭐ Đặt làm Bài Viết Nổi Bật (Trang chủ)</span>
+                    <span className="flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Đặt làm Bài Viết Nổi Bật (Trang chủ)
+                    </span>
                   </label>
                 </div>
               </div>
@@ -695,8 +700,8 @@ export default function AdminNewsPage() {
                 <div className="flex items-center justify-between mb-1">
                   <label className="font-bold text-slate-700">Nội Dung Bài Viết Chi Tiết (*)</label>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-bold border border-amber-200">
-                      💡 Mẹo: Có thể dán trực tiếp (Ctrl+V / Cmd+V) ảnh vào ô nội dung
+                    <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-bold border border-amber-200 flex items-center gap-1">
+                      <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Mẹo: Có thể dán trực tiếp (Ctrl+V / Cmd+V) ảnh vào ô nội dung
                     </span>
 
                     <label className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-600 text-red-700 hover:text-white font-extrabold text-[11px] cursor-pointer transition-all border border-red-200">

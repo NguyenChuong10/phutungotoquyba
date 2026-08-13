@@ -121,6 +121,42 @@ export class AdminApiService {
   }
 
   /**
+   * Fetch Partner Brands from Database
+   */
+  static async getPartnerBrands() {
+    return await fetchApi("/partner-brands");
+  }
+
+  /**
+   * Create Partner Brand in Database
+   */
+  static async createPartnerBrand(data: { name: string; logoUrl: string }) {
+    return await fetchApi("/partner-brands/admin", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
+   * Update Partner Brand in Database
+   */
+  static async updatePartnerBrand(id: number, data: { name?: string; logoUrl?: string }) {
+    return await fetchApi(`/partner-brands/admin/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
+   * Delete Partner Brand from Database
+   */
+  static async deletePartnerBrand(id: number) {
+    return await fetchApi(`/partner-brands/admin/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  /**
    * Fetch Admin Products List
    */
   static async getAdminProducts(params?: {

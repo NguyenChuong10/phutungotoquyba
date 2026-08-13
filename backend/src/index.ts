@@ -1,15 +1,16 @@
 import express from "express";
+import http from "http";
 import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
+import path from "path";
 
 dotenv.config();
 
 import routes from "./routes";
 import { errorHandler } from "./middlewares/errorHandler";
 import { apiRateLimiter } from "./middlewares/rateLimiter";
-
-import path from "path";
+import { initWebSocketServer } from "./services/websocketService";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,10 +33,14 @@ app.use("/api/v1", apiRateLimiter, routes);
 // Global Error Handler Middleware
 app.use(errorHandler);
 
+// HTTP & WebSocket Server Setup
+const server = http.createServer(app);
+initWebSocketServer(server);
+
 if (process.env.NODE_ENV !== "test") {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`🚀 [Q.BA Enterprise API] Server running on http://localhost:${PORT}`);
-    console.log(`🔐 [Admin Auth API Endpoint]: http://localhost:${PORT}/api/v1/auth/login`);
+    console.log(`⚡ [WebSocket Real-Time Server]: ws://localhost:${PORT}/ws`);
   });
 }
 

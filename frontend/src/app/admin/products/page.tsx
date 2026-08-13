@@ -27,6 +27,7 @@ import {
   ChevronRight,
   Loader2,
   Package,
+  Lock,
 } from 'lucide-react';
 
 interface ProductItem {
@@ -193,9 +194,10 @@ export default function AdminProductsPage() {
       stock: prod.stock,
       price: prod.price,
       costPrice: prod.costPrice,
-      description: raw.description || '',
+      description: raw?.description || '',
       image: prod.image,
-      specifications: raw.specifications || {},
+      specifications: raw?.specifications || {},
+      rawProduct: raw,
     });
     setActiveSubModal({
       id: prod.subCategoryId,
@@ -369,10 +371,10 @@ export default function AdminProductsPage() {
             >
               <option value="ALL">Tất cả danh mục sản phẩm</option>
               {categoryGroups.map((group, groupIdx) => (
-                <optgroup key={`fg-${group.id || groupIdx}-${group.main}`} label={`📂 ${group.main}`}>
+                <optgroup key={`fg-${group.id || groupIdx}-${group.main}`} label={`Danh mục: ${group.main}`}>
                   {group.subs.map((sub, subIdx) => (
                     <option key={`sub-opt-${sub.id || subIdx}-${sub.slug}`} value={sub.slug}>
-                      └─ {sub.name}
+                      - {sub.name}
                     </option>
                   ))}
                 </optgroup>
@@ -416,10 +418,10 @@ export default function AdminProductsPage() {
             <p className="text-xs text-slate-400">Thử tìm kiếm với từ khóa khác hoặc lọc lại danh mục/thương hiệu.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="max-h-[calc(100vh-280px)] min-h-[380px] overflow-y-auto overflow-x-auto custom-scrollbar">
             <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-100/80 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
+              <thead className="sticky top-0 z-10 bg-slate-100/95 backdrop-blur-xs shadow-2xs">
+                <tr className="text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
                   <th className="p-3.5 pl-5">Ảnh SEO</th>
                   <th className="p-3.5">Mã Part No / Mã Nội Bộ</th>
                   <th className="p-3.5">Tên Công Khai & Tên Nội Bộ</th>
@@ -458,15 +460,16 @@ export default function AdminProductsPage() {
 
                     <td className="p-3.5 max-w-xs">
                       <div className="font-extrabold text-slate-900 line-clamp-1">{product.name}</div>
-                      <div className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
-                        🔒 Nội bộ: {product.internalName}
+                      <div className="text-[11px] text-slate-400 line-clamp-1 mt-0.5 flex items-center gap-1">
+                        <Lock className="w-3 h-3 text-slate-400 inline shrink-0" />
+                        <span>Nội bộ: {product.internalName}</span>
                       </div>
                     </td>
 
                     <td className="p-3.5">
                       <div className="font-bold text-slate-800 text-[11px]">{product.mainCategory}</div>
                       <div className="text-[10px] text-red-600 font-semibold mt-0.5">
-                        └─ {product.subCategory}
+                        - {product.subCategory}
                       </div>
                     </td>
 

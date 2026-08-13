@@ -77,12 +77,23 @@ export default function AddProductModal({
   const [description, setDescription] = useState(editingProduct?.description || '');
 
   // Multi-Image Gallery State
-  const initialImages: ProductImageItem[] = editingProduct?.rawProduct?.images?.map((img: any, idx: number) => ({
-    imageUrl: img.imageUrl,
-    isPrimary: img.isPrimary ?? idx === 0,
-  })) || [
-    { imageUrl: editingProduct?.image || '/images/vehicle-category/dongco.png', isPrimary: true }
-  ];
+  const initialImages: ProductImageItem[] = (() => {
+    const rawImgs = editingProduct?.rawProduct?.images;
+    if (Array.isArray(rawImgs) && rawImgs.length > 0) {
+      const mapped = rawImgs.map((img: any, idx: number) => ({
+        imageUrl: img.imageUrl,
+        isPrimary: Boolean(img.isPrimary ?? idx === 0),
+      }));
+      if (!mapped.some((m) => m.isPrimary) && mapped.length > 0) {
+        mapped[0].isPrimary = true;
+      }
+      return mapped;
+    }
+    if (editingProduct?.image) {
+      return [{ imageUrl: editingProduct.image, isPrimary: true }];
+    }
+    return [{ imageUrl: '/images/vehicle-category/dongco.png', isPrimary: true }];
+  })();
 
   const [imageList, setImageList] = useState<ProductImageItem[]>(initialImages);
   const [uploading, setUploading] = useState(false);
@@ -364,8 +375,8 @@ export default function AddProductModal({
                 <ImageIcon className="w-4 h-4 text-red-600" />
                 <span>Bộ Ảnh Phụ Tùng Chuẩn SEO ({imageList.length}/5 Ảnh)</span>
               </label>
-              <span className="text-[10px] text-slate-500 font-semibold">
-                ⭐ Click icon Sao để chọn Ảnh Chính
+              <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1">
+                <Star className="w-3 h-3 text-amber-500 fill-amber-500" /> Click icon Sao để chọn Ảnh Chính
               </span>
             </div>
 
@@ -428,8 +439,9 @@ export default function AddProductModal({
 
                   {/* Primary Footer Badge */}
                   {img.isPrimary && (
-                    <div className="absolute bottom-0 inset-x-0 bg-red-600 text-white text-[8px] font-black text-center py-0.5 uppercase tracking-wider">
-                      ★ Ảnh Chính
+                    <div className="absolute bottom-0 inset-x-0 bg-red-600 text-white text-[8px] font-black text-center py-0.5 uppercase tracking-wider flex items-center justify-center gap-0.5">
+                      <Star className="w-2.5 h-2.5 fill-amber-300 text-amber-300" />
+                      <span>Ảnh Chính</span>
                     </div>
                   )}
                 </div>

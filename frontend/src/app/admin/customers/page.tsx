@@ -15,6 +15,9 @@ import {
   Clock,
   Eye,
   CheckCircle2,
+  Crown,
+  RotateCw,
+  Phone,
 } from 'lucide-react';
 import { AdminApiService } from '@/services/adminApiService';
 
@@ -194,9 +197,9 @@ export default function AdminCustomersPage() {
         <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
           {[
             { key: 'ALL', label: 'Tất Cả Khách Hàng' },
-            { key: 'VIP', label: '⭐ Khách VIP (≥5 đơn)' },
-            { key: 'Quen', label: '🔄 Khách Quen (2-4 đơn)' },
-            { key: 'Mới', label: '🆕 Khách Mới (1 đơn)' },
+            { key: 'VIP', label: 'Khách VIP (≥5 đơn)' },
+            { key: 'Quen', label: 'Khách Quen (2-4 đơn)' },
+            { key: 'Mới', label: 'Khách Mới (1 đơn)' },
           ].map((st) => (
             <button
               key={`vip-tab-${st.key}`}
@@ -284,7 +287,7 @@ export default function AdminCustomersPage() {
                     <td className="p-3.5 max-w-xs">
                       {customer.notes ? (
                         <div className="p-2 rounded-xl bg-amber-50/80 border border-amber-200/60 text-amber-900 font-medium text-xs line-clamp-2">
-                          📝 {customer.notes}
+                          {customer.notes}
                         </div>
                       ) : (
                         <span className="text-slate-400 italic text-[11px]">Chưa có ghi chú riêng</span>
@@ -336,8 +339,10 @@ export default function AdminCustomersPage() {
           <span>
             Hiển thị <strong className="text-slate-900">{filteredCustomers.length}</strong> / {customers.length} khách hàng trong danh bạ Q.BA
           </span>
-          <span className="font-semibold text-slate-600">
-            ⭐ {customers.filter((c) => c.totalOrders >= 5).length} Khách VIP • 🔄 {customers.filter((c) => c.totalOrders >= 2 && c.totalOrders < 5).length} Khách Quen
+          <span className="font-semibold text-slate-600 flex items-center gap-2">
+            <span className="flex items-center gap-1"><Crown className="w-3.5 h-3.5 text-amber-500" /> {customers.filter((c) => c.totalOrders >= 5).length} Khách VIP</span>
+            <span>•</span>
+            <span className="flex items-center gap-1"><RotateCw className="w-3.5 h-3.5 text-blue-500" /> {customers.filter((c) => c.totalOrders >= 2 && c.totalOrders < 5).length} Khách Quen</span>
           </span>
         </div>
       </div>
@@ -416,8 +421,9 @@ export default function AdminCustomersPage() {
                     {historyCustomer.vipBadgeText}
                   </span>
                 </div>
-                <p className="text-xs text-red-600 font-extrabold font-mono mt-0.5">
-                  📞 SĐT: {historyCustomer.phone}
+                <p className="text-xs text-red-600 font-extrabold font-mono mt-0.5 flex items-center gap-1">
+                  <Phone className="w-3.5 h-3.5 text-red-600" />
+                  <span>SĐT: {historyCustomer.phone}</span>
                 </p>
               </div>
               <button

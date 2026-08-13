@@ -1,16 +1,35 @@
-import React from "react";
-import Image from "next/image";
+"use client";
 
-const brands = [
-  { id: "brand-1", name: "WEICHAI", bg: "/images/pioneer-section/hopsoxetai.png" },
-  { id: "brand-2", name: "HOWO", bg: "/images/pioneer-section/bomcaoap.png" },
-  { id: "brand-3", name: "YUCHAI", bg: "/images/vehicle-category/dongco.png" },
-  { id: "brand-4", name: "CUMMINS", bg: "/images/vehicle-category/hopso.png" },
-  { id: "brand-5", name: "BOSCH", bg: "/images/vehicle-category/sealphot.png" },
-  { id: "brand-6", name: "FAW", bg: "/images/vehicle-category/cabin.png" },
-];
+import React, { useState, useEffect } from "react";
+import { fetchApi } from "@/config/api";
+
+interface BrandItem {
+  id: string | number;
+  name: string;
+  logoUrl: string;
+}
 
 export default function BrandSlider() {
+  const [brands, setBrands] = useState<BrandItem[]>([]);
+
+  useEffect(() => {
+    async function loadPartnerBrands() {
+      try {
+        const res = await fetchApi("/partner-brands");
+        if (res.ok && Array.isArray(res.data)) {
+          setBrands(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to load partner brands from database:", err);
+      }
+    }
+    loadPartnerBrands();
+  }, []);
+
+  if (brands.length === 0) {
+    return null;
+  }
+
   // Duplicate array to create a seamless infinite loop
   const slideItems = [...brands, ...brands, ...brands];
 
@@ -34,7 +53,7 @@ export default function BrandSlider() {
         </p>
       </div>
 
-      {/* Single Marquee Slider (Bớt rối) */}
+      {/* Single Marquee Slider */}
       <div className="relative w-full overflow-hidden flex z-10 py-10">
         <div className="flex w-max animate-[marquee_40s_linear_infinite] hover:[animation-play-state:paused]">
           {slideItems.map((brand, index) => (
@@ -43,13 +62,14 @@ export default function BrandSlider() {
               className="group relative h-[120px] w-[240px] md:w-[280px] rounded-xl overflow-hidden cursor-pointer transition-all duration-500 border border-transparent hover:border-brand/50 flex-shrink-0 mx-4 flex items-center justify-center hover:scale-105 hover:shadow-[0_0_25px_rgba(217,4,41,0.2)] bg-white"
             >
               {/* Clear background image/logo */}
-              <div className="absolute inset-0 p-4">
-                <Image
-                  src={brand.bg}
+              <div className="absolute inset-0 p-4 flex items-center justify-center">
+                <img
+                  src={brand.logoUrl}
                   alt={brand.name}
-                  fill
-                  sizes="(max-width: 768px) 240px, 280px"
-                  className="object-contain p-4 transition-all duration-500 group-hover:scale-110"
+                  className="w-full h-full object-contain p-2 transition-all duration-500 group-hover:scale-110"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
                 />
               </div>
 

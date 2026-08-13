@@ -372,41 +372,93 @@ export default function AdminOrdersPage() {
   }, []);
 
   useEffect(() => {
+    // Initial fetch ONCE on mount
     fetchOrders();
-    const interval = setInterval(() => {
-      fetchOrders();
-    }, 8000);
 
-    const handleNewOrder = () => fetchOrders();
+    // 1. Direct WebSocket New Order Push Handler (Zero HTTP Call)
+    const handleWsNewOrder = (e: any) => {
+      const o = e.detail;
+      if (!o) return;
 
-    window.addEventListener('quyba_new_order', handleNewOrder);
-    window.addEventListener('focus', handleNewOrder);
-
-    // Cross-tab BroadcastChannel listener for immediate table refresh
-    let bc: BroadcastChannel | null = null;
-    try {
-      bc = new BroadcastChannel('quyba_order_channel');
-      bc.onmessage = (event) => {
-        if (event.data && event.data.type === 'NEW_ORDER') {
-          fetchOrders();
-        }
-      };
-    } catch {}
-
-    // Storage event listener for cross-tab fallback
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'quyba_new_order_ping') {
-        fetchOrders();
+      let statusText = 'MỚI GỬI';
+      let statusColor = 'bg-red-100 text-red-800 border-red-200';
+      if (o.status === 'confirmed') {
+        statusText = 'ĐÃ XÁC NHẬN';
+        statusColor = 'bg-blue-100 text-blue-800 border-blue-200';
+      } else if (o.status === 'completed') {
+        statusText = 'HOÀN THÀNH';
+        statusColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      } else if (o.status === 'cancelled') {
+        statusText = 'ĐÃ HỦY';
+        statusColor = 'bg-slate-200 text-slate-700 border-slate-300';
       }
+
+      const parts: OrderPartItem[] = (o.items || []).map((i: any) => ({
+        name: i.productName || 'Phụ tùng xe tải Q.BA',
+        sku: i.partNumber || `PN-${i.productId}`,
+        qty: i.quantity || 1,
+        price: i.unitPrice && Number(i.unitPrice) > 0 ? `${Number(i.unitPrice).toLocaleString()} ₫` : 'Báo Giá Zalo',
+      }));
+
+      const newMappedOrder: OrderData = {
+        id: Number(o.id) || Date.now(),
+        orderCode: o.orderCode,
+        customerName: o.customerName || 'Khách hàng Q.BA',
+        phone: o.customerPhone,
+        email: o.customerEmail || '',
+        companyName: o.companyName || '',
+        notes: o.notes || '',
+        createdAt: o.createdAt ? new Date(o.createdAt).toLocaleString('vi-VN') : new Date().toLocaleString('vi-VN'),
+        rawCreatedAt: o.createdAt || new Date().toISOString(),
+        status: o.status,
+        statusText,
+        statusColor,
+        totalAmount: o.totalAmount ? Number(o.totalAmount) : 0,
+        parts,
+        customerBadgeText: 'Khách Mới (1 đơn)',
+        customerBadgeColor: 'bg-slate-100 text-slate-700 border-slate-200',
+      };
+
+      setOrdersList((prev) => {
+        const exists = prev.some((item) => item.id === newMappedOrder.id);
+        if (exists) return prev;
+        return [newMappedOrder, ...prev];
+      });
     };
-    window.addEventListener('storage', handleStorageChange);
+
+    // 2. Direct WebSocket Status Update Handler (Zero HTTP Call)
+    const handleWsStatusUpdate = (e: any) => {
+      const { orderId, newStatus } = e.detail || {};
+      if (!orderId) return;
+
+      let statusText = 'MỚI GỬI';
+      let statusColor = 'bg-red-100 text-red-800 border-red-200';
+      if (newStatus === 'confirmed') {
+        statusText = 'ĐÃ XÁC NHẬN';
+        statusColor = 'bg-blue-100 text-blue-800 border-blue-200';
+      } else if (newStatus === 'completed') {
+        statusText = 'HOÀN THÀNH';
+        statusColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      } else if (newStatus === 'cancelled') {
+        statusText = 'ĐÃ HỦY';
+        statusColor = 'bg-slate-200 text-slate-700 border-slate-300';
+      }
+
+      setOrdersList((prev) =>
+        prev.map((item) =>
+          item.id === Number(orderId)
+            ? { ...item, status: newStatus, statusText, statusColor }
+            : item
+        )
+      );
+    };
+
+    window.addEventListener('quyba_ws_new_order', handleWsNewOrder);
+    window.addEventListener('quyba_ws_status_update', handleWsStatusUpdate);
 
     return () => {
-      clearInterval(interval);
-      window.removeEventListener('quyba_new_order', handleNewOrder);
-      window.removeEventListener('focus', handleNewOrder);
-      window.removeEventListener('storage', handleStorageChange);
-      if (bc) bc.close();
+      window.removeEventListener('quyba_ws_new_order', handleWsNewOrder);
+      window.removeEventListener('quyba_ws_status_update', handleWsStatusUpdate);
     };
   }, [fetchOrders]);
 
@@ -1298,10 +1350,10 @@ export default function AdminOrdersPage() {
                   onChange={(e) => setEditStatus(e.target.value as any)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-bold"
                 >
-                  <option value="pending">🔴 MỚI GỬI (Chờ Báo Giá)</option>
-                  <option value="confirmed">🔵 ĐÃ XÁC NHẬN (Đang Báo Giá)</option>
-                  <option value="completed">🟢 HOÀN THÀNH (Đã Chốt Đơn)</option>
-                  <option value="cancelled">⚪ ĐÃ HỦY (Hủy Đơn)</option>
+                  <option value="pending">MỚI GỬI (Chờ Báo Giá)</option>
+                  <option value="confirmed">ĐÃ XÁC NHẬN (Đang Báo Giá)</option>
+                  <option value="completed">HOÀN THÀNH (Đã Chốt Đơn)</option>
+                  <option value="cancelled">ĐÃ HỦY (Hủy Đơn)</option>
                 </select>
               </div>
 

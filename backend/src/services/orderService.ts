@@ -1,6 +1,7 @@
 import prisma from "../config/db";
 import { AppError } from "../utils/AppError";
 import { CreateQuotationOrderInput } from "../validators/orderValidator";
+import { broadcastNewOrder, broadcastOrderStatusUpdate } from "./websocketService";
 
 export class OrderService {
   /**
@@ -163,6 +164,11 @@ export class OrderService {
       return newOrder;
     });
 
+    // Real-Time Event Push via WebSocket
+    try {
+      broadcastNewOrder(order);
+    } catch {}
+
     return order;
   }
 
@@ -270,6 +276,10 @@ export class OrderService {
       data: { status },
       include: { items: true },
     });
+
+    try {
+      broadcastOrderStatusUpdate(id, status);
+    } catch {}
 
     return updatedOrder;
   }

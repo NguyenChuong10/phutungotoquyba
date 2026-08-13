@@ -159,9 +159,9 @@ export default function VehicleCategory() {
               
               <div className="mt-auto">
                 <Link 
-                  href="#contact" 
+                  href="/products" 
                   onClick={() => setSelectedProduct(null)}
-                  className="inline-flex items-center justify-center w-full sm:w-auto bg-gradient-to-r from-brand to-orange-600 text-white font-bold py-4 px-10 rounded-full hover:shadow-[0_10px_25px_rgba(217,4,41,0.4)] transition-all duration-300 group"
+                  className="inline-flex items-center justify-center w-full sm:w-auto bg-gradient-to-r from-brand to-orange-600 text-white font-bold py-4 px-10 rounded-full hover:shadow-[0_10px_25px_rgba(217,4,41,0.4)] transition-all duration-300 group cursor-pointer"
                 >
                   LIÊN HỆ BÁO GIÁ CÁC MÃ SẢN PHẨM 
                   <span className="ml-2 group-hover:translate-x-2 transition-transform duration-300">→</span>

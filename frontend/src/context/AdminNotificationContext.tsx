@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { fetchApi } from "@/config/api";
+import { fetchApi, WS_BASE_URL } from "@/config/api";
 import ToastNotification, { ToastMessage } from "@/components/ui/ToastNotification";
 
 export interface AdminNotificationItem {
@@ -93,7 +93,6 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState<number>(0);
   const [notifications, setNotifications] = useState<AdminNotificationItem[]>([]);
   const [toastState, setToastState] = useState<ToastMessage | null>(null);
-  const [lastKnownMaxOrderId, setLastKnownMaxOrderId] = useState<number | null>(null);
 
   const triggerToast = useCallback((title: string, message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setToastState({
@@ -104,15 +103,28 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
     });
   }, []);
 
+  // Fetch initial notifications ONCE on mount
   const refreshNotifications = useCallback(async () => {
     try {
-      const res = await fetchApi("/orders/admin?limit=20");
+      const res = await fetchApi("/orders/admin?limit=50");
       if (res.ok && res.data) {
         const orders: any[] = res.data;
-        const pending = orders.filter((o) => o.status === "pending").length;
 
-        // Map notifications list from recent pending orders
-        const notificationItems: AdminNotificationItem[] = orders.slice(0, 10).map((o) => {
+        // Deduplicate orders by unique id
+        const uniqueOrdersMap = new Map<string, any>();
+        orders.forEach((o) => {
+          if (o.id && !uniqueOrdersMap.has(String(o.id))) {
+            uniqueOrdersMap.set(String(o.id), o);
+          }
+        });
+        const uniqueOrders = Array.from(uniqueOrdersMap.values());
+
+        // Count pending orders accurately
+        const pendingOrders = uniqueOrders.filter((o) => o.status === "pending");
+        const pending = pendingOrders.length;
+
+        // Map notifications list from unique recent orders
+        const notificationItems: AdminNotificationItem[] = uniqueOrders.slice(0, 10).map((o) => {
           const formattedTime = new Date(o.createdAt).toLocaleTimeString("vi-VN", {
             hour: "2-digit",
             minute: "2-digit",
@@ -131,34 +143,20 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
 
         setNotifications(notificationItems);
         setPendingCount(pending);
-
-        // Detect NEW incoming quotation request order by Max Order ID!
-        const maxId = orders.length > 0 ? Math.max(...orders.map((o) => Number(o.id))) : 0;
-
-        if (lastKnownMaxOrderId !== null && maxId > lastKnownMaxOrderId) {
-          playChimeSound();
-          const latestOrder = orders[0];
-          triggerToast(
-            "🔔 BÁO GIÁ MỚI GỬI ĐẾN!",
-            `Đã nhận đơn báo giá [${latestOrder?.orderCode || 'MỚI'}] từ ${latestOrder?.customerName || 'Khách'} (${latestOrder?.customerPhone})!`,
-            "success"
-          );
-          setUnreadNotificationsCount((prev) => prev + (maxId - lastKnownMaxOrderId));
-        } else if (lastKnownMaxOrderId === null) {
-          setUnreadNotificationsCount(pending > 0 ? pending : 0);
-        }
-
-        if (lastKnownMaxOrderId === null || maxId > lastKnownMaxOrderId) {
-          setLastKnownMaxOrderId(maxId);
-        }
+        setUnreadNotificationsCount(pending);
       }
     } catch {
       // Keep existing
     }
-  }, [lastKnownMaxOrderId, triggerToast]);
+  }, []);
 
-  // Initial fetch, 3-second fast polling, user interaction unlocker & cross-tab BroadcastChannel
+  // 100% Real-Time WebSocket state push (NO REPETITIVE HTTP FETCHES)
   useEffect(() => {
+    let isUnmounted = false;
+    let ws: WebSocket | null = null;
+    let reconnectTimeout: NodeJS.Timeout | null = null;
+
+    // Fetch initial state once on mount
     refreshNotifications();
 
     // Auto-unlock AudioContext on first user interaction in Admin
@@ -173,47 +171,120 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
     window.addEventListener("keydown", handleUserInteraction);
     window.addEventListener("pointerdown", handleUserInteraction);
 
-    const interval = setInterval(() => {
-      refreshNotifications();
-    }, 8000);
+    // Setup WebSocket Client Connection
+    const connectWebSocket = () => {
+      if (isUnmounted) return;
 
-    const handleNewOrder = () => {
-      refreshNotifications();
+      try {
+        const wsUrl = typeof window !== "undefined"
+          ? (WS_BASE_URL.startsWith("ws") ? WS_BASE_URL : `ws://${window.location.hostname}:5000/ws`)
+          : "ws://localhost:5000/ws";
+
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          if (!isUnmounted) {
+            console.log("⚡ [Admin WebSocket] Real-Time WebSocket connected successfully!");
+          }
+        };
+
+        ws.onmessage = (event) => {
+          if (isUnmounted) return;
+          try {
+            const message = JSON.parse(event.data);
+
+            if (message.type === "NEW_ORDER" && message.data) {
+              const newOrder = message.data;
+
+              playChimeSound();
+              triggerToast(
+                "🔔 BÁO GIÁ MỚI GỬI ĐẾN!",
+                `Đã nhận đơn báo giá [${newOrder?.orderCode || 'MỚI'}] từ ${newOrder?.customerName || 'Khách'} (${newOrder?.customerPhone})!`,
+                "success"
+              );
+
+              // 1. Direct local state update via WebSocket (Zero HTTP Call)
+              const formattedTime = new Date(newOrder.createdAt || Date.now()).toLocaleTimeString("vi-VN", {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+
+              const newNotifItem: AdminNotificationItem = {
+                id: String(newOrder.id),
+                orderCode: newOrder.orderCode,
+                customerName: newOrder.customerName || "Khách hàng Q.BA",
+                customerPhone: newOrder.customerPhone,
+                title: `Yêu cầu báo giá [${newOrder.orderCode}]`,
+                message: `${newOrder.customerName || "Khách hàng"} (${newOrder.customerPhone}) - ${newOrder.items?.length || 1} mã phụ tùng`,
+                time: formattedTime,
+                isRead: false,
+              };
+
+              setNotifications((prev) => {
+                const exists = prev.some((item) => item.id === newNotifItem.id);
+                if (exists) return prev;
+                return [newNotifItem, ...prev.slice(0, 9)];
+              });
+
+              setPendingCount((prev) => prev + 1);
+              setUnreadNotificationsCount((prev) => prev + 1);
+
+              // Dispatch custom event for child pages with payload
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("quyba_ws_new_order", { detail: newOrder }));
+              }
+            } else if (message.type === "ORDER_STATUS_UPDATED" && message.orderId) {
+              const { orderId, newStatus } = message;
+
+              // 2. Direct local status update via WebSocket (Zero HTTP Call)
+              setNotifications((prev) =>
+                prev.map((item) =>
+                  item.id === String(orderId) ? { ...item, isRead: newStatus !== "pending" } : item
+                )
+              );
+
+              if (newStatus !== "pending") {
+                setPendingCount((prev) => Math.max(0, prev - 1));
+                setUnreadNotificationsCount((prev) => Math.max(0, prev - 1));
+              }
+
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("quyba_ws_status_update", { detail: message }));
+              }
+            }
+          } catch {}
+        };
+
+        ws.onclose = () => {
+          if (isUnmounted) return;
+          reconnectTimeout = setTimeout(() => {
+            connectWebSocket();
+          }, 5000);
+        };
+
+        ws.onerror = () => {};
+      } catch {}
     };
 
-    window.addEventListener("quyba_new_order", handleNewOrder);
-    window.addEventListener("focus", handleNewOrder);
-
-    // Cross-tab BroadcastChannel listener
-    let bc: BroadcastChannel | null = null;
-    try {
-      bc = new BroadcastChannel("quyba_order_channel");
-      bc.onmessage = (event) => {
-        if (event.data && event.data.type === "NEW_ORDER") {
-          refreshNotifications();
-        }
-      };
-    } catch {}
-
-    // Storage event listener for cross-tab fallback
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "quyba_new_order_ping") {
-        refreshNotifications();
-      }
-    };
-    window.addEventListener("storage", handleStorageChange);
+    connectWebSocket();
 
     return () => {
-      clearInterval(interval);
-      window.removeEventListener("quyba_new_order", handleNewOrder);
-      window.removeEventListener("focus", handleNewOrder);
-      window.removeEventListener("storage", handleStorageChange);
+      isUnmounted = true;
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      if (ws) {
+        ws.onopen = null;
+        ws.onmessage = null;
+        ws.onclose = null;
+        ws.onerror = null;
+        if (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN) {
+          ws.close();
+        }
+      }
       window.removeEventListener("click", handleUserInteraction);
       window.removeEventListener("keydown", handleUserInteraction);
       window.removeEventListener("pointerdown", handleUserInteraction);
-      if (bc) bc.close();
     };
-  }, [refreshNotifications]);
+  }, [refreshNotifications, triggerToast]);
 
   const markAllAsRead = useCallback(() => {
     setUnreadNotificationsCount(0);

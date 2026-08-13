@@ -11,6 +11,7 @@ import adminBrandRoutes from "./adminBrandRoutes";
 import customerRoutes from "./customerRoutes";
 import newsRoutes from "./newsRoutes";
 import settingRoutes from "./settingRoutes";
+import partnerBrandRoutes from "./partnerBrandRoutes";
 
 const router = Router();
 
@@ -32,6 +33,7 @@ router.use("/orders", orderRoutes);
 router.use("/customers", customerRoutes);
 router.use("/news", newsRoutes);
 router.use("/settings", settingRoutes);
+router.use("/partner-brands", partnerBrandRoutes);
 
 // Protected Admin API Routes (JWT Auth Enforced)
 router.use("/admin/categories", adminCategoryRoutes);

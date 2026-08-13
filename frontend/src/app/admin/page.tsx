@@ -71,10 +71,9 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     fetchAnalytics();
-    const timer = setInterval(() => {
-      fetchAnalytics();
-    }, 15000); // Auto-refresh analytics every 15s
-    return () => clearInterval(timer);
+    const handleNewOrder = () => fetchAnalytics();
+    window.addEventListener('quyba_new_order', handleNewOrder);
+    return () => window.removeEventListener('quyba_new_order', handleNewOrder);
   }, []);
 
   const stats = analytics?.summaryStats;
@@ -477,9 +476,10 @@ export default function AdminDashboardPage() {
 
             <Link
               href="/admin/products"
-              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs text-center block mt-4"
+              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 mt-4"
             >
-              📦 Quản Lý Kho & Nhập Hàng Phụ Tùng
+              <Package className="w-4 h-4 text-red-500" />
+              <span>Quản Lý Kho & Nhập Hàng Phụ Tùng</span>
             </Link>
           </div>
         </div>

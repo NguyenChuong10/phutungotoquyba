@@ -219,4 +219,15 @@ model SystemSetting {
   @@map("system_settings")
 }
 
+model PartnerBrand {
+  id        Int      @id @default(autoincrement())
+  name      String
+  logoUrl   String   @map("logo_url")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("partner_brands")
+}
+
 

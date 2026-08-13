@@ -199,9 +199,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
                     {product.compatibility.map((comp: string, idx: number) => (
                       <span 
                         key={`compat-${idx}`}
-                        className="px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 font-bold text-xs"
+                        className="px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1"
                       >
-                        ✓ {comp}
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                        <span>{comp}</span>
                       </span>
                     ))}
                   </div>

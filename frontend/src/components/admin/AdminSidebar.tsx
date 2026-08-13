@@ -117,7 +117,7 @@ function SidebarInner({ onNavItemClick }: { onNavItemClick?: () => void }) {
               pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
 
             const displayBadge = item.href === '/admin/orders'
-              ? `${pendingCount} Mới`
+              ? (pendingCount > 0 ? `${pendingCount} Mới` : null)
               : item.badge;
 
             return (
@@ -193,7 +193,7 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Desktop Sidebar (Fixed Left) */}
-      <aside className="hidden lg:flex w-64 bg-slate-900 border-r border-slate-800 flex-col h-screen sticky top-0 z-30 transition-all flex-shrink-0">
+      <aside className="hidden lg:flex w-64 bg-slate-900 border-r border-slate-800 flex-col h-full z-30 transition-all flex-shrink-0">
         <SidebarInner />
       </aside>
 
