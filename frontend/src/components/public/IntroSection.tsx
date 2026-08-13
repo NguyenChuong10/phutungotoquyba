@@ -26,7 +26,7 @@ export default function IntroSection() {
             </h2>
 
             <p className="text-gray-700 leading-relaxed text-base md:text-lg text-justify">
-              Ngành công nghiệp ô tô đóng vai trò huyết mạch trong sự vươn mình của nền kinh tế hiện đại. Tại <strong className="text-brand font-black">Q.BA</strong>, với 25 năm kinh nghiệm làm việc với các chủng loại phụ tùng xe vận tải Trung Quốc, <strong className="text-brand font-black">Q.BA</strong> tự tin phục vụ các cá nhân, tổ chức trong lĩnh vực vận tải bằng chất lượng. <strong className="text-brand font-black">Q.BA</strong> vô cùng tự hào khi được cống hiến những giá trị cốt lõi, tiếp sức cho sự phát triển mạnh mẽ cho sự nghiệp của bạn.
+              Ngành công nghiệp ô tô đóng vai trò huyết mạch trong sự vươn mình của nền kinh tế hiện đại. Tại <strong className="text-brand font-black">Q.BA</strong>, với 25 năm kinh nghiệm làm việc với các chủng loại phụ tùng xe vận tải Trung Quốc, <strong className="text-brand font-black">Q.BA</strong> tự tin phục vụ các cá nhân, tổ chức trong lĩnh vực vận tải bằng <strong className="text-brand font-black">sự uy tín</strong>.
             </p>
           </div>
 

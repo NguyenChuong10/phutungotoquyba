@@ -16,27 +16,6 @@ const products = [
   { id: 'p8', src: '/images/vehicle-category/vongbi.png', alt: 'Vòng Bi', desc: 'Các loại vòng bi, bạc đạn công nghiệp (bi moay ơ, bi hộp số, bi chữ thập) có độ chính xác tuyệt đối, giảm ma sát tối đa và tăng cường tuổi thọ chi tiết máy.' }
 ];
 
-function CardImageWithLoader({ src, alt }: { src: string; alt: string }) {
-  const [loading, setLoading] = useState(true);
-
-  return (
-    <>
-      {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-950 z-10">
-          <div className="w-8 h-8 border-3 border-brand/20 border-t-brand rounded-full animate-spin"></div>
-        </div>
-      )}
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        sizes="280px"
-        onLoad={() => setLoading(false)}
-        className={`object-cover transition-opacity duration-500 ${loading ? 'opacity-0' : 'opacity-100'}`}
-      />
-    </>
-  );
-}
 
 export default function VehicleCategory() {
   const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
@@ -91,7 +70,13 @@ export default function VehicleCategory() {
                     className="group cursor-pointer w-[280px] h-[420px] rounded-xl shadow-2xl shrink-0 overflow-hidden border-2 border-brand hover:scale-105 transition-transform motion-reduce:transition-none bg-gray-900 relative"
                   >
 
-                    <CardImageWithLoader src={product.src} alt={product.alt} />
+                    <Image
+                      src={product.src}
+                      alt={product.alt}
+                      fill
+                      sizes="280px"
+                      className="object-cover"
+                    />
                     {/* Overlay Text */}
                     <div className="absolute top-0 left-0 w-full pt-6 pb-12 px-4 bg-gradient-to-b from-black/90 via-black/40 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-0 z-10">
                       <h3 className="text-[#EF233C] text-lg md:text-xl font-bold font-heading uppercase text-center tracking-[0.2em] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">

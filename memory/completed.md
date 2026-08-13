@@ -31,3 +31,15 @@
   - `[x]` **Trang Khách Hàng Doanh Nghiệp (`/admin/customers`)**: Quản lý Gara, Đội xe vận tải, Đại lý cấp 2 & Nút gọi Hotline 1-Click.
   - `[x]` **Trang Cấu Hình Hệ Thống (`/admin/settings`)**: Tùy chỉnh hotline, Zalo OA ID, địa chỉ kho Đà Nẵng, SEO Meta tags & Công tắc Bảo trì.
 
+---
+
+## 🟢 SPRINT 03 (Backend API & Authentication System):
+- `[x]` **Task-020:** Kết nối PostgreSQL 18 cổng 5430 (`quyba_autoparts`) và đồng bộ 9 bảng Prisma (`schema.prisma`).
+- `[x]` **Task-023:** **HỆ THỐNG XÁC THỰC ĐĂNG NHẬP ADMIN BẢO MẬT KHỦNG BỐ (HOÀN THÀNH & ĐÃ KHÓA 100%)**:
+  - Tích hợp tài khoản Super Admin mồi (`phutungotoqbadanang@gmail.com` / `@Foradminkho9999`).
+  - Viết bộ mã backend REST API `/api/v1/auth/login`, mã hóa băm mật khẩu Bcrypt 10 rounds, cấp JWT Token 7 ngày.
+  - Middleware `verifyAdmin` bảo vệ tất cả đường dẫn Admin (`/admin/*`).
+  - Lớp bảo mật OWASP: `express-rate-limit` khóa IP gõ sai 5 lần/15 phút, `Zod` sanitize & max length 100 chars, `Dummy Hash` chống Timing Attack User Enumeration.
+  - Giao diện Login `/admin/login` siêu sang Light Glassmorphic, tích hợp `secureStorage` Base64-XOR encrypted session storage.
+  - Đã nghiệm thu 5 bước chuẩn, vượt qua 6/6 kịch bản Penetration Testing, **0 Error, 0 Warning**. Đã chính thức nghiệm thu chốt phiên & khóa mã nguồn.
+

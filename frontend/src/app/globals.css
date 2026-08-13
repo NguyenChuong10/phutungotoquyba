@@ -48,3 +48,27 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   overflow-x: hidden;
 }
+
+/* Custom Red/Slate Enterprise Scrollbar - Always Visible & Bold */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #d90429 #e2e8f0;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  display: block !important;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d90429;
+  border-radius: 8px;
+  border: 2px solid #f1f5f9;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #b91c1c;
+}

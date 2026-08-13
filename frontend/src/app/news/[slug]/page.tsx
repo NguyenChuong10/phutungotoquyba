@@ -4,21 +4,47 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Calendar, Clock, User, ChevronRight, Tag, BookOpen, ShieldCheck } from "lucide-react";
 import { newsData } from "@/data/newsData";
-
+import { API_BASE_URL } from "@/config/api";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateStaticParams() {
-  return newsData.map((art) => ({
-    slug: art.slug,
-  }));
+async function getArticleDetail(slug: string) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/news/${encodeURIComponent(slug)}`, {
+      cache: "no-store",
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.data) {
+        const art = data.data;
+        return {
+          id: art.id,
+          title: art.title,
+          slug: art.slug,
+          category: art.categorySlug || 'Cẩm Nang Kỹ Thuật',
+          summary: art.content ? art.content.replace(/<[^>]*>?/gm, '').slice(0, 180) + '...' : '',
+          content: art.content || '',
+          imageSrc: art.thumbnailUrl || '/images/news-section/news-1.png',
+          publishedAt: art.publishedAt ? new Date(art.publishedAt).toLocaleDateString('vi-VN') : 'Mới xuất bản',
+          readTime: '5 phút đọc',
+          author: art.author?.fullName || 'Kỹ thuật Q.BA',
+          tags: ['Phụ Tùng Q.BA', 'Xe Tải Nặng', 'Kỹ Thuật'],
+        };
+      }
+    }
+  } catch (err) {
+    console.error("Failed to fetch article from API:", err);
+  }
+
+  // Fallback to local newsData
+  return newsData.find((a) => a.slug === slug) || null;
 }
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const article = newsData.find((a) => a.slug === slug);
+  const article = await getArticleDetail(slug);
   if (!article) return { title: "Bài Viết Không Tồn Tại - Q.BA" };
 
   return {
@@ -29,18 +55,17 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function NewsDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const article = newsData.find((a) => a.slug === slug);
+  const article = await getArticleDetail(slug);
 
   if (!article) {
     notFound();
   }
 
-  // Related Articles
+  // Related Articles fallback
   const relatedArticles = newsData.filter((a) => a.slug !== article.slug).slice(0, 3);
 
   return (
     <div>
-
       {/* 1. Header Banner */}
       <section className="bg-[#111317] text-white pt-32 md:pt-40 pb-12 md:pb-16 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -99,33 +124,36 @@ export default async function NewsDetailPage({ params }: PageProps) {
               </div>
 
               {/* Summary Lead Box */}
-              <div className="p-6 rounded-2xl bg-slate-50 border-l-4 border-brand text-slate-800 text-sm md:text-base font-medium leading-relaxed italic">
-                &ldquo;{article.summary}&rdquo;
-              </div>
-
+              {article.summary && (
+                <div className="p-6 rounded-2xl bg-slate-50 border-l-4 border-brand text-slate-800 text-sm md:text-base font-medium leading-relaxed italic">
+                  &ldquo;{article.summary}&rdquo;
+                </div>
+              )}
 
               {/* Rich Body Content */}
               <div 
-                className="prose prose-lg max-w-none text-slate-800 leading-relaxed font-sans space-y-6 [&_h2]:text-xl [&_h2]:sm:text-2xl [&_h2]:font-black [&_h2]:font-heading [&_h2]:uppercase [&_h2]:text-slate-900 [&_h2]:pt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2 [&_strong]:text-slate-900"
+                className="prose prose-lg max-w-none text-slate-800 leading-relaxed font-sans space-y-6 [&_h2]:text-xl [&_h2]:sm:text-2xl [&_h2]:font-black [&_h2]:font-heading [&_h2]:uppercase [&_h2]:text-slate-900 [&_h2]:pt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2 [&_strong]:text-slate-900 whitespace-pre-line"
                 dangerouslySetInnerHTML={{ __html: article.content }}
               ></div>
 
               {/* Article Tags */}
-              <div className="pt-6 border-t border-slate-200 space-y-3">
-                <span className="text-xs font-bold uppercase text-gray-500 tracking-wider block flex items-center gap-1.5">
-                  <Tag size={15} className="text-brand" /> Thẻ bài viết:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {article.tags.map((tag, idx) => (
-                    <span 
-                      key={`tag-${idx}`}
-                      className="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
+              {article.tags && article.tags.length > 0 && (
+                <div className="pt-6 border-t border-slate-200 space-y-3">
+                  <span className="text-xs font-bold uppercase text-gray-500 tracking-wider block flex items-center gap-1.5">
+                    <Tag size={15} className="text-brand" /> Thẻ bài viết:
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {article.tags.map((tag, idx) => (
+                      <span 
+                        key={`tag-${idx}`}
+                        className="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Author Bio Box */}
               <div className="p-6 rounded-3xl bg-slate-900 text-white shadow-xl flex items-center gap-4 border border-slate-800">
@@ -204,7 +232,6 @@ export default async function NewsDetailPage({ params }: PageProps) {
           </div>
         </div>
       </section>
-
     </div>
   );
 }

@@ -7,19 +7,22 @@ const cards = [
     id: "news-1",
     title: "THÔNG TIN DOANH NGHIỆP",
     desc: "Các bài viết giới thiệu về hoạt động, sự kiện, thông báo của công ty Q.BA.",
-    imgUrl: "/images/news-section/quyba.png"
+    imgUrl: "/images/news-section/quyba.png",
+    linkUrl: "/news/gioi-thieu-lich-su-25-nam-phat-trien-nang-luc-cung-cap-phu-tung-xe-tai-qba-da-nang-5511"
   },
   {
     id: "news-2",
     title: "THÔNG TIN SẢN PHẨM",
     desc: "Các danh mục phụ tùng tại Q.BA.",
-    imgUrl: "/images/news-section/sanpham.png"
+    imgUrl: "/images/news-section/sanpham.png",
+    linkUrl: "/news/tong-quan-he-thong-phu-tung-xe-tai-nang-trung-quoc-san-kho-da-nang-howo-weichai-fast-gear-8447"
   },
   {
     id: "news-3",
     title: "CẨM NANG KỸ THUẬT",
     desc: "Cẩm nang kỹ thuật, bảo dưỡng, lái xe.",
-    imgUrl: "/images/news-section/sanpham.png"
+    imgUrl: "/images/news-section/sanpham.png",
+    linkUrl: "/news/cam-nang-ky-thuat-bao-duong-dong-co-weichai-wp12-quy-trinh-kiem-tra-dinh-ky-50000km-7840"
   }
 ];
 
@@ -32,7 +35,7 @@ export default function NewsSection() {
       <div className="container mx-auto px-4 max-w-7xl relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {cards.map((card) => (
-            <Link key={card.id} href="/news" className="flex flex-col h-full bg-white group cursor-pointer border border-[#111317]/10 hover:border-brand/30 transition-colors duration-300 shadow-xl hover:shadow-2xl">
+            <Link key={card.id} href={card.linkUrl} className="flex flex-col h-full bg-white group cursor-pointer border border-[#111317]/10 hover:border-brand/30 transition-colors duration-300 shadow-xl hover:shadow-2xl">
               {/* Image */}
               <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#111317]">
                 <Image

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Package,
   FileText,
   Truck,
-  Newspaper,
+  Users,
   CheckCircle2,
   Clock,
   MessageSquare,
@@ -15,136 +15,72 @@ import {
   Plus,
   ArrowUpRight,
   ShieldAlert,
+  Loader2,
+  TrendingUp,
+  BarChart3,
+  RefreshCw,
 } from 'lucide-react';
+import { AdminApiService } from '@/services/adminApiService';
 
-
-// Mock Data for Dashboard KPI & Operations
-const KPIS = [
-  {
-    title: 'Tổng Mã Phụ Tùng Kho',
-    value: '10,480',
-    subtext: '+12 mã nạp kho hôm nay',
-    icon: Package,
-    color: 'from-blue-600 to-indigo-600',
-    lightBg: 'bg-blue-50 text-blue-700',
-  },
-  {
-    title: 'Yêu Cầu Báo Giá Mới',
-    value: '18',
-    subtext: '5 yêu cầu chưa xử lý',
-    icon: FileText,
-    color: 'from-red-600 to-amber-600',
-    lightBg: 'bg-red-50 text-red-700 animate-pulse',
-  },
-  {
-    title: 'Hãng OEM & Dòng Xe',
-    value: '15',
-    subtext: 'WEICHAI, HOWO, FAW...',
-    icon: Truck,
-    color: 'from-emerald-600 to-teal-600',
-    lightBg: 'bg-emerald-50 text-emerald-700',
-  },
-  {
-    title: 'Bài Viết Kỹ Thuật',
-    value: '24',
-    subtext: 'Chuẩn SEO & Cẩm nang',
-    icon: Newspaper,
-    color: 'from-purple-600 to-pink-600',
-    lightBg: 'bg-purple-50 text-purple-700',
-  },
-];
-
-const RECENT_QUOTATIONS = [
-  {
-    id: 'YC-2026-089',
-    customerName: 'Anh Trần Văn Hùng',
-    phone: '0912.345.678',
-    vehicleBrand: 'Xe Ben HOWO 371HP',
-    partName: 'Bộ Đồng Tốc Hộp Số HW19710',
-    sku: 'HW19710-DT',
-    createdAt: '10 phút trước',
-    status: 'MỚI GỬI',
-    statusColor: 'bg-red-100 text-red-800 border-red-200',
-  },
-  {
-    id: 'YC-2026-088',
-    customerName: 'Gara Ô Tô Minh Phát (Đà Nẵng)',
-    phone: '0905.888.999',
-    vehicleBrand: 'Xe Đầu Kéo Shacman X3000',
-    partName: 'Búp Sen Phanh 2 Tầng Cầu Sau',
-    sku: 'SHAC-BS-02',
-    createdAt: '35 phút trước',
-    status: 'ĐÃ GỌI TƯ VẤN',
-    statusColor: 'bg-amber-100 text-amber-800 border-amber-200',
-  },
-  {
-    id: 'YC-2026-087',
-    customerName: 'Công Ty Vận Tải Hoàng Hà',
-    phone: '0983.123.456',
-    vehicleBrand: 'Xe Ben FAW J6P 4 Chân',
-    partName: 'Mặt Ga Lăng & Đèn Pha Nguyên Cụm',
-    sku: 'FAW-GL-2024',
-    createdAt: '2 giờ trước',
-    status: 'ĐÃ GỬI BÁO GIÁ ZALO',
-    statusColor: 'bg-blue-100 text-blue-800 border-blue-200',
-  },
-  {
-    id: 'YC-2026-086',
-    customerName: 'Anh Nguyễn Quốc Bảo',
-    phone: '0935.444.555',
-    vehicleBrand: 'Động Cơ Weichai WD615',
-    partName: 'Bộ Bạc Đạn & Piston Động Cơ',
-    sku: 'WEICHAI-PST-01',
-    createdAt: '4 giờ trước',
-    status: 'HOÀN THÀNH',
-    statusColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  },
-  {
-    id: 'YC-2026-085',
-    customerName: 'Đội Xe Công Trình Núi Thành',
-    phone: '0903.111.222',
-    vehicleBrand: 'Xe Ben Dongfeng 4 Chân',
-    partName: 'Nhíp Cầu Sau 12 Lá Chịu Lực',
-    sku: 'DF-NCS-12',
-    createdAt: 'Hôm qua',
-    status: 'HOÀN THÀNH',
-    statusColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  },
-];
-
-const STOCK_ALERTS = [
-  {
-    name: 'Tăm Bua Lơ Lửng Cầu Sau HOWO 371',
-    sku: 'HW-TB-371',
-    category: 'Gầm - Phanh',
-    stock: 3,
-    minThreshold: 10,
-  },
-  {
-    name: 'Phớt Git Động Cơ Weichai WP10',
-    sku: 'WC-PG-WP10',
-    category: 'Động Cơ',
-    stock: 5,
-    minThreshold: 20,
-  },
-  {
-    name: 'Bi Moay ơ Cầu Sau Shacman X3000',
-    sku: 'SH-BM-X30',
-    category: 'Vòng Bi - Bạc Đạn',
-    stock: 2,
-    minThreshold: 8,
-  },
-];
-
-const BRAND_DISTRIBUTION = [
-  { name: 'HOWO Sinotruk', percentage: 42, color: 'bg-red-600', count: '4,400 mã' },
-  { name: 'Shacman', percentage: 28, color: 'bg-amber-500', count: '2,930 mã' },
-  { name: 'FAW & Dongfeng', percentage: 18, color: 'bg-blue-600', count: '1,880 mã' },
-  { name: 'Weichai & Yuchai', percentage: 12, color: 'bg-emerald-600', count: '1,270 mã' },
-];
+interface AnalyticsData {
+  summaryStats: {
+    totalOrders: number;
+    pendingOrders: number;
+    confirmedOrders: number;
+    completedOrders: number;
+    cancelledOrders: number;
+    conversionRatePercent: number;
+    totalProducts: number;
+    outOfStockProducts: number;
+    lowStockProducts: number;
+    totalCustomers: number;
+  };
+  topRequestedParts: {
+    rank: number;
+    productId: number;
+    productName: string;
+    partNumber: string;
+    totalRequests: number;
+    totalQuantity: number;
+  }[];
+  weeklyTrend: {
+    dayLabel: string;
+    count: number;
+  }[];
+}
 
 export default function AdminDashboardPage() {
-  const [filterStatus, setFilterStatus] = useState('ALL');
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchAnalytics = async (isManual = false) => {
+    if (isManual) setRefreshing(true);
+    try {
+      const res = await AdminApiService.getDashboardAnalytics();
+      if (res.ok && res.data) {
+        setAnalytics(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to load dashboard analytics:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnalytics();
+    const timer = setInterval(() => {
+      fetchAnalytics();
+    }, 15000); // Auto-refresh analytics every 15s
+    return () => clearInterval(timer);
+  }, []);
+
+  const stats = analytics?.summaryStats;
+  const topParts = analytics?.topRequestedParts || [];
+  const trend = analytics?.weeklyTrend || [];
+  const maxTrendCount = Math.max(...trend.map((t) => t.count), 1);
 
   return (
     <div className="space-y-8 pb-10">
@@ -156,17 +92,27 @@ export default function AdminDashboardPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600/30 border border-red-500/40 text-red-400 text-xs font-semibold mb-3">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-              <span>Phiên Làm Việc Quản Trị Hệ Thống Q.BA</span>
+              <span>Hệ Thống Phân Tích Dữ Liệu Real-Time Q.BA</span>
             </div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
               Bảng Điều Khiển Quản Trị <span className="text-red-500">Q.BA Auto Parts</span>
             </h1>
             <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl">
-              Quản lý danh mục 10,000+ mã phụ tùng xe tải nặng Trung Quốc, tiếp nhận yêu cầu báo giá Zalo hỏa tốc và theo dõi kho hàng Đà Nẵng 24/7.
+              Theo dõi biến động yêu cầu báo giá phụ tùng xe tải nặng, đo lường tỷ lệ chuyển đổi đơn hàng và cảnh báo tồn kho Đà Nẵng thời gian thực.
             </p>
           </div>
 
           <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap sm:flex-nowrap">
+            <button
+              onClick={() => fetchAnalytics(true)}
+              disabled={refreshing}
+              className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              title="Làm mới dữ liệu real-time"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${refreshing ? 'animate-spin' : ''}`} />
+              <span>{refreshing ? 'Đang làm mới...' : 'Làm Mới'}</span>
+            </button>
+
             <Link
               href="/admin/products"
               className="flex-1 sm:flex-none justify-center px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-lg shadow-red-900/50 transition-all flex items-center gap-2"
@@ -174,244 +120,323 @@ export default function AdminDashboardPage() {
               <Plus className="w-4 h-4" />
               <span>Quản Lý Phụ Tùng</span>
             </Link>
-            <button
-              onClick={() => alert('Xuất báo cáo tổng quan kho hàng thành công!')}
-              className="flex-1 sm:flex-none justify-center px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer"
+
+            <Link
+              href="/admin/orders"
+              className="flex-1 sm:flex-none justify-center px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-lg shadow-emerald-900/40 transition-all flex items-center gap-2"
             >
-              <Download className="w-4 h-4 text-emerald-400" />
-              <span>Xuất Báo Cáo</span>
-            </button>
+              <FileText className="w-4 h-4" />
+              <span>Đơn Báo Giá ({stats?.pendingOrders || 0})</span>
+            </Link>
           </div>
         </div>
       </div>
 
       {/* Grid KPI 4 Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {KPIS.map((kpi, idx) => {
-          const Icon = kpi.icon;
-          return (
-            <div
-              key={idx}
-              className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">{kpi.title}</span>
-                <div
-                  className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr ${kpi.color} text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}
-                >
-                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
-              </div>
-
-              <div className="mt-3">
-                <div className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
-                  {kpi.value}
-                </div>
-                <div className="mt-2 flex items-center gap-1.5">
-                  <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold border ${kpi.lightBg}`}>
-                    {kpi.subtext}
-                  </span>
-                </div>
+      {loading ? (
+        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-red-600 mb-2" />
+          <p className="text-xs font-bold text-slate-500">Đang tính toán chỉ số thống kê Real-Time từ CSDL...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {/* KPI 1 */}
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all group">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500">Tổng Đơn Báo Giá</span>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 to-amber-600 text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                <FileText className="w-5 h-5" />
               </div>
             </div>
-          );
-        })}
-      </div>
+            <div className="mt-3">
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                {stats?.totalOrders || 0}
+              </div>
+              <div className="mt-2 flex items-center gap-1.5">
+                <span className="text-[11px] px-2 py-0.5 rounded-full font-bold border bg-red-50 text-red-700 border-red-200">
+                  {stats?.pendingOrders || 0} đơn chờ báo giá
+                </span>
+              </div>
+            </div>
+          </div>
 
-      {/* SECTION 1: Recent Quotations (Left 2 cols) + Stock Alerts (Right 1 col) */}
+          {/* KPI 2 */}
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all group">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500">Tỷ Lệ Chuyển Đổi</span>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-600 text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600 tracking-tight">
+                {stats?.conversionRatePercent || 0}%
+              </div>
+              <div className="mt-2 flex items-center gap-1.5">
+                <span className="text-[11px] px-2 py-0.5 rounded-full font-bold border bg-emerald-50 text-emerald-700 border-emerald-200">
+                  {(stats?.confirmedOrders || 0) + (stats?.completedOrders || 0)} đơn đã phản hồi
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* KPI 3 */}
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all group">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500">Tổng Mã Phụ Tùng Kho</span>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                <Package className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                {stats?.totalProducts || 0}
+              </div>
+              <div className="mt-2 flex items-center gap-1.5">
+                <span className="text-[11px] px-2 py-0.5 rounded-full font-bold border bg-blue-50 text-blue-700 border-blue-200">
+                  Kho Q.BA Đà Nẵng
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* KPI 4 */}
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all group">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500">Khách Hàng & Gara</span>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-600 text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                <Users className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                {stats?.totalCustomers || 0}
+              </div>
+              <div className="mt-2 flex items-center gap-1.5">
+                <span className="text-[11px] px-2 py-0.5 rounded-full font-bold border bg-purple-50 text-purple-700 border-purple-200">
+                  Đối tác đặt phụ tùng
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SECTION 1: 7-Day Trend Bar Chart (Left 2 cols) + Conversion Funnel (Right 1 col) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
-        {/* Left: Recent Quotations Table */}
+        {/* Left: 7-Day Trend Chart */}
         <div className="lg:col-span-2 flex flex-col">
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden h-full flex flex-col justify-between">
-            {/* Table Header Controls */}
-            <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="font-bold text-slate-900 text-base">
-                    Yêu Cầu Báo Giá Mới Nhất
-                  </h2>
-                  <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 font-extrabold text-xs">
-                    18 Yêu Cầu
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Khách hàng gửi yêu cầu từ Form Website hoặc Zalo OA
-                </p>
-              </div>
-
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 space-y-4 h-full flex flex-col justify-between">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <div className="relative w-full sm:w-auto">
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-full sm:w-auto pl-3 pr-8 py-1.5 text-xs font-semibold border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500/20"
-                  >
-                    <option value="ALL">Tất cả trạng thái</option>
-                    <option value="MỚI GỬI">Mới gửi</option>
-                    <option value="ĐÃ GỌI TƯ VẤN">Đã gọi tư vấn</option>
-                    <option value="ĐÃ GỬI BÁO GIÁ ZALO">Đã báo giá Zalo</option>
-                    <option value="HOÀN THÀNH">Hoàn thành</option>
-                  </select>
+                <BarChart3 className="w-5 h-5 text-red-600" />
+                <div>
+                  <h2 className="font-extrabold text-slate-900 text-sm sm:text-base">
+                    Biểu Đồ Tăng Trưởng Đơn Báo Giá 7 Ngày Qua
+                  </h2>
+                  <p className="text-xs text-slate-400">Thống kê khối lượng yêu cầu gửi từ website theo ngày</p>
                 </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold">
+                7 Ngày Gần Nhất
+              </span>
+            </div>
+
+            {/* Bar Chart Visual */}
+            <div className="pt-4 pb-2">
+              <div className="h-44 flex items-end justify-between gap-2 sm:gap-4 px-2 border-b border-slate-200/80">
+                {trend.map((t, idx) => {
+                  const heightPercent = maxTrendCount > 0 ? (t.count / maxTrendCount) * 100 : 0;
+                  return (
+                    <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group relative">
+                      {/* Tooltip on hover */}
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 bg-slate-900 text-white text-[10px] font-extrabold px-2 py-1 rounded-md shadow-md pointer-events-none whitespace-nowrap z-20">
+                        {t.count} Yêu cầu ({t.dayLabel})
+                      </div>
+
+                      {/* Count value top label */}
+                      <span className="text-[11px] font-bold text-slate-600 group-hover:text-red-600">
+                        {t.count}
+                      </span>
+
+                      {/* Bar Fill */}
+                      <div className="w-full max-w-[36px] bg-slate-100 rounded-t-lg overflow-hidden flex items-end h-full">
+                        <div
+                          className="w-full bg-gradient-to-t from-red-600 to-amber-500 rounded-t-lg group-hover:from-red-500 group-hover:to-amber-400 transition-all duration-500 shadow-sm"
+                          style={{ height: `${Math.max(heightPercent, t.count > 0 ? 12 : 4)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Day Labels X-Axis */}
+              <div className="flex justify-between gap-2 sm:gap-4 px-2 mt-2">
+                {trend.map((t, idx) => (
+                  <span key={idx} className="flex-1 text-center text-[11px] font-extrabold text-slate-500">
+                    {t.dayLabel}
+                  </span>
+                ))}
               </div>
             </div>
 
-            {/* Mobile Card List View (Visible on Mobile screens < md) */}
-            <div className="block md:hidden divide-y divide-slate-100 flex-1">
-              {RECENT_QUOTATIONS.filter(
-                (q) => filterStatus === 'ALL' || q.status === filterStatus
-              ).map((item) => (
-                <div key={item.id} className="p-4 space-y-3 hover:bg-slate-50/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold font-mono text-slate-800 text-xs">{item.id}</span>
-                    <span
-                      className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${item.statusColor}`}
-                    >
-                      {item.status}
-                    </span>
-                  </div>
-
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-sm">{item.customerName}</h3>
-                    <a
-                      href={`tel:${item.phone.replace(/\./g, '')}`}
-                      className="text-red-600 hover:underline text-xs font-semibold inline-flex items-center gap-1 mt-0.5"
-                    >
-                      <PhoneCall className="w-3 h-3" />
-                      {item.phone}
-                    </a>
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-xs">
-                    <p className="font-semibold text-slate-800">{item.partName}</p>
-                    <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-                      {item.vehicleBrand} • SKU: {item.sku}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1">
-                    <div className="flex items-center gap-1 text-slate-400 text-[11px]">
-                      <Clock className="w-3 h-3" />
-                      <span>{item.createdAt}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <a
-                        href={`https://zalo.me/${item.phone.replace(/\./g, '')}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-bold text-xs flex items-center gap-1"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        <span>Zalo</span>
-                      </a>
-                      <button
-                        onClick={() => alert(`Xem chi tiết yêu cầu ${item.id}`)}
-                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs"
-                      >
-                        Xử lý
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Desktop Data Table (Visible on md and larger) */}
-            <div className="hidden md:block overflow-x-auto flex-1">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-slate-100/70 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200/60">
-                    <th className="p-3.5 pl-5">Mã Yêu Cầu</th>
-                    <th className="p-3.5">Khách Hàng & SĐT</th>
-                    <th className="p-3.5">Dòng Xe & Phụ Tùng</th>
-                    <th className="p-3.5">Thời Gian</th>
-                    <th className="p-3.5">Trạng Thái</th>
-                    <th className="p-3.5 pr-5 text-right">Hành Động</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {RECENT_QUOTATIONS.filter(
-                    (q) => filterStatus === 'ALL' || q.status === filterStatus
-                  ).map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-3.5 pl-5 font-bold text-slate-800">
-                        {item.id}
-                      </td>
-
-                      <td className="p-3.5">
-                        <div className="font-bold text-slate-900">{item.customerName}</div>
-                        <a
-                          href={`tel:${item.phone.replace(/\./g, '')}`}
-                          className="text-red-600 hover:underline font-semibold flex items-center gap-1 mt-0.5"
-                        >
-                          <PhoneCall className="w-3 h-3" />
-                          {item.phone}
-                        </a>
-                      </td>
-
-                      <td className="p-3.5">
-                        <div className="font-medium text-slate-700">{item.partName}</div>
-                        <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-                          {item.vehicleBrand} • SKU: {item.sku}
-                        </div>
-                      </td>
-
-                      <td className="p-3.5 text-slate-500">
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-slate-400" />
-                          <span>{item.createdAt}</span>
-                        </div>
-                      </td>
-
-                      <td className="p-3.5">
-                        <span
-                          className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${item.statusColor}`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-
-                      <td className="p-3.5 pr-5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <a
-                            href={`https://zalo.me/${item.phone.replace(/\./g, '')}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all"
-                            title="Chat Zalo báo giá ngay"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                          </a>
-                          <button
-                            onClick={() => alert(`Xem chi tiết yêu cầu ${item.id}`)}
-                            className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-all"
-                          >
-                            Xử lý
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Table Footer */}
-            <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500">
-              <span>Hiển thị 5 / 18 yêu cầu báo giá mới nhất</span>
-              <Link
-                href="/admin/orders"
-                className="font-bold text-red-600 hover:text-red-700 flex items-center gap-1 self-end sm:self-auto"
-              >
-                <span>Xem tất cả yêu cầu báo giá</span>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs text-slate-600">
+              <span>Hệ thống tự động đồng bộ thống kê mỗi 15 giây.</span>
+              <Link href="/admin/orders" className="font-bold text-red-600 hover:underline flex items-center gap-1">
+                <span>Xem chi tiết danh sách đơn</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Right: Stock Alert Widget */}
+        {/* Right: Conversion Funnel */}
+        <div className="lg:col-span-1 flex flex-col">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 space-y-4 h-full flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-bold text-slate-900 text-sm">Phễu Chuyển Đổi Báo Giá</h3>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                  {stats?.conversionRatePercent || 0}% Thành Công
+                </span>
+              </div>
+
+              <div className="space-y-4 mt-4">
+                {/* Pending */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-red-700 font-bold flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                      1. Mới Gửi (Chờ Xử Lý)
+                    </span>
+                    <span className="text-slate-600 font-mono font-bold">{stats?.pendingOrders || 0} đơn</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full bg-red-500 rounded-full"
+                      style={{
+                        width: `${stats?.totalOrders ? Math.round(((stats.pendingOrders || 0) / stats.totalOrders) * 100) : 0}%`,
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Confirmed */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-blue-700 font-bold">2. Đã Xác Nhận & Tư Vấn</span>
+                    <span className="text-slate-600 font-mono font-bold">{stats?.confirmedOrders || 0} đơn</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600 rounded-full"
+                      style={{
+                        width: `${stats?.totalOrders ? Math.round(((stats.confirmedOrders || 0) / stats.totalOrders) * 100) : 0}%`,
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Completed */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-emerald-700 font-bold">3. Hoàn Thành Giao Phụ Tùng</span>
+                    <span className="text-slate-600 font-mono font-bold">{stats?.completedOrders || 0} đơn</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-600 rounded-full"
+                      style={{
+                        width: `${stats?.totalOrders ? Math.round(((stats.completedOrders || 0) / stats.totalOrders) * 100) : 0}%`,
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Cancelled */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-slate-500 font-bold">4. Đã Hủy / Không Khả Thi</span>
+                    <span className="text-slate-600 font-mono font-bold">{stats?.cancelledOrders || 0} đơn</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full bg-slate-400 rounded-full"
+                      style={{
+                        width: `${stats?.totalOrders ? Math.round(((stats.cancelledOrders || 0) / stats.totalOrders) * 100) : 0}%`,
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200/60 flex items-start gap-2.5 text-xs text-emerald-800 mt-4">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">Mẹo tăng tỷ lệ chốt đơn:</span> Phản hồi Zalo khách hàng trong vòng 5 phút giúp tăng 40% khả năng chốt phụ tùng.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 2: Top 5 Most Requested Auto Parts (Left 2 cols) + Stock Alerts (Right 1 col) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+        {/* Left: Top 5 Most Requested Auto Parts */}
+        <div className="lg:col-span-2 flex flex-col">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 space-y-4 h-full flex flex-col justify-between">
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-sm sm:text-base">
+                    Top 5 Phụ Tùng Xe Tải Được Yêu Cầu Báo Giá Nhiều Nhất
+                  </h3>
+                  <p className="text-xs text-slate-400">Dựa trên dữ liệu tổng hợp thực tế từ các đơn báo giá</p>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-red-50 text-red-700 font-extrabold text-[11px] border border-red-200 self-start sm:self-auto">
+                  Dữ Liệu Real-Time
+                </span>
+              </div>
+
+              {topParts.length === 0 ? (
+                <div className="p-8 text-center text-slate-400 text-xs font-bold bg-slate-50 rounded-xl mt-4">
+                  Chưa có dữ liệu thống kê phụ tùng được yêu cầu
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                  {topParts.map((item) => (
+                    <div
+                      key={`top-part-${item.rank}`}
+                      className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between gap-3 hover:bg-slate-100/80 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-7 h-7 rounded-lg bg-red-600 text-white font-extrabold text-xs flex items-center justify-center flex-shrink-0 shadow-xs">
+                          #{item.rank}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-slate-900 text-xs truncate">{item.productName}</h4>
+                          <p className="text-[10px] text-slate-400 font-mono truncate">Mã: {item.partNumber}</p>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <span className="font-extrabold text-red-600 text-xs block">
+                          {item.totalRequests} lượt hỏi
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          Tong: {item.totalQuantity} cái
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Stock Health & Low Stock Alert Widget */}
         <div className="lg:col-span-1 flex flex-col">
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 space-y-4 h-full flex flex-col justify-between">
             <div>
@@ -421,160 +446,41 @@ export default function AdminDashboardPage() {
                     <ShieldAlert className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 text-sm">Cảnh Báo Tồn Kho</h3>
-                    <p className="text-[11px] text-slate-400">Phụ tùng cán mức tối thiểu</p>
+                    <h3 className="font-bold text-slate-900 text-sm">Cảnh Báo Tồn Kho Đà Nẵng</h3>
+                    <p className="text-[11px] text-slate-400">Trạng thái kho hàng hiện tại</p>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
-                  3 Mã Cần Nhập
-                </span>
               </div>
 
               <div className="space-y-3 mt-4">
-                {STOCK_ALERTS.map((alertItem, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between"
-                  >
-                    <div>
-                      <p className="text-xs font-bold text-slate-800 leading-snug">
-                        {alertItem.name}
-                      </p>
-                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">
-                        {alertItem.sku} • {alertItem.category}
-                      </p>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-xs font-extrabold text-red-600 block">
-                        Còn {alertItem.stock} cái
-                      </span>
-                      <span className="text-[10px] text-slate-400">
-                        (Định mức: {alertItem.minThreshold})
-                      </span>
-                    </div>
+                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200/60 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-red-900">Sản Phẩm Hết Hàng (Stock = 0)</p>
+                    <p className="text-[10px] text-red-600">Cần nhập bổ sung kho ngay</p>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => alert('Đã tạo đơn yêu cầu nhập hàng kho Đà Nẵng!')}
-              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs mt-4"
-            >
-              + Tạo Đơn Nhập Hàng Kho Q.BA
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION 2: Top Selling Parts (Left 2 cols) + Brand Distribution (Right 1 col) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
-        {/* Left: Top Selling Parts */}
-        <div className="lg:col-span-2 flex flex-col">
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 space-y-4 h-full flex flex-col justify-between">
-            <div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                <div>
-                  <h3 className="font-bold text-slate-900 text-sm sm:text-base">
-                    Top Phụ Tùng Xe Tải Nặng Bán Chạy (Kho Đà Nẵng)
-                  </h3>
-                  <p className="text-xs text-slate-400">Thống kê phụ tùng giao nhiều nhất trong tháng</p>
+                  <span className="text-lg font-extrabold text-red-700">
+                    {stats?.outOfStockProducts || 0} mã
+                  </span>
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[11px] border border-emerald-200 self-start sm:self-auto">
-                  Tháng 7/2026
-                </span>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                {[
-                  {
-                    name: 'Bộ Đồng Tốc Hộp Số HW19710',
-                    sku: 'HW19710-DT',
-                    brand: 'HOWO Sinotruk',
-                    sales: '142 bộ',
-                    trend: '+18% tháng này',
-                  },
-                  {
-                    name: 'Piston & Xéc Măng Động Cơ WP10',
-                    sku: 'WC-PST-WP10',
-                    brand: 'Weichai Power',
-                    sales: '98 bộ',
-                    trend: '+12% tháng này',
-                  },
-                  {
-                    name: 'Búp Sen Phanh 2 Tầng Cầu Sau',
-                    sku: 'SHAC-BS-3030',
-                    brand: 'Shacman',
-                    sales: '85 cái',
-                    trend: '+25% tháng này',
-                  },
-                  {
-                    name: 'Tăm Bua Lơ Lửng 10 Lỗ Phanh Hơi',
-                    sku: 'HW-TB-371',
-                    brand: 'HOWO Sinotruk',
-                    sales: '64 cái',
-                    trend: '+8% tháng này',
-                  },
-                ].map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between gap-3 hover:bg-slate-100/80 transition-colors"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-red-600 text-white font-extrabold text-xs flex items-center justify-center flex-shrink-0 shadow-xs">
-                        #{idx + 1}
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="font-bold text-slate-900 text-xs truncate">{item.name}</h4>
-                        <p className="text-[10px] text-slate-400 font-mono truncate">{item.brand} • {item.sku}</p>
-                      </div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <span className="font-extrabold text-slate-900 text-xs block">{item.sales}</span>
-                      <span className="text-[10px] text-emerald-600 font-bold">{item.trend}</span>
-                    </div>
+                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200/60 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-amber-900">Sản Phẩm Sắp Hết (Stock ≤ 5)</p>
+                    <p className="text-[10px] text-amber-600">Ngưỡng cảnh báo kho</p>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Brand Distribution */}
-        <div className="lg:col-span-1 flex flex-col">
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 space-y-4 h-full flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="font-bold text-slate-900 text-sm">Phân Bổ Mã Phụ Tùng Theo Hãng</h3>
-                <span className="text-[11px] text-slate-400 font-medium">10,480 Mã SP</span>
-              </div>
-
-              <div className="space-y-3.5 mt-4">
-                {BRAND_DISTRIBUTION.map((brand, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs font-semibold">
-                      <span className="text-slate-700">{brand.name}</span>
-                      <span className="text-slate-500 font-mono">{brand.count} ({brand.percentage}%)</span>
-                    </div>
-                    <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                      <div
-                        className={`h-full ${brand.color} rounded-full transition-all duration-500`}
-                        style={{ width: `${brand.percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
+                  <span className="text-lg font-extrabold text-amber-700">
+                    {stats?.lowStockProducts || 0} mã
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200/60 flex items-start gap-2.5 text-xs text-emerald-800 mt-4">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold">Cam kết chất lượng:</span> Toàn bộ phụ tùng kho Q.BA đều đạt chuẩn chất lượng nhà máy sản xuất loại 1.
-
-              </div>
-            </div>
+            <Link
+              href="/admin/products"
+              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs text-center block mt-4"
+            >
+              📦 Quản Lý Kho & Nhập Hàng Phụ Tùng
+            </Link>
           </div>
         </div>
       </div>

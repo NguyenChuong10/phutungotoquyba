@@ -98,6 +98,9 @@ Mỗi phiên làm việc phải trải qua các bước:
 - **Điều 29. Definition of Done (mở rộng):** Đúng yêu cầu, không hỏng cũ, update document, có báo cáo, Approved.
 - **Điều 30. Nguyên tắc trung thực:** Không dối trá về việc đã test/build.
 - **Điều 31. NGUYÊN TẮC BẤT BIẾN:** AI không được tối ưu để hoàn thành nhanh. AI phải tối ưu để dự án luôn đúng, nhất quán và có thể bảo trì. Ưu tiên chất lượng.
+- **Điều 32. QUY TẮC CHỐT TÍNH NĂNG VÀ KHÔNG TỰ SUY DIỄN (CRITICAL DIRECTIVE):**
+  1. Khi nhận lệnh làm một chức năng nào đó, chức năng đó **CHỈ ĐƯỢC CHỐT HOÀN THÀNH (DONE)** khi và chỉ khi đã trải qua đủ 5 bước: **Code đúng phạm vi $\rightarrow$ Debug sạch lỗi $\rightarrow$ Chạy kiểm thử (Build/Test 0 Error) $\rightarrow$ Deploy $\rightarrow$ Được người dùng xác nhận**.
+  2. **TUYỆT ĐỐI KHÔNG** tự sinh code, **KHÔNG** tự suy diễn/phỏng đoán ngoài lệnh, và **TUYỆT ĐỐI KHÔNG** tự ý viết thêm bất kỳ chức năng nào khác ngoài phạm vi được yêu cầu.
 
 ---
 **TÀI LIỆU NÀY LÀ BẤT TỬ.** Mọi phiên làm việc phải đối chiếu và tuân thủ tuyệt đối các quy định trên.

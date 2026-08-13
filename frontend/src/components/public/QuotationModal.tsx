@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, ShoppingCart, User, Phone, Mail, FileText, Send, CheckCircle2, MessageSquare, ShieldCheck } from "lucide-react";
+import { X, ShoppingCart, User, Phone, Mail, FileText, Send, CheckCircle2, MessageSquare, ShieldCheck, Loader2 } from "lucide-react";
 import { Product } from "@/data/productsData";
+import { quotationService } from "@/services/quotationService";
 
 interface QuotationModalProps {
   isOpen: boolean;
@@ -16,6 +17,8 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
 
   // Close on ESC key
   useEffect(() => {
@@ -32,34 +35,55 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
     };
   }, [isOpen, onClose]);
 
-  const [phoneError, setPhoneError] = useState("");
-
   if (!isOpen) return null;
 
   // Anti-XSS Sanitizer
   const sanitize = (str: string) => str.replace(/[<>'"&]/g, "").trim();
 
-  // Vietnamese Phone Validator
+  // Strict Vietnamese Mobile Phone Validator
   const isValidPhone = (num: string) => {
     const clean = num.replace(/\D/g, "");
-    return clean.length >= 9 && clean.length <= 11;
+    return /^(03|05|07|08|09)\d{8}$/.test(clean);
   };
 
-  const handleSubmitForm = (e: React.FormEvent) => {
+  const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValidPhone(phone)) {
-      setPhoneError("Số điện thoại không hợp lệ. Vui lòng nhập từ 9-11 chữ số.");
+      setPhoneError("Số điện thoại không hợp lệ. Vui lòng nhập đúng SĐT di động Việt Nam (10 chữ số, ví dụ: 0905123456).");
       return;
     }
     setPhoneError("");
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      onClose();
-    }, 3000);
+    setIsSubmitting(true);
+
+    const prodInfo = product 
+      ? `[Yêu cầu báo giá phụ tùng: ${product.name} - Part No: ${product.partNumber}]`
+      : "";
+
+    const fullNote = `${prodInfo} ${sanitize(note)}`.trim();
+
+    const payload = {
+      customerName: sanitize(fullName) || "Khách Hàng Q.BA",
+      phoneNumber: sanitize(phone),
+      customerEmail: sanitize(email) || undefined,
+      notes: fullNote || undefined,
+      items: product ? [{ productId: Number(product.id) || 2, quantity: 1 }] : [],
+    };
+
+    try {
+      await quotationService.submitQuotation(payload);
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        onClose();
+      }, 3000);
+    } catch {
+      // Handled in quotationService
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleZaloQuickQuote = () => {
+  const handleZaloQuickQuote = async () => {
     if (!isValidPhone(phone)) {
       setPhoneError("Số điện thoại không hợp lệ. Vui lòng nhập từ 9-11 chữ số.");
       return;
@@ -71,10 +95,19 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
     const prodInfo = product 
       ? `[Báo giá: ${product.name} - Part No: ${product.partNumber}]`
       : "[Yêu cầu báo giá phụ tùng xe tải Q.BA]";
+
+    // Submit to DB in background as well
+    quotationService.submitQuotation({
+      customerName: safeName,
+      phoneNumber: safePhone,
+      customerEmail: sanitize(email) || undefined,
+      notes: `Chat Zalo: ${prodInfo} - Ghi chú: ${safeNote}`,
+      items: product ? [{ productId: Number(product.id) || 2, quantity: 1 }] : [],
+    });
+
     const message = encodeURIComponent(`Xin chào Q.BA, tôi là ${safeName} (SĐT: ${safePhone}). Tôi cần báo giá: ${prodInfo}. Ghi chú: ${safeNote}`);
     window.open(`https://zalo.me/0903588167?text=${message}`, "_blank");
   };
-
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
@@ -88,14 +121,14 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
         <div className="bg-[#111317] text-white p-6 sm:p-8 relative">
           <button 
             onClick={onClose}
-            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-slate-800 hover:bg-brand text-gray-300 hover:text-white flex items-center justify-center transition-colors"
+            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-slate-800 hover:bg-red-600 text-gray-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Đóng cửa sổ"
           >
             <X size={20} />
           </button>
 
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-brand/20 border border-brand/40 text-brand flex items-center justify-center shrink-0 shadow-lg">
+            <div className="w-14 h-14 rounded-2xl bg-red-600/20 border border-red-600/40 text-red-500 flex items-center justify-center shrink-0 shadow-lg">
               <ShoppingCart size={28} />
             </div>
             <div>
@@ -112,7 +145,7 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
         {/* Selected Product Banner (If triggered from a product) */}
         {product && (
           <div className="p-4 bg-slate-100 border-b border-slate-200 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-red-600/10 text-red-600 flex items-center justify-center shrink-0">
               <ShieldCheck size={20} />
             </div>
             <div className="text-xs">
@@ -122,7 +155,6 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
           </div>
         )}
 
-
         {/* Modal Body */}
         <div className="p-6 sm:p-8">
           {submitted ? (
@@ -130,7 +162,7 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
               <CheckCircle2 size={56} className="text-emerald-500 mx-auto animate-bounce" />
               <h4 className="text-xl font-bold text-slate-900 uppercase">GỬI YÊU CẦU THÀNH CÔNG!</h4>
               <p className="text-xs sm:text-sm text-gray-600 max-w-sm mx-auto">
-                Cảm ơn bạn! Đội ngũ tư vấn kỹ thuật Phụ Tùng Ô Tô Q.BA sẽ liên hệ báo giá qua SĐT/Zalo trong 5 phút.
+                Cảm ơn bạn! Đội ngũ tư vấn kỹ thuật Phụ Tùng Ô Tô Q.BA đã nhận được đơn báo giá và sẽ liên hệ qua SĐT/Zalo trong 5 phút.
               </p>
             </div>
           ) : (
@@ -145,11 +177,10 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
                     placeholder="Nguyễn Văn A"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all"
                   />
                 </div>
               </div>
-
 
               {/* Số điện thoại */}
               <div className="relative">
@@ -165,7 +196,7 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
                       if (phoneError) setPhoneError("");
                     }}
                     required
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all"
                   />
                 </div>
                 {phoneError && (
@@ -174,10 +205,8 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
               </div>
 
               {/* Email */}
-
               <div className="relative">
                 <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Email</label>
-
                 <div className="relative">
                   <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input 
@@ -185,7 +214,7 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
                     placeholder="example@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all"
                   />
                 </div>
               </div>
@@ -200,7 +229,7 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
                     placeholder="Mô tả cụ thể số lượng cần mua, năm sản xuất xe..."
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all resize-none"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all resize-none"
                   ></textarea>
                 </div>
               </div>
@@ -209,10 +238,17 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
               <div className="pt-2 space-y-3">
                 <button 
                   type="submit"
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-blue-600 hover:to-sky-600 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 transition-all cursor-pointer"
+                  disabled={isSubmitting}
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer disabled:opacity-50"
                 >
-                  <Send size={16} />
-                  GỬI YÊU CẦU BÁO GIÁ
+                  {isSubmitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Send size={16} />
+                      GỬI YÊU CẦU BÁO GIÁ
+                    </>
+                  )}
                 </button>
 
                 <button 
@@ -227,7 +263,6 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
             </form>
           )}
         </div>
-
       </div>
     </div>
   );

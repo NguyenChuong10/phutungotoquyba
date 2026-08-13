@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAdminSidebar } from './AdminSidebarContext';
+import { useAdminNotification } from '@/context/AdminNotificationContext';
 
 const MENU_ITEMS = [
   {
@@ -26,13 +27,13 @@ const MENU_ITEMS = [
     badge: null,
   },
   {
-    name: 'Quản Lý Phụ Tùng',
+    name: 'Quản Lý Sản Phẩm',
     href: '/admin/products',
     icon: Package,
     badge: '10k+',
   },
   {
-    name: 'Danh Mục & Dòng Xe',
+    name: 'Danh Mục & Thương Hiệu',
     href: '/admin/categories',
     icon: Layers,
     badge: null,
@@ -66,6 +67,7 @@ const MENU_ITEMS = [
 
 function SidebarInner({ onNavItemClick }: { onNavItemClick?: () => void }) {
   const pathname = usePathname();
+  const { pendingCount } = useAdminNotification();
 
   return (
     <div className="flex flex-col justify-between h-full text-slate-300">
@@ -75,9 +77,10 @@ function SidebarInner({ onNavItemClick }: { onNavItemClick?: () => void }) {
           <div className="flex items-center gap-3">
             <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-white p-1 shadow-md flex-shrink-0">
               <Image
-                src="/images/logo/logo-quy-ba.jpg"
+                src="/images/logo/logonen.png"
                 alt="Logo Phụ Tùng Ô Tô Q.BA"
                 fill
+                sizes="40px"
                 className="object-contain"
               />
             </div>
@@ -113,6 +116,10 @@ function SidebarInner({ onNavItemClick }: { onNavItemClick?: () => void }) {
             const isActive =
               pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
 
+            const displayBadge = item.href === '/admin/orders'
+              ? `${pendingCount} Mới`
+              : item.badge;
+
             return (
               <Link
                 key={item.href}
@@ -134,14 +141,14 @@ function SidebarInner({ onNavItemClick }: { onNavItemClick?: () => void }) {
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  {item.badge && (
+                  {displayBadge && (
                     <span
                       className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
                         item.badgeColor ||
                         (isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400')
                       }`}
                     >
-                      {item.badge}
+                      {displayBadge}
                     </span>
                   )}
                   {isActive && <ChevronRight className="w-3.5 h-3.5 opacity-80" />}

@@ -47,34 +47,7 @@ const warehouseImages = [
   }
 ];
 
-const qualityCommitments = [
-  {
-    number: "01",
-    title: "Nhập khẩu trực tiếp",
-    desc: "Nguồn hàng nhập thẳng từ các tập đoàn phụ tùng uy tín (Weichai, Sinotruk, Fast Gear, Bosch, Yuchai)."
-  },
-  {
-    number: "02",
-    title: "Tư vấn đúng mã chuẩn xác",
-    desc: "Tra cứu catalog nhà máy theo số khung, mã động cơ, đảm bảo lắp ráp vừa vặn 100%."
-  },
-  {
-    number: "03",
-    title: "Cam kết hàng chuẩn loại 1",
 
-    desc: "Chỉ phân phối dòng phụ tùng loại 1 cao cấp, vật liệu chịu tải siêu trường siêu trọng."
-  },
-  {
-    number: "04",
-    title: "Đóng gói kiện gỗ bảo vệ",
-    desc: "Hàng nặng (hộp số, trục cầu, ty ben) được cố định thùng gỗ chắc chắn tránh móp méo va đập."
-  },
-  {
-    number: "05",
-    title: "Bảo hành & Hỗ trợ kỹ thuật",
-    desc: "Chính sách đổi trả minh bạch, đồng hành cùng chủ xe trong suốt quá trình vận hành."
-  }
-];
 
 export default function AboutPage() {
   return (
@@ -200,76 +173,27 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* Gallery Bento Grid */}
+          {/* Gallery Grid - Pure Clean Images */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {warehouseImages.map((img, idx) => (
               <div 
                 key={`wh-img-${idx}`}
-                className="group relative rounded-3xl overflow-hidden bg-slate-900 border border-slate-200/80 shadow-lg hover:shadow-2xl transition-all duration-500 flex flex-col justify-end min-h-[320px]"
+                className="group relative aspect-[4/3] rounded-3xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-lg hover:shadow-2xl transition-all duration-500"
               >
                 <Image 
                   src={img.src} 
                   alt={img.alt} 
                   fill 
-                  className="object-cover opacity-85 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" 
+                  className="object-cover group-hover:scale-105 transition-transform duration-700" 
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
-                
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none"></div>
-
-                {/* Text Content */}
-                <div className="relative z-10 p-6 space-y-2 text-white">
-                  <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-xs font-bold mb-2">
-                    0{idx + 1}
-                  </div>
-                  <h4 className="text-xl font-extrabold font-heading uppercase text-white group-hover:text-brand transition-colors">
-                    {img.title}
-                  </h4>
-                  <p className="text-gray-300 text-xs md:text-sm leading-relaxed">
-                    {img.desc}
-                  </p>
-                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 5. 5-Step Quality Verification */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-            <h2 className="text-3xl sm:text-5xl font-black font-heading text-[#111317] uppercase tracking-wider">
-              QUY TRÌNH KIỂM ĐỊNH <span className="text-brand">5 BƯỚC</span>
-            </h2>
-            <p className="text-gray-600 text-base md:text-lg">
-              Đảm bảo 100% phụ tùng khi tới tay khách hàng đều đúng chuẩn thông số và đạt chất lượng cao nhất
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            {qualityCommitments.map((item, idx) => (
-              <div 
-                key={`qc-${idx}`}
-                className="relative p-6 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-white hover:border-brand/40 hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
-              >
-                <div>
-                  <span className="text-4xl font-black font-heading text-brand/30 block mb-4">
-                    {item.number}
-                  </span>
-                  <h4 className="text-lg font-bold font-heading text-[#111317] uppercase mb-2">
-                    {item.title}
-                  </h4>
-                  <p className="text-gray-600 text-xs leading-relaxed">
-                    {item.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* 6. Call To Action (CTA) */}
       <section className="py-16 bg-[#111317] text-white relative overflow-hidden">

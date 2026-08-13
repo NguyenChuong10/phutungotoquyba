@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
-import AdminSidebar from '@/components/admin/AdminSidebar';
-import AdminHeader from '@/components/admin/AdminHeader';
-import { AdminSidebarProvider } from '@/components/admin/AdminSidebarContext';
+import AdminLayoutClient from '@/components/admin/AdminLayoutClient';
 
 export const metadata: Metadata = {
   title: 'Hệ Thống Quản Trị - Phụ Tùng Ô Tô Q.BA',
@@ -17,20 +15,5 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <AdminSidebarProvider>
-      <div className="min-h-screen bg-slate-50 text-slate-900 flex font-sans antialiased relative overflow-x-hidden">
-        {/* Admin Sidebar Menu */}
-        <AdminSidebar />
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 w-full">
-          <AdminHeader />
-          <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
-            {children}
-          </main>
-        </div>
-      </div>
-    </AdminSidebarProvider>
-  );
+  return <AdminLayoutClient>{children}</AdminLayoutClient>;
 }

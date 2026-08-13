@@ -1,4 +1,4 @@
-import { Briefcase, Users, CheckCircle, DollarSign, TrendingUp, MapPin, PhoneCall } from "lucide-react";
+import { Briefcase, Users, CheckCircle, MapPin, PhoneCall } from "lucide-react";
 
 import ApplicationForm from "@/components/public/ApplicationForm";
 
@@ -7,24 +7,6 @@ export const metadata = {
   title: "Tuyển Dụng Nhân Sự - Phụ Tùng Ô Tô Q.BA Đà Nẵng",
   description: "Tuyển dụng Nhân viên Kinh doanh phụ tùng xe tải, Kỹ thuật viên tra Catalog & Thủ kho phụ tùng tại Phụ Tùng Ô Tô Q.BA Đà Nẵng. Thu nhập 12-25 triệu + Hoa hồng hấp dẫn.",
 };
-
-const benefits = [
-  {
-    icon: DollarSign,
-    title: "THU NHẬP HẤP DẪN & HOA HỒNG UNLIMITED",
-    desc: "Lương cứng cạnh tranh theo năng lực + Thưởng % hoa hồng doanh số bán lẻ & hợp đồng fleet xe tải không giới hạn."
-  },
-  {
-    icon: TrendingUp,
-    title: "ĐÀO TẠO TRA CATALOG NHÀ MÁY BÀI BẢN",
-    desc: "Được làm việc trực tiếp với chuyên gia 25 năm am hiểu mã phụ tùng HOWO, Shacman, FAW, Weichai, Fast Gear."
-  },
-  {
-    icon: Users,
-    title: "MÔI TRƯỜNG THÂN THIỆN & ỔN ĐỊNH LÂU DÀI",
-    desc: "Công việc lâu dài tại trung tâm Đà Nẵng, phụ cấp ăn trưa, chế độ BHXH, thưởng ngày Lễ/Tết và lương tháng 13 đầy đủ."
-  }
-];
 
 const jobs = [
   {
@@ -86,57 +68,8 @@ export default function CareersPage() {
   return (
     <div>
 
-      {/* 1. Header Banner */}
-      <section className="bg-[#111317] text-white pt-32 md:pt-40 pb-16 md:pb-24 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-brand/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand/5 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div className="container mx-auto px-4 max-w-7xl relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand/10 border border-brand/30 text-brand text-xs font-black tracking-widest uppercase mb-4">
-            <span className="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
-            Tuyển Dụng Nhân Sự Q.BA 2026
-          </div>
-
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-black font-heading uppercase tracking-wide leading-tight mb-6">
-            GIA NHẬP ĐỘI NGŨ <span className="text-brand">PHỤ TÙNG Ô TÔ Q.BA</span>
-          </h1>
-
-          <p className="text-gray-300 text-base md:text-xl max-w-3xl mx-auto leading-relaxed">
-            Cùng đồng hành với thương hiệu 25 năm uy tín cung ứng phụ tùng xe tải nặng hàng đầu tại Đà Nẵng, Miền Trung, Tây Nguyên và toàn quốc.
-          </p>
-
-        </div>
-      </section>
-
-      {/* 2. 3 Benefits Section */}
-      <section className="py-16 bg-slate-50 border-b border-slate-200">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {benefits.map((item, idx) => {
-              const IconComp = item.icon;
-              return (
-                <div 
-                  key={`benefit-card-${idx}`}
-                  className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-lg hover:border-brand/40 hover:shadow-2xl transition-all duration-300 group"
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-brand/10 text-brand flex items-center justify-center mb-6 group-hover:bg-brand group-hover:text-white transition-colors duration-300 shadow-sm">
-                    <IconComp size={26} />
-                  </div>
-                  <h3 className="text-base font-black font-heading text-slate-900 uppercase tracking-wider mb-3 leading-snug">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                    {item.desc}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Open Job Positions List */}
-      <section className="py-20 bg-white">
+      {/* 1. Open Job Positions List */}
+      <section className="pt-32 md:pt-40 pb-20 bg-white">
         <div className="container mx-auto px-4 max-w-7xl space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-xs font-black uppercase tracking-wider">
@@ -146,9 +79,7 @@ export default function CareersPage() {
             <h2 className="text-3xl sm:text-4xl font-black font-heading uppercase text-slate-900">
               VỊ TRÍ ĐANG <span className="text-brand">TUYỂN DỤNG</span>
             </h2>
-            <p className="text-gray-600 text-sm md:text-base">
-              Làm việc tại Cửa hàng Phụ Tùng Ô Tô Q.BA Đà Nẵng (43-45 Nguyễn Văn Tạo) với mức thu nhập hấp dẫn.
-            </p>
+
           </div>
 
           <div className="space-y-8">
@@ -252,7 +183,7 @@ export default function CareersPage() {
                   <div>
                     <h4 className="font-bold text-slate-900 text-sm uppercase">Hotline Phòng Nhân Sự</h4>
                     <p className="text-lg font-black text-brand mt-1">0903.588.167</p>
-                    <p className="text-xs text-gray-500 mt-1">Hỗ trợ hỏi đáp ứng tuyển 07:00 - 17:00 hàng ngày</p>
+                    <p className="text-xs text-gray-500 mt-1">Hỗ trợ hỏi đáp ứng tuyển từ Thứ 2 đến Chủ Nhật</p>
                   </div>
                 </div>
 

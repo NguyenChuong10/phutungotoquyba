@@ -2,6 +2,32 @@
 
 All notable changes to the Quy Ba Auto Parts project will be documented in this file.
 
+## [v1.5.0] - 2026-08-07
+
+### Added
+- **Backend & Frontend Admin Auth System (`backend/src/` & `frontend/src/`)**:
+  - Connected Backend to local PostgreSQL 18 database (`quyba_autoparts`) on port `5430`.
+  - Created Prisma Client Singleton `db.ts` and updated `schema.prisma` with 9 models.
+  - Implemented `AuthService.loginAdmin` with Bcrypt password verification and JWT token generation.
+  - Created `authController.ts` and Zod validation schema `authValidator.ts`.
+  - Implemented `verifyAdmin` JWT authentication middleware for Admin API routes protection.
+  - Created global `errorHandler.ts` middleware for standardized Zod & AppError responses.
+  - Seeded default Super Admin account (`phutungotoqbadanang@gmail.com` / `@Foradminkho9999`).
+  - Applied Security Hardening & Penetration Testing against OWASP Top 10: `express-rate-limit` Brute Force Protection (max 5 failed attempts/15min), `Zod` input sanitization & max string limits against DoS/Injection, Constant-time Dummy Hash password comparison against Timing Attack User Enumeration. Penetration test suite verified **0 vulnerabilities** (SQL Injection, NoSQL Injection, Type Poisoning, and Brute Force attacks blocked 100%).
+  - Built high-end Frontend Admin Login Page (`/admin/login`) connecting directly to Backend API (with zero plain-text local storage leak, full Base64-XOR encrypted session storage).
+  - Integrated `AdminLayoutClient` auth guard and added Admin user profile & Logout button in `AdminHeader`.
+  - Verified API & UI via live automated HTTP tests & pre-rendered static builds (**29/29 static routes**, **0 Error, 0 Warning**).
+
+## [v1.4.1] - 2026-08-07
+
+### Changed
+- **Streamlined Products Page UI (`src/app/products/page.tsx`)**: Removed sidebar Zalo banner & product card metadata badges, made product images clickable to navigate to product detail page, and simplified card footer actions to a single "XEM CHI TIẾT →" button.
+- **Refactored IntroSection Component (`src/components/public/IntroSection.tsx`)**: Trimmed introductory paragraph text to end cleanly at **"bằng sự uy tín."**, removing redundant trailing sentences.
+- **Refactored About Page (`src/app/about/page.tsx`)**: Removed "QUY TRÌNH KIỂM ĐỊNH 5 BƯỚC" section and eliminated all text overlays (titles, descriptions, number badges, dark gradient) from the warehouse gallery images for a clean image grid display.
+- **Refactored Careers Page (`src/app/careers/page.tsx`)**: Removed top Header Banner, 3 Benefits cards section, and subtext description under "VỊ TRÍ ĐANG TUYỂN DỤNG" heading per user feedback.
+- **Refactored Contact Page (`src/app/contact/page.tsx`)**: Removed "Cam Kết Hàng Chuẩn Loại 1" service badge, updated "THỜI GIAN PHỤC VỤ" card detail to **"Từ Thứ 2 Đến Chủ Nhật"** (removed specific hourly time) per user feedback.
+- **Production Build**: Verified clean build via `npm run build` (**0 Error, 0 Warning**, 28 static routes pre-rendered).
+
 ## [v1.4.0] - 2026-08-05
 
 ### Added

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { MapPin, Phone, Mail, Clock, ShieldCheck, Truck, MessageSquare } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Truck, MessageSquare } from "lucide-react";
 import ContactForm from "@/components/public/ContactForm";
 
 
@@ -37,8 +37,8 @@ const contactCards = [
   {
     icon: Clock,
     title: "THỜI GIAN PHỤC VỤ",
-    detail: "07:00 - 17:00 Hàng ngày",
-    subText: "Phục vụ cả Chủ Nhật & Ngày lễ",
+    detail: "Từ Thứ 2 Đến Chủ Nhật",
+    subText: "Phục vụ cả Ngày lễ & Tết",
     linkText: "Hỗ trợ 24/7 qua Zalo",
     linkHref: "https://zalo.me/0903588167"
   }
@@ -131,16 +131,7 @@ export default function ContactPage() {
 
               {/* Service Badges */}
               <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0 mt-0.5">
-                    <ShieldCheck size={22} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900 text-sm uppercase">Cam Kết Hàng Chuẩn Loại 1</h4>
 
-                    <p className="text-xs text-gray-600 mt-1">Phân phối các mặt hàng loại 1 cao cấp, vật liệu chịu tải siêu trường siêu trọng.</p>
-                  </div>
-                </div>
 
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-start gap-4">
                   <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0 mt-0.5">

@@ -1,0 +1,222 @@
+// Prisma Schema Specification - Phu Tung Oto Q.BA Enterprise API
+// Mat tran anh xa 1:1 voi database/schema.sql va UI/UX Public & Admin
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  super_admin
+  sales
+  warehouse
+  content_editor
+  customer
+}
+
+enum OrderStatus {
+  pending
+  confirmed
+  completed
+  cancelled
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  role         Role       @default(sales)
+  email        String     @unique
+  passwordHash String     @map("password_hash")
+  fullName     String     @map("full_name")
+  phone        String?
+  isActive     Boolean    @default(true) @map("is_active")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  orders       Order[]
+  news         News[]
+  customer     Customer?
+
+  @@map("users")
+}
+
+model Category {
+  id          Int        @id @default(autoincrement())
+  parentId    Int?       @map("parent_id")
+  name        String
+  slug        String     @unique
+  description String?
+  iconUrl     String?    @map("icon_url")
+  sortOrder   Int        @default(0) @map("sort_order")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  parent      Category?  @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Category[] @relation("CategoryToCategory")
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Brand {
+  id        Int       @id @default(autoincrement())
+  name      String
+  slug      String    @unique
+  logoUrl   String?   @map("logo_url")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  products  Product[]
+
+  @@map("brands")
+}
+
+model Product {
+  id              Int       @id @default(autoincrement())
+  categoryId      Int?      @map("category_id")
+  brandId         Int?      @map("brand_id")
+
+  // Public UI Fields
+  name            String
+  slug            String    @unique
+  partNumber      String    @map("part_number")
+  description     String?   @db.Text
+  price           Decimal   @default(0.00) @db.Decimal(12, 2)
+  inStock         Boolean   @default(true) @map("in_stock")
+  qualityStandard String    @default("Loai 1 Cao Cap") @map("quality_standard")
+  compatibility   Json      @default("[]")
+  specifications  Json      @default("{}")
+
+  // Admin Internal UI Fields
+  internalCode    String    @unique @map("internal_code")
+  internalName    String    @map("internal_name")
+  stockQuantity   Int       @default(0) @map("stock_quantity")
+  costPrice       Decimal   @default(0.00) @map("cost_price") @db.Decimal(12, 2)
+
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  category        Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brand           Brand?    @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  images          ProductImage[]
+  orderItems      OrderItem[]
+
+  @@index([partNumber])
+  @@index([internalCode])
+  @@index([slug])
+  @@map("products")
+}
+
+model ProductImage {
+  id        Int     @id @default(autoincrement())
+  productId Int     @map("product_id")
+  imageUrl  String  @map("image_url")
+  isPrimary Boolean @default(false) @map("is_primary")
+  sortOrder Int     @default(0) @map("sort_order")
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  orderCode       String      @unique @map("order_code")
+  userId          Int?        @map("user_id")
+
+  customerName    String?     @map("customer_name")
+  customerPhone   String      @map("customer_phone")
+  customerEmail   String?     @map("customer_email")
+  companyName     String?     @map("company_name")
+
+  status          OrderStatus @default(pending)
+  totalAmount     Decimal     @default(0.00) @map("total_amount") @db.Decimal(12, 2)
+  shippingAddress String?     @map("shipping_address") @db.Text
+  notes           String?     @db.Text
+
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items           OrderItem[]
+
+  @@index([customerPhone])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id          Int     @id @default(autoincrement())
+  orderId     Int     @map("order_id")
+  productId   Int     @map("product_id")
+  productName String  @map("product_name")
+  partNumber  String  @map("part_number")
+  quantity    Int
+  unitPrice   Decimal @default(0.00) @map("unit_price") @db.Decimal(12, 2)
+  itemNote    String? @map("item_note") @db.Text
+
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("order_items")
+}
+
+model News {
+  id           Int      @id @default(autoincrement())
+  authorId     Int?     @map("author_id")
+  title        String
+  slug         String   @unique
+  categorySlug String   @default("cam-nang-ky-thuat") @map("category_slug")
+  content      String   @db.Text
+  thumbnailUrl String?  @map("thumbnail_url")
+  views        Int      @default(0)
+  isFeatured   Boolean  @default(false) @map("is_featured")
+  publishedAt  DateTime @default(now()) @map("published_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  author       User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([slug])
+  @@map("news")
+}
+
+model Customer {
+  id          Int       @id @default(autoincrement())
+  userId      Int?      @unique @map("user_id")
+  fullName    String    @map("full_name")
+  phone       String    @unique
+  email       String?
+  companyName String?   @map("company_name")
+  address     String?   @db.Text
+  totalOrders Int       @default(0) @map("total_orders")
+  totalSpent  Decimal   @default(0.00) @map("total_spent") @db.Decimal(14, 2)
+  notes       String?   @db.Text
+  lastOrderAt DateTime? @map("last_order_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([phone])
+  @@map("customers")
+}
+
+model NewsCategory {
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("news_categories")
+}
+
+model SystemSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
+
