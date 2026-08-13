@@ -115,7 +115,7 @@ export default function AdminOrdersPage() {
     try {
       const res = await AdminApiService.getAdminOrders();
       if (res.ok && res.data) {
-        const rawOrders = res.data.orders || [];
+        const rawOrders = Array.isArray(res.data) ? res.data : (res.data.orders || []);
 
         const mapped: OrderData[] = rawOrders.map((o: any) => {
           let statusText = 'MỚI GỬI';
@@ -292,7 +292,7 @@ export default function AdminOrdersPage() {
     try {
       const res = await fetchApi(`/orders/admin/customer-history/${order.phone}`);
       if (res.ok && res.data) {
-        setCustomerHistory(res.data.orders || []);
+        setCustomerHistory(Array.isArray(res.data) ? res.data : (res.data.orders || []));
       }
     } catch {
       setCustomerHistory([]);
