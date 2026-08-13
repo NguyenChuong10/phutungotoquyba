@@ -298,12 +298,33 @@ export class AdminApiService {
   }
 
   /**
+   * Fetch All Admin Quotation Orders
+   */
+  static async getAdminOrders() {
+    return await fetchApi("/orders/admin");
+  }
+
+  /**
    * Admin Create Order
    */
   static async createOrder(data: Record<string, unknown>) {
     return await fetchApi("/orders/admin", {
       method: "POST",
       body: JSON.stringify(data),
+    });
+  }
+
+  static async createQuotationOrder(data: Record<string, unknown>) {
+    return await this.createOrder(data);
+  }
+
+  /**
+   * Admin Update Order Status
+   */
+  static async updateOrderStatus(id: number, status: string) {
+    return await fetchApi(`/orders/admin/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
     });
   }
 

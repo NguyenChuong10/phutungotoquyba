@@ -20,7 +20,9 @@ import {
   Edit,
   Plus,
   X,
+  Save,
 } from 'lucide-react';
+import { Table, Tag, Popconfirm, ConfigProvider, Tooltip, Select } from 'antd';
 import { fetchApi } from '@/config/api';
 import { AdminApiService } from '@/services/adminApiService';
 import { useAdminNotification } from '@/context/AdminNotificationContext';
@@ -98,204 +100,24 @@ export default function AdminOrdersPage() {
   const [newCompanyName, setNewCompanyName] = useState('');
   const [newNotes, setNewNotes] = useState('');
 
+  const [newParts, setNewParts] = useState<
+    Array<{ productName: string; partNumber: string; quantity: number; unitPrice: number; itemNote: string }>
+  >([{ productName: '', partNumber: '', quantity: 1, unitPrice: 0, itemNote: '' }]);
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editOrderId, setEditOrderId] = useState<number | null>(null);
+  const [editingOrder, setEditingOrder] = useState<OrderData | null>(null);
+  const [editStatus, setEditStatus] = useState<string>('pending');
   const [editCustomerName, setEditCustomerName] = useState('');
-  const [editCustomerPhone, setEditCustomerPhone] = useState('');
-  const [editCustomerEmail, setEditCustomerEmail] = useState('');
-  const [editCompanyName, setEditCompanyName] = useState('');
-  const [editNotes, setEditNotes] = useState('');
-  const [editStatus, setEditStatus] = useState<'pending' | 'confirmed' | 'completed' | 'cancelled'>('pending');
-  const [submittingModal, setSubmittingModal] = useState(false);
+  const [editPhone, setEditPhone] = useState('');
 
-  // Delete Confirmation Modal State
-  const [deleteConfirmState, setDeleteConfirmState] = useState<{
-    isOpen: boolean;
-    type: 'single' | 'group';
-    id?: number;
-    code?: string;
-    phone?: string;
-    name?: string;
-  } | null>(null);
-  const [deleting, setDeleting] = useState(false);
-
-  const requestDeleteOrder = (orderId: number, orderCode?: string) => {
-    setDeleteConfirmState({
-      isOpen: true,
-      type: 'single',
-      id: orderId,
-      code: orderCode,
-    });
-  };
-
-  const requestDeleteCustomerGroup = (phone: string, name: string) => {
-    setDeleteConfirmState({
-      isOpen: true,
-      type: 'group',
-      phone,
-      name,
-    });
-  };
-
-  const handleConfirmExecuteDelete = async () => {
-    if (!deleteConfirmState) return;
-    setDeleting(true);
-    try {
-      if (deleteConfirmState.type === 'single' && deleteConfirmState.id) {
-        const res = await AdminApiService.deleteOrder(deleteConfirmState.id);
-        if (res.ok) {
-          setToastState({
-            id: String(Date.now()),
-            type: 'success',
-            title: 'Đã Xóa Đơn Báo Giá',
-            message: res.message || `Đã xóa đơn ${deleteConfirmState.code || ''} khỏi hệ thống!`,
-          });
-          setSelectedOrder(null);
-          await fetchOrders();
-          await refreshNotifications();
-        } else {
-          setToastState({
-            id: String(Date.now()),
-            type: 'error',
-            title: 'Thất Bại',
-            message: res.message || 'Không thể xóa đơn báo giá.',
-          });
-        }
-      } else if (deleteConfirmState.type === 'group' && deleteConfirmState.phone) {
-        const res = await AdminApiService.deleteCustomerGroup(deleteConfirmState.phone);
-        if (res.ok) {
-          setToastState({
-            id: String(Date.now()),
-            type: 'success',
-            title: 'Đã Xóa Tất Cả Đơn',
-            message: res.message || `Đã xóa toàn bộ đơn báo giá của SĐT ${deleteConfirmState.phone}`,
-          });
-          setSelectedOrder(null);
-          await fetchOrders();
-          await refreshNotifications();
-        } else {
-          setToastState({
-            id: String(Date.now()),
-            type: 'error',
-            title: 'Thất Bại',
-            message: res.message || 'Không thể xóa danh sách đơn.',
-          });
-        }
-      }
-    } catch {
-      setToastState({ id: String(Date.now()), type: 'error', title: 'Lỗi', message: 'Không thể kết nối đến máy chủ.' });
-    } finally {
-      setDeleting(false);
-      setDeleteConfirmState(null);
-    }
-  };
-
-  // Open Edit Order Modal
-  const handleOpenEditModal = (ord: OrderData) => {
-    setEditOrderId(ord.id);
-    setEditCustomerName(ord.customerName);
-    setEditCustomerPhone(ord.phone);
-    setEditCustomerEmail(ord.email || '');
-    setEditCompanyName(ord.companyName || '');
-    setEditNotes(ord.notes || '');
-    setEditStatus(ord.status);
-    setIsEditModalOpen(true);
-  };
-
-  // Save Edit Order Details API Call
-  const handleSaveEditOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editOrderId) return;
-    setSubmittingModal(true);
-    try {
-      const res = await AdminApiService.updateOrderDetails(editOrderId, {
-        customerName: editCustomerName.trim(),
-        customerPhone: editCustomerPhone.trim(),
-        customerEmail: editCustomerEmail.trim() || null,
-        companyName: editCompanyName.trim() || null,
-        notes: editNotes.trim() || null,
-        status: editStatus,
-      });
-
-      if (res.ok) {
-        setToastState({
-          id: String(Date.now()),
-          type: 'success',
-          title: 'Cập Nhật Thành Công',
-          message: 'Đã cập nhật thông tin đơn báo giá!',
-        });
-        setIsEditModalOpen(false);
-        if (selectedOrder && selectedOrder.id === editOrderId) {
-          setSelectedOrder(null);
-        }
-        await fetchOrders();
-        await refreshNotifications();
-      } else {
-        setToastState({
-          id: String(Date.now()),
-          type: 'error',
-          title: 'Thất Bại',
-          message: res.message || 'Không thể cập nhật thông tin đơn.',
-        });
-      }
-    } catch {
-      setToastState({ id: String(Date.now()), type: 'error', title: 'Lỗi', message: 'Không thể kết nối đến máy chủ.' });
-    } finally {
-      setSubmittingModal(false);
-    }
-  };
-
-  // Save Create Order API Call
-  const handleSaveCreateOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCustomerPhone.trim()) return;
-    setSubmittingModal(true);
-    try {
-      const res = await AdminApiService.createOrder({
-        customerName: newCustomerName.trim() || 'Khách Hàng Q.BA',
-        customerPhone: newCustomerPhone.trim(),
-        customerEmail: newCustomerEmail.trim() || undefined,
-        companyName: newCompanyName.trim() || undefined,
-        notes: newNotes.trim() || undefined,
-      });
-
-      if (res.ok) {
-        setToastState({
-          id: String(Date.now()),
-          type: 'success',
-          title: 'Tạo Đơn Thành Công',
-          message: 'Đã thêm đơn báo giá mới thành công!',
-        });
-        setIsCreateModalOpen(false);
-        setNewCustomerName('');
-        setNewCustomerPhone('');
-        setNewCustomerEmail('');
-        setNewCompanyName('');
-        setNewNotes('');
-        await fetchOrders();
-        await refreshNotifications();
-      } else {
-        setToastState({
-          id: String(Date.now()),
-          type: 'error',
-          title: 'Thất Bại',
-          message: res.message || 'Không thể tạo đơn báo giá mới.',
-        });
-      }
-    } catch {
-      setToastState({ id: String(Date.now()), type: 'error', title: 'Lỗi', message: 'Không thể kết nối máy chủ.' });
-    } finally {
-      setSubmittingModal(false);
-    }
-  };
-
-  // Fetch Orders from PostgreSQL Database API
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetchApi('/orders/admin?limit=100');
+      const res = await AdminApiService.getAdminOrders();
       if (res.ok && res.data) {
-        const mapped: OrderData[] = res.data.map((o: any) => {
+        const rawOrders = res.data.orders || [];
+
+        const mapped: OrderData[] = rawOrders.map((o: any) => {
           let statusText = 'MỚI GỬI';
           let statusColor = 'bg-red-100 text-red-800 border-red-200';
 
@@ -462,30 +284,84 @@ export default function AdminOrdersPage() {
     };
   }, [fetchOrders]);
 
-  // Open Customer Detail / History Modal
-  const openOrderDetail = async (ord: OrderData) => {
-    setSelectedOrder(ord);
+  // Open Order Details Modal & Fetch Customer Purchase History
+  const openOrderDetail = async (order: OrderData) => {
+    setSelectedOrder(order);
     setActiveTab('detail');
     setLoadingHistory(true);
     try {
-      const res = await AdminApiService.getCustomerHistory(ord.phone);
+      const res = await fetchApi(`/orders/admin/customer-history/${order.phone}`);
       if (res.ok && res.data) {
         setCustomerHistory(res.data.orders || []);
       }
     } catch {
-      // Keep fallback
+      setCustomerHistory([]);
     } finally {
       setLoadingHistory(false);
     }
   };
 
-  // Update Order Status API Call
-  const handleUpdateStatus = async (orderId: number, newStatus: 'pending' | 'confirmed' | 'completed' | 'cancelled') => {
-    setUpdatingStatus(true);
+  // Create Manual Quotation Order
+  const handleCreateOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCustomerPhone || !newCustomerName) {
+      alert('Vui lòng nhập Tên khách hàng và Số điện thoại');
+      return;
+    }
+
     try {
-      const res = await fetchApi(`/orders/admin/${orderId}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status: newStatus }),
+      const payload = {
+        customerName: newCustomerName,
+        customerPhone: newCustomerPhone,
+        customerEmail: newCustomerEmail,
+        companyName: newCompanyName,
+        notes: newNotes,
+        items: newParts.filter((p) => p.productName.trim() !== ''),
+      };
+
+      const res = await AdminApiService.createQuotationOrder(payload);
+      if (res.ok) {
+        setToastState({
+          id: String(Date.now()),
+          type: 'success',
+          title: 'Tạo Đơn Thành Công',
+          message: `Đã tạo đơn báo giá thủ công [${res.data?.orderCode || ''}] cho ${newCustomerName}!`,
+        });
+        setIsCreateModalOpen(false);
+        setNewCustomerName('');
+        setNewCustomerPhone('');
+        setNewCustomerEmail('');
+        setNewCompanyName('');
+        setNewNotes('');
+        setNewParts([{ productName: '', partNumber: '', quantity: 1, unitPrice: 0, itemNote: '' }]);
+        fetchOrders();
+      } else {
+        alert(res.message || 'Không thể tạo đơn');
+      }
+    } catch {
+      alert('Lỗi kết nối máy chủ khi tạo đơn');
+    }
+  };
+
+  // Open Edit Order Modal
+  const handleOpenEditModal = (order: OrderData) => {
+    setEditingOrder(order);
+    setEditStatus(order.status);
+    setEditCustomerName(order.customerName);
+    setEditPhone(order.phone);
+    setIsEditModalOpen(true);
+  };
+
+  // Save Edit Order Details
+  const handleSaveEditOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingOrder) return;
+
+    try {
+      const res = await AdminApiService.updateOrderDetails(editingOrder.id, {
+        status: editStatus,
+        customerName: editCustomerName,
+        customerPhone: editPhone,
       });
 
       if (res.ok) {
@@ -493,26 +369,107 @@ export default function AdminOrdersPage() {
           id: String(Date.now()),
           type: 'success',
           title: 'Cập Nhật Thành Công',
-          message: `Đã cập nhật trạng thái đơn báo giá sang [${newStatus.toUpperCase()}]`,
+          message: `Đã cập nhật thông tin đơn báo giá [${editingOrder.orderCode}]!`,
         });
-        setSelectedOrder(null);
-        await fetchOrders();
-        await refreshNotifications();
+        setIsEditModalOpen(false);
+        fetchOrders();
       } else {
-        setToastState({
-          id: String(Date.now()),
-          type: 'error',
-          title: 'Thất Bại',
-          message: res.message || 'Không thể cập nhật trạng thái đơn.',
-        });
+        alert(res.message || 'Lỗi cập nhật đơn');
       }
     } catch {
-      setToastState({
-        id: String(Date.now()),
-        type: 'error',
-        title: 'Lỗi Kết Nối',
-        message: 'Không thể kết nối đến máy chủ Express.',
-      });
+      alert('Lỗi máy chủ khi cập nhật đơn');
+    }
+  };
+
+  // Delete Single Order
+  const requestDeleteOrder = async (orderId: number, orderCode: string) => {
+    try {
+      const res = await AdminApiService.deleteOrder(orderId);
+      if (res.ok) {
+        setToastState({
+          id: String(Date.now()),
+          type: 'success',
+          title: 'Đã Xóa Đơn',
+          message: `Đã xóa đơn báo giá [${orderCode}] khỏi hệ thống CSDL PostgreSQL!`,
+        });
+        setOrdersList((prev) => prev.filter((o) => o.id !== orderId));
+        if (selectedOrder?.id === orderId) setSelectedOrder(null);
+        await refreshNotifications();
+      } else {
+        alert(res.message || 'Lỗi khi xóa đơn');
+      }
+    } catch {
+      alert('Không thể kết nối đến máy chủ.');
+    }
+  };
+
+  // Delete Entire Customer Group Orders
+  const requestDeleteCustomerGroup = async (phone: string, customerName: string) => {
+    try {
+      const res = await AdminApiService.deleteCustomerGroup(phone);
+      if (res.ok) {
+        setToastState({
+          id: String(Date.now()),
+          type: 'success',
+          title: 'Đã Xóa Nhóm Khách Hàng',
+          message: `Đã xóa toàn bộ đơn báo giá thuộc SĐT [${phone}] của khách hàng ${customerName}!`,
+        });
+        setOrdersList((prev) => prev.filter((o) => o.phone !== phone));
+        if (selectedCustomerGroup?.phone === phone) setSelectedCustomerGroup(null);
+        await refreshNotifications();
+      } else {
+        alert(res.message || 'Lỗi khi xóa nhóm khách hàng');
+      }
+    } catch {
+      alert('Không thể kết nối đến máy chủ.');
+    }
+  };
+
+  // Quick Status Update
+  const handleQuickStatusChange = async (orderId: number, newStatus: string) => {
+    setUpdatingStatus(true);
+    try {
+      const res = await AdminApiService.updateOrderStatus(orderId, newStatus);
+      if (res.ok) {
+        setOrdersList((prev) =>
+          prev.map((o) =>
+            o.id === orderId
+              ? {
+                  ...o,
+                  status: newStatus as any,
+                  statusText:
+                    newStatus === 'confirmed'
+                      ? 'ĐÃ XÁC NHẬN'
+                      : newStatus === 'completed'
+                      ? 'HOÀN THÀNH'
+                      : newStatus === 'cancelled'
+                      ? 'ĐÃ HỦY'
+                      : 'MỚI GỬI',
+                  statusColor:
+                    newStatus === 'confirmed'
+                      ? 'bg-blue-100 text-blue-800 border-blue-200'
+                      : newStatus === 'completed'
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                      : newStatus === 'cancelled'
+                      ? 'bg-slate-200 text-slate-700 border-slate-300'
+                      : 'bg-red-100 text-red-800 border-red-200',
+                }
+              : o
+          )
+        );
+
+        setToastState({
+          id: String(Date.now()),
+          type: 'success',
+          title: 'Cập Nhật Trạng Thái',
+          message: 'Đã cập nhật trạng thái đơn báo giá thành công!',
+        });
+        await refreshNotifications();
+      } else {
+        alert(res.message || 'Không thể cập nhật trạng thái đơn.');
+      }
+    } catch {
+      alert('Lỗi kết nối máy chủ');
     } finally {
       setUpdatingStatus(false);
     }
@@ -547,7 +504,6 @@ export default function AdminOrdersPage() {
 
       if (!matchesSearch) return;
 
-      // Filter by status tab if a specific tab is active
       if (filterStatus !== 'ALL' && ord.status !== filterStatus) {
         return;
       }
@@ -579,7 +535,6 @@ export default function AdminOrdersPage() {
       }
     });
 
-    // Compute status badge and latest order for each customer group
     const result = Array.from(map.values());
     result.forEach((g) => {
       if (g.orders.length > 0) {
@@ -617,834 +572,989 @@ export default function AdminOrdersPage() {
     return result;
   }, [ordersList, searchQuery, filterStatus]);
 
-  return (
-    <div className="space-y-6 pb-12">
-      {/* Header Bar */}
-      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  // AntD Columns for Customer Group View
+  const columnsCustomerGroup = [
+    {
+      title: 'Khách Hàng & SĐT',
+      dataIndex: 'customerName',
+      key: 'customerName',
+      sorter: (a: CustomerGroupData, b: CustomerGroupData) => a.customerName.localeCompare(b.customerName),
+      render: (_: any, record: CustomerGroupData) => (
         <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              Quản Lý Yêu Cầu Báo Giá Phụ Tùng
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 font-extrabold text-xs">
-              {pendingCount} Khách Đang Chờ Báo Giá
-            </span>
+          <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+            {record.customerName}
+            <Tag
+              color={record.latestOrder.customerBadgeText.includes('VIP') ? 'gold' : record.ordersCount > 1 ? 'blue' : 'default'}
+              className="m-0 text-[10px]"
+            >
+              {record.latestOrder.customerBadgeText}
+            </Tag>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Lắng nghe Real-Time 100% - Gom nhóm gọn gàng theo Khách hàng, phân biệt chính xác đơn đã báo hay chưa.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="px-3.5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+          <a
+            href={`tel:${record.phone}`}
+            className="text-red-600 hover:underline font-extrabold flex items-center gap-1 mt-0.5 text-xs"
           >
-            <Plus className="w-4 h-4" />
-            <span>Tạo Đơn Mới</span>
+            <PhoneCall className="w-3 h-3" />
+            {record.phone}
+          </a>
+        </div>
+      ),
+    },
+    {
+      title: 'Số Đơn Báo Giá',
+      dataIndex: 'ordersCount',
+      key: 'ordersCount',
+      sorter: (a: CustomerGroupData, b: CustomerGroupData) => a.ordersCount - b.ordersCount,
+      render: (count: number) => <Tag color="blue" className="font-bold text-xs">{count} đơn báo giá</Tag>,
+    },
+    {
+      title: 'Tổng Phụ Tùng Yêu Cầu',
+      key: 'allParts',
+      render: (_: any, record: CustomerGroupData) => (
+        <div className="max-w-xs">
+          <div className="font-bold text-slate-800 line-clamp-1">
+            {record.allParts.map((p) => `${p.name} (x${p.qty})`).join(', ')}
+          </div>
+          <div className="text-[10px] text-slate-400 mt-0.5 font-medium">
+            {record.allParts.length} mã linh kiện
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: 'Gửi Mới Nhất',
+      key: 'latestOrder',
+      sorter: (a: CustomerGroupData, b: CustomerGroupData) => new Date(b.latestOrder.rawCreatedAt).getTime() - new Date(a.latestOrder.rawCreatedAt).getTime(),
+      render: (_: any, record: CustomerGroupData) => (
+        <span className="text-slate-600 font-mono text-xs">{record.latestOrder.createdAt}</span>
+      ),
+    },
+    {
+      title: 'Trạng Thái Xử Lý',
+      key: 'status',
+      render: (_: any, record: CustomerGroupData) => {
+        let color = 'green';
+        if (record.hasPending) color = 'volcano';
+        else if (record.orders.some((o) => o.status === 'confirmed')) color = 'blue';
+
+        return (
+          <Tag color={color} className={`font-extrabold text-xs ${record.hasPending ? 'animate-pulse' : ''}`}>
+            {record.overallStatusText}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: 'Thao Tác Hỏa Tốc',
+      key: 'actions',
+      align: 'right' as const,
+      render: (_: any, record: CustomerGroupData) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <a
+            href={`https://zalo.me/${record.phone}`}
+            target="_blank"
+            rel="noreferrer"
+            className="px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer"
+            title="Tư vấn Zalo hỏa tốc"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Zalo</span>
+          </a>
+
+          <button
+            onClick={() => openOrderDetail(record.latestOrder)}
+            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold transition-all text-xs cursor-pointer"
+          >
+            Xem ({record.ordersCount}) Đơn
           </button>
 
-          <button
-            onClick={() => {
-              setToastState({
-                id: String(Date.now()),
-                type: 'success',
-                title: 'Xuất File Excel Thành Công',
-                message: `Đã xuất danh sách ${ordersList.length} đơn báo giá ra file Excel!`,
-              });
-            }}
-            className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer"
+          <Popconfirm
+            title="Xóa tất cả đơn?"
+            description={`Bạn có chắc muốn xóa tất cả đơn báo giá của [${record.customerName}]?`}
+            onConfirm={() => requestDeleteCustomerGroup(record.phone, record.customerName)}
+            okText="Xóa"
+            cancelText="Hủy"
+            okButtonProps={{ danger: true }}
           >
-            <Download className="w-4 h-4 text-emerald-600" />
-            <span>Xuất Excel Kho</span>
+            <button
+              className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 font-bold transition-all text-xs cursor-pointer"
+              title="Xóa tất cả đơn thuộc SĐT này"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </Popconfirm>
+        </div>
+      ),
+    },
+  ];
+
+  // AntD Columns for Single Orders List View
+  const columnsSingleOrders = [
+    {
+      title: 'Mã Đơn Báo Giá',
+      dataIndex: 'orderCode',
+      key: 'orderCode',
+      render: (code: string) => <Tag color="magenta" className="font-mono font-bold text-xs">{code}</Tag>,
+    },
+    {
+      title: 'Khách Hàng & SĐT',
+      key: 'customer',
+      sorter: (a: OrderData, b: OrderData) => a.customerName.localeCompare(b.customerName),
+      render: (_: any, record: OrderData) => (
+        <div>
+          <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1">
+            {record.customerName}
+            <Tag color={record.customerBadgeText.includes('VIP') ? 'gold' : 'default'} className="m-0 text-[10px]">
+              {record.customerBadgeText}
+            </Tag>
+          </div>
+          <a
+            href={`tel:${record.phone}`}
+            className="text-red-600 hover:underline font-extrabold flex items-center gap-1 mt-0.5 text-xs"
+          >
+            <PhoneCall className="w-3 h-3" />
+            {record.phone}
+          </a>
+        </div>
+      ),
+    },
+    {
+      title: 'Chi Tiết Phụ Tùng Yêu Cầu',
+      key: 'parts',
+      render: (_: any, record: OrderData) => (
+        <div className="max-w-xs">
+          <div className="font-bold text-slate-800 line-clamp-1">
+            {record.parts.map((p) => `${p.name} (x${p.qty})`).join(', ')}
+          </div>
+          <div className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
+            Ghi chú: {record.notes}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: 'Thời Gian Gửi',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      sorter: (a: OrderData, b: OrderData) => new Date(b.rawCreatedAt).getTime() - new Date(a.rawCreatedAt).getTime(),
+      render: (date: string) => <span className="text-slate-600 font-mono text-xs">{date}</span>,
+    },
+    {
+      title: 'Trạng Thái',
+      key: 'status',
+      render: (_: any, record: OrderData) => (
+        <Select
+          value={record.status}
+          onChange={(val) => handleQuickStatusChange(record.id, val)}
+          size="small"
+          className="w-36"
+          options={[
+            { value: 'pending', label: <Tag color="volcano">MỚI GỬI</Tag> },
+            { value: 'confirmed', label: <Tag color="blue">ĐÃ XÁC NHẬN</Tag> },
+            { value: 'completed', label: <Tag color="green">HOÀN THÀNH</Tag> },
+            { value: 'cancelled', label: <Tag color="default">ĐÃ HỦY</Tag> },
+          ]}
+        />
+      ),
+    },
+    {
+      title: 'Thao Tác Hỏa Tốc',
+      key: 'actions',
+      align: 'right' as const,
+      render: (_: any, record: OrderData) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <a
+            href={`https://zalo.me/${record.phone}`}
+            target="_blank"
+            rel="noreferrer"
+            className="px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer"
+            title="Tư vấn Zalo hỏa tốc"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Zalo</span>
+          </a>
+
+          <button
+            onClick={() => handleOpenEditModal(record)}
+            className="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold transition-all text-xs cursor-pointer"
+            title="Sửa thông tin đơn"
+          >
+            <Edit className="w-3.5 h-3.5" />
+          </button>
+
+          <Popconfirm
+            title="Xóa đơn báo giá?"
+            description={`Bạn có chắc chắn muốn xóa đơn ${record.orderCode}?`}
+            onConfirm={() => requestDeleteOrder(record.id, record.orderCode)}
+            okText="Xóa"
+            cancelText="Hủy"
+            okButtonProps={{ danger: true }}
+          >
+            <button
+              className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 font-bold transition-all text-xs cursor-pointer"
+              title="Xóa đơn này"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </Popconfirm>
+
+          <button
+            onClick={() => openOrderDetail(record)}
+            className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold transition-all text-xs cursor-pointer"
+          >
+            Chi Tiết
           </button>
         </div>
+      ),
+    },
+  ];
+
+  // Expandable Render for Customer Groups
+  const expandedCustomerGroupRender = (record: CustomerGroupData) => {
+    const columnsInner = [
+      {
+        title: 'Mã Đơn',
+        dataIndex: 'orderCode',
+        key: 'orderCode',
+        render: (c: string) => <Tag color="magenta" className="font-mono font-bold text-xs">{c}</Tag>,
+      },
+      { title: 'Thời Gian Gửi', dataIndex: 'createdAt', key: 'createdAt', render: (d: string) => <span className="font-mono text-xs text-slate-600">{d}</span> },
+      {
+        title: 'Linh Kiện Yêu Cầu',
+        key: 'parts',
+        render: (_: any, r: OrderData) => (
+          <span className="font-medium text-xs text-slate-800">
+            {r.parts.map((p) => `${p.name} (x${p.qty})`).join(', ')}
+          </span>
+        ),
+      },
+      {
+        title: 'Trạng Thái',
+        dataIndex: 'statusText',
+        key: 'statusText',
+        render: (t: string, r: OrderData) => (
+          <Tag color={r.status === 'pending' ? 'volcano' : r.status === 'completed' ? 'green' : 'blue'} className="font-bold text-xs">
+            {t}
+          </Tag>
+        ),
+      },
+      {
+        title: 'Thao Tác',
+        key: 'action',
+        render: (_: any, r: OrderData) => (
+          <button onClick={() => openOrderDetail(r)} className="text-xs font-bold text-red-600 hover:underline cursor-pointer">
+            Xem chi tiết
+          </button>
+        ),
+      },
+    ];
+
+    return (
+      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+        <h5 className="font-extrabold text-xs text-slate-800 flex items-center gap-2">
+          <Package className="w-4 h-4 text-red-600" />
+          <span>Danh sách tất cả các đơn của khách hàng [{record.customerName}]:</span>
+        </h5>
+        <Table
+          columns={columnsInner}
+          dataSource={record.orders}
+          rowKey="id"
+          pagination={false}
+          size="small"
+          bordered
+        />
       </div>
+    );
+  };
 
-      {/* Toolbar Search, Grouping Toggle & Status Filter */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Search Input */}
-          <div className="relative flex-1 max-w-md w-full">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm theo Tên khách hàng, Số điện thoại hoặc Mã đơn..."
-              className="w-full pl-10 pr-4 py-2 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 font-medium"
+  // Expandable Render for Single Orders
+  const expandedSingleOrderRender = (record: OrderData) => {
+    const columnsParts = [
+      { title: 'Mã Linh Kiện (SKU)', dataIndex: 'sku', key: 'sku', render: (s: string) => <span className="font-mono font-bold text-red-600 text-xs">{s}</span> },
+      { title: 'Tên Phụ Tùng', dataIndex: 'name', key: 'name', render: (n: string) => <span className="font-bold text-slate-900 text-xs">{n}</span> },
+      { title: 'Số Lượng', dataIndex: 'qty', key: 'qty', render: (q: number) => <Tag color="blue" className="font-bold text-xs">x{q}</Tag> },
+      { title: 'Đơn Giá / Báo Giá', dataIndex: 'price', key: 'price', render: (p: string) => <span className="font-bold text-emerald-600 text-xs">{p}</span> },
+    ];
+
+    return (
+      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+        <h5 className="font-extrabold text-xs text-slate-800 flex items-center gap-2">
+          <Package className="w-4 h-4 text-red-600" />
+          <span>Danh sách linh kiện thuộc đơn [{record.orderCode}]:</span>
+        </h5>
+        <Table
+          columns={columnsParts}
+          dataSource={record.parts}
+          rowKey="sku"
+          pagination={false}
+          size="small"
+          bordered
+        />
+      </div>
+    );
+  };
+
+  return (
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: '#dc2626',
+          borderRadius: 12,
+          fontFamily: 'var(--font-inter), sans-serif',
+        },
+      }}
+    >
+      <div className="space-y-6 pb-12">
+        {/* Header Bar */}
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                Quản Lý Yêu Cầu Báo Giá Phụ Tùng
+              </h1>
+              <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 font-extrabold text-xs">
+                {pendingCount} Khách Đang Chờ Báo Giá
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Lắng nghe Real-Time 100% - Ant Design Enterprise Table với hỗ trợ mở rộng dòng và phân trang tự động.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="px-3.5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tạo Đơn Mới</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setToastState({
+                  id: String(Date.now()),
+                  type: 'success',
+                  title: 'Xuất File Excel Thành Công',
+                  message: `Đã xuất danh sách ${ordersList.length} đơn báo giá ra file Excel!`,
+                });
+              }}
+              className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Download className="w-4 h-4 text-emerald-600" />
+              <span>Xuất Excel Kho</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Toolbar Search, Grouping Toggle & Status Filter */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-md w-full">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Tìm theo Tên khách hàng, Số điện thoại hoặc Mã đơn..."
+                className="w-full pl-10 pr-4 py-2 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 font-medium"
+              />
+            </div>
+
+            {/* Grouping Toggle Switch */}
+            <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs self-start md:self-auto">
+              <button
+                onClick={() => setGroupByCustomer(true)}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  groupByCustomer ? 'bg-white text-red-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5 text-red-600" />
+                <span>Gom Nhóm Theo Khách Hàng ({customerGroups.length})</span>
+              </button>
+              <button
+                onClick={() => setGroupByCustomer(false)}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  !groupByCustomer ? 'bg-white text-red-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <ListFilter className="w-3.5 h-3.5" />
+                <span>Xem Tất Cả Đơn Lẻ ({filteredOrders.length})</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Status Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 max-w-full">
+            {[
+              { key: 'ALL', label: `Tất Cả (${ordersList.length})` },
+              { key: 'pending', label: 'Mới Gửi (Pending)' },
+              { key: 'confirmed', label: 'Đã Xác Nhận' },
+              { key: 'completed', label: 'Hoàn Thành' },
+              { key: 'cancelled', label: 'Đã Hủy' },
+            ].map((st) => (
+              <button
+                key={`status-tab-${st.key}`}
+                onClick={() => setFilterStatus(st.key)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 cursor-pointer ${
+                  filterStatus === st.key
+                    ? 'bg-red-600 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {st.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ENTERPRISE ANT DESIGN DATA TABLE */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden p-2">
+          {groupByCustomer ? (
+            <Table
+              columns={columnsCustomerGroup}
+              dataSource={customerGroups}
+              rowKey="phone"
+              loading={loading}
+              expandable={{
+                expandedRowRender: expandedCustomerGroupRender,
+                expandRowByClick: true,
+              }}
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: true,
+                pageSizeOptions: ['10', '20', '50'],
+                showTotal: (total, range) => `${range[0]}-${range[1]} / Tổng ${total} khách hàng`,
+              }}
+              scroll={{ x: 800 }}
+              size="middle"
             />
-          </div>
-
-          {/* Grouping Toggle Switch */}
-          <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs self-start md:self-auto">
-            <button
-              onClick={() => setGroupByCustomer(true)}
-              className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                groupByCustomer ? 'bg-white text-red-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5 text-red-600" />
-              <span>Gom Nhóm Theo Khách Hàng ({customerGroups.length})</span>
-            </button>
-            <button
-              onClick={() => setGroupByCustomer(false)}
-              className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                !groupByCustomer ? 'bg-white text-red-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <ListFilter className="w-3.5 h-3.5" />
-              <span>Xem Tất Cả Đơn Lẻ ({filteredOrders.length})</span>
-            </button>
-          </div>
+          ) : (
+            <Table
+              columns={columnsSingleOrders}
+              dataSource={filteredOrders}
+              rowKey="id"
+              loading={loading}
+              expandable={{
+                expandedRowRender: expandedSingleOrderRender,
+                expandRowByClick: true,
+              }}
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: true,
+                pageSizeOptions: ['10', '20', '50'],
+                showTotal: (total, range) => `${range[0]}-${range[1]} / Tổng ${total} đơn báo giá`,
+              }}
+              scroll={{ x: 900 }}
+              size="middle"
+            />
+          )}
         </div>
 
-        {/* Status Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 max-w-full">
-          {[
-            { key: 'ALL', label: `Tất Cả (${ordersList.length})` },
-            { key: 'pending', label: 'Mới Gửi (Pending)' },
-            { key: 'confirmed', label: 'Đã Xác Nhận' },
-            { key: 'completed', label: 'Hoàn Thành' },
-            { key: 'cancelled', label: 'Đã Hủy' },
-          ].map((st) => (
-            <button
-              key={`status-tab-${st.key}`}
-              onClick={() => setFilterStatus(st.key)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 cursor-pointer ${
-                filterStatus === st.key
-                  ? 'bg-red-600 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              {st.label}
-            </button>
-          ))}
-        </div>
-      </div>
+        {/* Order Detail & Customer History Combined Modal */}
+        {selectedOrder && (
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-200">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-extrabold text-slate-900 text-base">
+                      Chi Tiết Báo Giá {selectedOrder.orderCode}
+                    </h3>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] border ${selectedOrder.customerBadgeColor}`}>
+                      {selectedOrder.customerBadgeText}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">Khách gửi lúc: {selectedOrder.createdAt}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center flex-shrink-0 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
 
-      {/* Main Data Container Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        {loading ? (
-          <div className="p-12 text-center text-slate-500 space-y-3">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto text-red-600" />
-            <p className="text-xs font-bold">Đang tải dữ liệu báo giá từ PostgreSQL Database...</p>
-          </div>
-        ) : (groupByCustomer ? customerGroups.length === 0 : filteredOrders.length === 0) ? (
-          <div className="p-12 text-center space-y-2 bg-slate-50">
-            <Clock className="w-12 h-12 text-slate-300 mx-auto" />
-            <h4 className="font-bold text-slate-700 text-sm">Chưa có yêu cầu báo giá phù hợp</h4>
-            <p className="text-xs text-slate-400">Không tìm thấy yêu cầu báo giá nào theo điều kiện lọc.</p>
-          </div>
-        ) : groupByCustomer ? (
-          /* OPTION 1: GROUPED BY UNIQUE CUSTOMER PHONE NUMBER VIEW (CLEAN & NON-REPETITIVE) */
-          <div className="max-h-[580px] overflow-y-auto overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="sticky top-0 z-10 bg-slate-100/95 backdrop-blur-xs shadow-2xs">
-                <tr className="text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
-                  <th className="p-3.5 pl-5">Khách Hàng & SĐT</th>
-                  <th className="p-3.5">Phân Loại</th>
-                  <th className="p-3.5">Tổng Phụ Tùng Đã Yêu Cầu</th>
-                  <th className="p-3.5">Yêu Cầu Mới Nhất</th>
-                  <th className="p-3.5">Trạng Thái Xử Lý</th>
-                  <th className="p-3.5 pr-5 text-right">Tương Tác Hỏa Tốc</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {customerGroups.map((group) => {
-                  const latest = group.latestOrder;
-                  return (
-                    <tr key={`cust-group-${group.phone}`} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-3.5 pl-5">
-                        <div className="font-extrabold text-slate-900 text-xs">{group.customerName}</div>
-                        <a
-                          href={`tel:${group.phone}`}
-                          className="text-red-600 hover:underline font-extrabold flex items-center gap-1 mt-0.5 text-xs"
-                        >
-                          <PhoneCall className="w-3 h-3" />
-                          {group.phone}
-                        </a>
-                      </td>
+              {/* Navigation Tabs (Chi Tiết Đơn vs Lịch Sử Khách Hàng) */}
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs">
+                <button
+                  onClick={() => setActiveTab('detail')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    activeTab === 'detail'
+                      ? 'bg-red-50 text-red-600 border border-red-200'
+                      : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  <Package className="w-3.5 h-3.5" />
+                  <span>Chi Tiết Đơn Hiện Tại</span>
+                </button>
 
-                      <td className="p-3.5">
-                        <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] whitespace-nowrap border ${latest.customerBadgeColor}`}
-                        >
-                          {latest.customerBadgeText}
-                        </span>
-                      </td>
+                <button
+                  onClick={() => setActiveTab('history')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    activeTab === 'history'
+                      ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                      : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>Lịch Sử Mua Hàng ({customerHistory.length} đơn)</span>
+                </button>
+              </div>
 
-                      <td className="p-3.5 max-w-xs">
-                        <div className="font-bold text-slate-800 line-clamp-1">
-                          {group.allParts.map((p) => `${p.name} (x${p.qty})`).join(', ')}
-                        </div>
-                        <div className="text-[10px] text-slate-400 mt-0.5 font-medium">
-                          {group.ordersCount} đơn báo giá từ SĐT này
-                        </div>
-                      </td>
-
-                      <td className="p-3.5 text-slate-500 font-mono text-[11px] whitespace-nowrap">
-                        {latest.createdAt}
-                      </td>
-
-                      <td className="p-3.5 whitespace-nowrap">
-                        <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${group.overallStatusColor}`}
-                        >
-                          {group.overallStatusText}
-                        </span>
-                      </td>
-
-                      <td className="p-3.5 pr-5 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <a
-                            href={`https://zalo.me/${group.phone}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer"
-                            title="Tư vấn Zalo hỏa tốc"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>Zalo</span>
-                          </a>
-
-                          <button
-                            onClick={() => openOrderDetail(latest)}
-                            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold transition-all text-xs cursor-pointer"
-                          >
-                            Xem ({group.ordersCount}) Đơn
-                          </button>
-
-                          <button
-                            onClick={() => requestDeleteCustomerGroup(group.phone, group.customerName)}
-                            className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 font-bold transition-all text-xs cursor-pointer"
-                            title="Xóa tất cả đơn thuộc SĐT này"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          /* OPTION 2: RAW UNGROUPED ORDERS LIST VIEW */
-          <div className="max-h-[580px] overflow-y-auto overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="sticky top-0 z-10 bg-slate-100/95 backdrop-blur-xs shadow-2xs">
-                <tr className="text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
-                  <th className="p-3.5 pl-5">Mã Đơn Báo Giá</th>
-                  <th className="p-3.5">Khách Hàng & SĐT</th>
-                  <th className="p-3.5">Chi Tiết Phụ Tùng Yêu Cầu</th>
-                  <th className="p-3.5">Thời Gian Gửi</th>
-                  <th className="p-3.5">Trạng Thái</th>
-                  <th className="p-3.5 pr-5 text-right">Tương Tác Hỏa Tốc</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredOrders.map((ord) => (
-                  <tr key={`ord-row-${ord.id}`} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="p-3.5 pl-5 font-bold font-mono text-red-600 text-xs">
-                      {ord.orderCode}
-                    </td>
-
-                    <td className="p-3.5">
-                      <div className="font-extrabold text-slate-900 text-xs">{ord.customerName}</div>
+              {/* TAB 1: CHI TIẾT ĐƠN HIỆN TẠI */}
+              {activeTab === 'detail' && (
+                <div className="space-y-4">
+                  {/* Customer Info Card */}
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-slate-900 text-sm">{selectedOrder.customerName}</span>
                       <a
-                        href={`tel:${ord.phone}`}
-                        className="text-red-600 hover:underline font-extrabold flex items-center gap-1 mt-0.5 text-xs"
+                        href={`tel:${selectedOrder.phone}`}
+                        className="text-red-600 font-extrabold flex items-center gap-1 hover:underline text-xs"
                       >
                         <PhoneCall className="w-3 h-3" />
-                        {ord.phone}
+                        {selectedOrder.phone}
                       </a>
-                    </td>
-
-                    <td className="p-3.5 max-w-xs">
-                      <div className="font-bold text-slate-800 line-clamp-1">
-                        {ord.parts.map((p) => `${p.name} (x${p.qty})`).join(', ')}
-                      </div>
-                      <div className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
-                        Ghi chú: {ord.notes}
-                      </div>
-                    </td>
-
-                    <td className="p-3.5 text-slate-500 font-mono text-[11px] whitespace-nowrap">{ord.createdAt}</td>
-
-                    <td className="p-3.5 whitespace-nowrap">
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${ord.statusColor}`}
-                      >
-                        {ord.statusText}
-                      </span>
-                    </td>
-
-                    <td className="p-3.5 pr-5 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <a
-                          href={`https://zalo.me/${ord.phone}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer"
-                          title="Tư vấn Zalo hỏa tốc"
-                        >
-                          <MessageSquare className="w-3.5 h-3.5" />
-                          <span>Zalo</span>
-                        </a>
-
-                        <button
-                          onClick={() => handleOpenEditModal(ord)}
-                          className="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold transition-all text-xs cursor-pointer"
-                          title="Sửa thông tin đơn"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
-
-                        <button
-                          onClick={() => requestDeleteOrder(ord.id, ord.orderCode)}
-                          className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 font-bold transition-all text-xs cursor-pointer"
-                          title="Xóa đơn này"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-
-                        <button
-                          onClick={() => openOrderDetail(ord)}
-                          className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold transition-all text-xs cursor-pointer"
-                        >
-                          Chi Tiết
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Order Detail & Customer History Combined Modal */}
-      {selectedOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-200">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-extrabold text-slate-900 text-base">
-                    Chi Tiết Báo Giá {selectedOrder.orderCode}
-                  </h3>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] border ${selectedOrder.customerBadgeColor}`}>
-                    {selectedOrder.customerBadgeText}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 mt-0.5">Khách gửi lúc: {selectedOrder.createdAt}</p>
-              </div>
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center flex-shrink-0 cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Modal Navigation Tabs */}
-            <div className="flex items-center gap-2 border-b border-slate-200 pb-2 text-xs font-bold">
-              <button
-                onClick={() => setActiveTab('detail')}
-                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                  activeTab === 'detail'
-                    ? 'bg-red-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Thông Tin Đơn Hiện Tại
-              </button>
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-                  activeTab === 'history'
-                    ? 'bg-red-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                <History className="w-3.5 h-3.5" />
-                <span>Lịch Sử SĐT ({customerHistory.length} Đơn)</span>
-              </button>
-            </div>
-
-            {/* TAB 1: CURRENT ORDER DETAIL */}
-            {activeTab === 'detail' && (
-              <div className="space-y-4 text-xs animate-in fade-in duration-150">
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <span className="text-slate-400 font-semibold block">Họ và tên:</span>
-                    <span className="font-bold text-slate-900 text-sm">{selectedOrder.customerName}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-semibold block">Số điện thoại:</span>
-                    <a href={`tel:${selectedOrder.phone}`} className="font-extrabold text-red-600 text-sm">
-                      {selectedOrder.phone}
-                    </a>
-                  </div>
-                  {selectedOrder.email && (
-                    <div>
-                      <span className="text-slate-400 font-semibold block">Email:</span>
-                      <span className="font-bold text-slate-800">{selectedOrder.email}</span>
                     </div>
-                  )}
-                  {selectedOrder.companyName && (
-                    <div>
-                      <span className="text-slate-400 font-semibold block">Đơn vị / Gara:</span>
-                      <span className="font-bold text-slate-800">{selectedOrder.companyName}</span>
-                    </div>
-                  )}
-                </div>
+                    {selectedOrder.companyName && (
+                      <p className="text-slate-600 font-medium">Công ty: {selectedOrder.companyName}</p>
+                    )}
+                    {selectedOrder.email && (
+                      <p className="text-slate-500 font-medium">Email: {selectedOrder.email}</p>
+                    )}
+                    {selectedOrder.notes && (
+                      <div className="p-2 bg-white rounded-lg border border-slate-200 text-slate-700 text-xs mt-1">
+                        <span className="font-bold text-slate-900 block">Ghi chú của khách:</span>
+                        {selectedOrder.notes}
+                      </div>
+                    )}
+                  </div>
 
-                <div>
-                  <h4 className="font-bold text-slate-900 mb-2">Danh Sách Phụ Tùng Yêu Cầu Báo Giá:</h4>
+                  {/* Requested Parts Table */}
                   <div className="space-y-2">
-                    {selectedOrder.parts.map((p, idx) => (
-                      <div
-                        key={`modal-part-${idx}`}
-                        className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2"
-                      >
-                        <div>
-                          <div className="font-bold text-slate-900 text-xs">{p.name}</div>
-                          <div className="text-[10px] text-slate-400 font-mono">Mã Part No: {p.sku}</div>
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <span className="font-extrabold text-slate-900 block">Số lượng: x{p.qty}</span>
-                          <span className="text-[11px] font-bold text-red-600">{p.price}</span>
-                        </div>
-                      </div>
-                    ))}
+                    <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1">
+                      <Package className="w-3.5 h-3.5 text-red-600" />
+                      Danh Sách Phụ Tùng Khách Yêu Cầu Báo Giá
+                    </h4>
+                    <div className="border border-slate-200 rounded-xl overflow-hidden text-xs">
+                      <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-100 text-slate-600 font-bold uppercase text-[10px]">
+                          <tr>
+                            <th className="p-2.5 pl-3">Tên Phụ Tùng / Mã</th>
+                            <th className="p-2.5 text-center">Số Lượng</th>
+                            <th className="p-2.5 text-right pr-3">Đơn Giá Tham Khảo</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {selectedOrder.parts.map((p, idx) => (
+                            <tr key={`part-detail-${idx}`} className="hover:bg-slate-50">
+                              <td className="p-2.5 pl-3">
+                                <div className="font-bold text-slate-900">{p.name}</div>
+                                <div className="text-[10px] text-slate-400 font-mono">Mã: {p.sku}</div>
+                              </td>
+                              <td className="p-2.5 text-center font-bold text-slate-800">x{p.qty}</td>
+                              <td className="p-2.5 text-right pr-3 font-extrabold text-red-600">{p.price}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
 
-                {selectedOrder.notes && (
-                  <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 leading-relaxed">
-                    <span className="font-bold block mb-1">Ghi chú từ khách hàng:</span>
-                    <p className="whitespace-pre-line">{selectedOrder.notes}</p>
-                  </div>
-                )}
-
-                {/* Status Selector in Modal */}
-                <div className="p-3.5 rounded-xl bg-slate-100 border border-slate-200 space-y-2">
-                  <label className="font-bold text-slate-800 text-xs block">
-                    Đổi Trạng Thái Xử Lý Đơn Báo Giá:
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[
-                      { key: 'pending', label: 'Chờ Xử Lý' },
-                      { key: 'confirmed', label: 'Xác Nhận' },
-                      { key: 'completed', label: 'Hoàn Thành' },
-                      { key: 'cancelled', label: 'Hủy Đơn' },
-                    ].map((st) => (
+                  {/* Status Action Buttons */}
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <span className="font-bold text-slate-700 text-xs block">
+                      Thay Đổi Trạng Thái Xử Lý Đơn Báo Giá:
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <button
-                        key={`btn-st-${st.key}`}
+                        type="button"
                         disabled={updatingStatus}
-                        onClick={() => handleUpdateStatus(selectedOrder.id, st.key as any)}
-                        className={`px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                          selectedOrder.status === st.key
-                            ? 'bg-red-600 text-white shadow-md'
-                            : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                        onClick={() => handleQuickStatusChange(selectedOrder.id, 'pending')}
+                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                          selectedOrder.status === 'pending'
+                            ? 'bg-red-600 text-white shadow-xs'
+                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
                         }`}
                       >
-                        {st.label}
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>Mới Gửi</span>
                       </button>
-                    ))}
+
+                      <button
+                        type="button"
+                        disabled={updatingStatus}
+                        onClick={() => handleQuickStatusChange(selectedOrder.id, 'confirmed')}
+                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                          selectedOrder.status === 'confirmed'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        <UserCheck className="w-3.5 h-3.5" />
+                        <span>Đã Xác Nhận</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={updatingStatus}
+                        onClick={() => handleQuickStatusChange(selectedOrder.id, 'completed')}
+                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                          selectedOrder.status === 'completed'
+                            ? 'bg-emerald-600 text-white shadow-xs'
+                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Hoàn Thành</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={updatingStatus}
+                        onClick={() => handleQuickStatusChange(selectedOrder.id, 'cancelled')}
+                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                          selectedOrder.status === 'cancelled'
+                            ? 'bg-slate-700 text-white shadow-xs'
+                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>Hủy Đơn</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* TAB 2: CUSTOMER HISTORY TIMELINE */}
-            {activeTab === 'history' && (
-              <div className="space-y-3 text-xs animate-in fade-in duration-150">
-                <div className="p-3 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-slate-800 block">
-                      Hồ Sơ Yêu Cầu Báo Giá Của SĐT {selectedOrder.phone}
-                    </span>
-                    <span className="text-[11px] text-slate-500">
-                      Tổng cộng {customerHistory.length} lần gửi báo giá vào hệ thống Q.BA.
+              {/* TAB 2: LỊCH SỬ MUA HÀNG CỦA KHÁCH HÀNG */}
+              {activeTab === 'history' && (
+                <div className="space-y-3">
+                  <div className="p-3 bg-blue-50 rounded-xl border border-blue-200 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-extrabold text-blue-900 block">Lịch Sử Yêu Cầu Báo Giá</span>
+                      <span className="text-blue-700">SĐT: {selectedOrder.phone} - Khách: {selectedOrder.customerName}</span>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-blue-600 text-white font-extrabold">
+                      {customerHistory.length} Đơn Trong CSDL
                     </span>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] border ${selectedOrder.customerBadgeColor}`}>
-                    {selectedOrder.customerBadgeText}
-                  </span>
-                </div>
 
-                {loadingHistory ? (
-                  <div className="p-8 text-center text-slate-400 space-y-2">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-red-600" />
-                    <p className="text-xs font-bold">Đang tải lịch sử báo giá của khách hàng...</p>
-                  </div>
-                ) : customerHistory.length === 0 ? (
-                  <div className="p-6 text-center text-slate-400">
-                    Chưa có lịch sử đơn báo giá nào khác.
-                  </div>
-                ) : (
-                  <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
-                    {customerHistory.map((hOrd: any) => {
-                      const hDate = new Date(hOrd.createdAt).toLocaleString('vi-VN');
-                      return (
-                        <div
-                          key={`hist-ord-${hOrd.id}`}
-                          className={`p-3 rounded-xl border transition-all ${
-                            hOrd.id === selectedOrder.id
-                              ? 'bg-red-50/60 border-red-200'
-                              : 'bg-slate-50 border-slate-200'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-2 mb-1">
+                  {loadingHistory ? (
+                    <div className="p-8 text-center text-slate-500">
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600 mb-2" />
+                      <p className="text-xs font-bold">Đang tải lịch sử mua hàng từ PostgreSQL...</p>
+                    </div>
+                  ) : customerHistory.length === 0 ? (
+                    <div className="p-6 text-center text-slate-400 bg-slate-50 rounded-xl text-xs font-medium">
+                      Chưa có lịch sử đơn hàng khác cho số điện thoại này.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                      {customerHistory.map((hOrd) => (
+                        <div key={`hist-${hOrd.id}`} className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs space-y-1.5">
+                          <div className="flex items-center justify-between">
                             <span className="font-extrabold font-mono text-red-600">{hOrd.orderCode}</span>
-                            <span className="text-[10px] text-slate-400">{hDate}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {new Date(hOrd.createdAt).toLocaleString('vi-VN')}
+                            </span>
                           </div>
-
-                          <div className="text-slate-800 font-medium text-xs">
-                            Phụ tùng: {(hOrd.items || []).map((i: any) => `${i.productName} (x${i.quantity})`).join(', ') || 'Tư vấn báo giá'}
+                          <div className="font-medium text-slate-700">
+                            Linh kiện: {(hOrd.items || []).map((i: any) => `${i.productName} (x${i.quantity})`).join(', ')}
                           </div>
-
-                          {hOrd.notes && (
-                            <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">
-                              Ghi chú: {hOrd.notes}
-                            </p>
-                          )}
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
-            {/* Modal Footer */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100 pt-4">
-              <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+              {/* Modal Footer */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                 <a
                   href={`https://zalo.me/${selectedOrder.phone}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Chat Zalo</span>
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Chat Zalo Báo Giá Ngay</span>
                 </a>
 
                 <button
-                  onClick={() => handleOpenEditModal(selectedOrder)}
-                  className="px-3 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs flex items-center gap-1 cursor-pointer"
-                >
-                  <Edit className="w-3.5 h-3.5" />
-                  <span>Sửa Đơn</span>
-                </button>
-
-                <button
-                  onClick={() => requestDeleteOrder(selectedOrder.id, selectedOrder.orderCode)}
-                  className="px-3 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-700 font-bold text-xs flex items-center gap-1 cursor-pointer"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Xóa Đơn Này</span>
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                <button
-                  onClick={() => requestDeleteCustomerGroup(selectedOrder.phone, selectedOrder.customerName)}
-                  className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-600 font-bold text-xs transition-colors cursor-pointer"
-                  title="Xóa tất cả đơn lưu trữ dưới SĐT này"
-                >
-                  Xóa Tất Cả Đơn SĐT Này
-                </button>
-
-                <button
+                  type="button"
                   onClick={() => setSelectedOrder(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-all cursor-pointer"
                 >
-                  Đóng
+                  Đóng Modal
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* CREATE NEW QUOTATION ORDER MODAL */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
+        {/* CREATE NEW QUOTATION ORDER MODAL */}
+        {isCreateModalOpen && (
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl max-w-xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-200 text-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
                   <Plus className="w-5 h-5 text-red-600" />
-                  Tạo Đơn Báo Giá Phụ Tùng Mới
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">Tạo nhanh yêu cầu báo giá tư vấn cho khách hàng trực tiếp.</p>
-              </div>
-              <button
-                onClick={() => setIsCreateModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveCreateOrder} className="space-y-3.5 text-xs">
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">
-                  Tên Khách Hàng <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ví dụ: Nguyễn Văn Hùng"
-                  value={newCustomerName}
-                  onChange={(e) => setNewCustomerName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500/20 font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">
-                  Số Điện Thoại <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  required
-                  placeholder="Ví dụ: 0905123456"
-                  value={newCustomerPhone}
-                  onChange={(e) => setNewCustomerPhone(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500/20 font-medium"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Tên Đơn Vị / Gara</label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: Gara Ô Tô Hải Vân"
-                    value={newCompanyName}
-                    onChange={(e) => setNewCompanyName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500/20 font-medium"
-                  />
+                  <h3 className="font-extrabold text-slate-900 text-base">Tạo Đơn Báo Giá Thủ Công</h3>
                 </div>
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Email (Nếu có)</label>
-                  <input
-                    type="email"
-                    placeholder="khachhang@gmail.com"
-                    value={newCustomerEmail}
-                    onChange={(e) => setNewCustomerEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500/20 font-medium"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Ghi Chú Yêu Cầu Phụ Tùng</label>
-                <textarea
-                  rows={3}
-                  placeholder="Ví dụ: Cần 2 bộ lọc dầu Weichai WP10 và 1 kim phun điện tử..."
-                  value={newNotes}
-                  onChange={(e) => setNewNotes(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500/20 font-medium"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button
-                  type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center flex-shrink-0 cursor-pointer"
                 >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingModal}
-                  className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold flex items-center gap-1.5 shadow-md cursor-pointer disabled:opacity-50"
-                >
-                  {submittingModal && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Tạo Đơn Báo Giá</span>
+                  ✕
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-      {/* EDIT QUOTATION ORDER MODAL */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
-                  <Edit className="w-5 h-5 text-amber-600" />
-                  Chỉnh Sửa Thông Tin Đơn Báo Giá
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">Cập nhật thông tin khách hàng hoặc ghi chú đơn.</p>
-              </div>
-              <button
-                onClick={() => setIsEditModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
+              <form onSubmit={handleCreateOrder} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Tên Khách Hàng (*)</label>
+                    <input
+                      type="text"
+                      required
+                      value={newCustomerName}
+                      onChange={(e) => setNewCustomerName(e.target.value)}
+                      placeholder="VD: Anh Tuấn Xe Tải"
+                      className="w-full p-2.5 border border-slate-200 rounded-xl font-bold text-slate-900 bg-slate-50 focus:bg-white"
+                    />
+                  </div>
 
-            <form onSubmit={handleSaveEditOrder} className="space-y-3.5 text-xs">
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Tên Khách Hàng</label>
-                <input
-                  type="text"
-                  required
-                  value={editCustomerName}
-                  onChange={(e) => setEditCustomerName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-medium"
-                />
-              </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Số Điện Thoại (*)</label>
+                    <input
+                      type="text"
+                      required
+                      value={newCustomerPhone}
+                      onChange={(e) => setNewCustomerPhone(e.target.value)}
+                      placeholder="VD: 0903588167"
+                      className="w-full p-2.5 border border-slate-200 rounded-xl font-bold text-red-600 bg-slate-50 focus:bg-white"
+                    />
+                  </div>
+                </div>
 
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Số Điện Thoại</label>
-                <input
-                  type="tel"
-                  required
-                  value={editCustomerPhone}
-                  onChange={(e) => setEditCustomerPhone(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-medium"
-                />
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Tên Công Ty / Nhà Xe</label>
+                    <input
+                      type="text"
+                      value={newCompanyName}
+                      onChange={(e) => setNewCompanyName(e.target.value)}
+                      placeholder="VD: Công ty Vận Tải Đà Nẵng"
+                      className="w-full p-2.5 border border-slate-200 rounded-xl font-medium text-slate-900 bg-slate-50 focus:bg-white"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Email (Tùy chọn)</label>
+                    <input
+                      type="email"
+                      value={newCustomerEmail}
+                      onChange={(e) => setNewCustomerEmail(e.target.value)}
+                      placeholder="khachhang@gmail.com"
+                      className="w-full p-2.5 border border-slate-200 rounded-xl font-medium text-slate-900 bg-slate-50 focus:bg-white"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Tên Gara / Đơn Vị</label>
+                  <label className="font-bold text-slate-700 block mb-1">Ghi Chú Yêu Cầu Báo Giá</label>
+                  <textarea
+                    rows={2}
+                    value={newNotes}
+                    onChange={(e) => setNewNotes(e.target.value)}
+                    placeholder="Ghi chú về dòng xe (HOWO 371, Weichai WP12...)"
+                    className="w-full p-2.5 border border-slate-200 rounded-xl font-medium text-slate-900 bg-slate-50 focus:bg-white"
+                  ></textarea>
+                </div>
+
+                {/* Parts List Section */}
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-800 text-xs">Danh Sách Phụ Tùng Cần Báo Giá:</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setNewParts((prev) => [
+                          ...prev,
+                          { productName: '', partNumber: '', quantity: 1, unitPrice: 0, itemNote: '' },
+                        ])
+                      }
+                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3 text-red-600" />
+                      <span>Thêm Dòng</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {newParts.map((part, pIdx) => (
+                      <div
+                        key={`new-part-row-${pIdx}`}
+                        className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center gap-2"
+                      >
+                        <input
+                          type="text"
+                          required
+                          value={part.productName}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setNewParts((prev) =>
+                              prev.map((item, idx) => (idx === pIdx ? { ...item, productName: val } : item))
+                            );
+                          }}
+                          placeholder="Tên phụ tùng (VD: Bơm cao áp HOWO)"
+                          className="flex-1 p-2 border border-slate-200 rounded-lg font-bold text-slate-900 bg-white text-xs"
+                        />
+
+                        <input
+                          type="text"
+                          value={part.partNumber}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setNewParts((prev) =>
+                              prev.map((item, idx) => (idx === pIdx ? { ...item, partNumber: val } : item))
+                            );
+                          }}
+                          placeholder="Mã SKU (Tùy chọn)"
+                          className="w-full sm:w-28 p-2 border border-slate-200 rounded-lg font-mono text-slate-700 bg-white text-xs"
+                        />
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="text-[11px] font-bold text-slate-500">SL:</span>
+                          <input
+                            type="number"
+                            min={1}
+                            value={part.quantity}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10) || 1;
+                              setNewParts((prev) =>
+                                prev.map((item, idx) => (idx === pIdx ? { ...item, quantity: val } : item))
+                              );
+                            }}
+                            className="w-16 p-2 border border-slate-200 rounded-lg font-bold text-slate-900 bg-white text-xs text-center"
+                          />
+
+                          {newParts.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setNewParts((prev) => prev.filter((_, idx) => idx !== pIdx))}
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(false)}
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-100 cursor-pointer"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold shadow-sm flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Lưu Đơn Báo Giá</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* EDIT ORDER MODAL */}
+        {isEditModalOpen && editingOrder && (
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-200 text-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <Edit className="w-5 h-5 text-amber-600" />
+                  <h3 className="font-extrabold text-slate-900 text-base">Chỉnh Sửa Đơn {editingOrder.orderCode}</h3>
+                </div>
+                <button
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center flex-shrink-0 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEditOrder} className="space-y-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Tên Khách Hàng</label>
                   <input
                     type="text"
-                    value={editCompanyName}
-                    onChange={(e) => setEditCompanyName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-medium"
+                    required
+                    value={editCustomerName}
+                    onChange={(e) => setEditCustomerName(e.target.value)}
+                    className="w-full p-2.5 border border-slate-200 rounded-xl font-bold text-slate-900 bg-slate-50 focus:bg-white"
                   />
                 </div>
+
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Email</label>
+                  <label className="font-bold text-slate-700 block mb-1">Số Điện Thoại</label>
                   <input
-                    type="email"
-                    value={editCustomerEmail}
-                    onChange={(e) => setEditCustomerEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-medium"
+                    type="text"
+                    required
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    className="w-full p-2.5 border border-slate-200 rounded-xl font-bold text-red-600 bg-slate-50 focus:bg-white"
                   />
                 </div>
-              </div>
 
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Trạng Thái Đơn</label>
-                <select
-                  value={editStatus}
-                  onChange={(e) => setEditStatus(e.target.value as any)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-bold"
-                >
-                  <option value="pending">MỚI GỬI (Chờ Báo Giá)</option>
-                  <option value="confirmed">ĐÃ XÁC NHẬN (Đang Báo Giá)</option>
-                  <option value="completed">HOÀN THÀNH (Đã Chốt Đơn)</option>
-                  <option value="cancelled">ĐÃ HỦY (Hủy Đơn)</option>
-                </select>
-              </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Trạng Thái Đơn Báo Giá</label>
+                  <select
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
+                    className="w-full p-2.5 border border-slate-200 rounded-xl font-bold text-slate-900 bg-white"
+                  >
+                    <option value="pending">Mới Gửi (Chờ Báo Giá)</option>
+                    <option value="confirmed">Đã Xác Nhận</option>
+                    <option value="completed">Hoàn Thành</option>
+                    <option value="cancelled">Đã Hủy</option>
+                  </select>
+                </div>
 
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Ghi Chú Đơn</label>
-                <textarea
-                  rows={3}
-                  value={editNotes}
-                  onChange={(e) => setEditNotes(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-medium"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingModal}
-                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold flex items-center gap-1.5 shadow-md cursor-pointer disabled:opacity-50"
-                >
-                  {submittingModal && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Lưu Thay Đổi</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* BEAUTIFUL CUSTOM DELETE CONFIRMATION MODAL */}
-      {deleteConfirmState?.isOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl border border-red-100 transform animate-in zoom-in-95 duration-200">
-            {/* Warning Icon Badge */}
-            <div className="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto shadow-inner border border-red-200/60 ring-8 ring-red-50">
-              <AlertCircle className="w-8 h-8 text-red-600 animate-pulse" />
-            </div>
-
-            {/* Modal Title & Text */}
-            <div className="space-y-1.5">
-              <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">
-                Xác Nhận Xóa Vĩnh Viễn?
-              </h3>
-              {deleteConfirmState.type === 'single' ? (
-                <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  Bạn có chắc chắn muốn xóa đơn báo giá <span className="font-extrabold font-mono text-red-600">{deleteConfirmState.code}</span> khỏi hệ thống cơ sở dữ liệu? Thao tác này không thể hoàn tác.
-                </p>
-              ) : (
-                <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  Bạn có chắc chắn muốn xóa <span className="font-extrabold text-slate-900">TOÀN BỘ đơn báo giá</span> thuộc SĐT <span className="font-extrabold text-red-600">{deleteConfirmState.phone}</span> ({deleteConfirmState.name})?
-                </p>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center justify-center gap-3 pt-2">
-              <button
-                type="button"
-                disabled={deleting}
-                onClick={() => setDeleteConfirmState(null)}
-                className="w-1/2 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
-              >
-                Hủy Bỏ
-              </button>
-
-              <button
-                type="button"
-                disabled={deleting}
-                onClick={handleConfirmExecuteDelete}
-                className="w-1/2 py-3 rounded-2xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-extrabold text-xs shadow-lg shadow-red-600/30 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-              >
-                {deleting ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-white" />
-                ) : (
-                  <Trash2 className="w-4 h-4 text-white" />
-                )}
-                <span>ĐỒNG Ý XÓA</span>
-              </button>
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditModalOpen(false)}
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-100 cursor-pointer"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold shadow-sm cursor-pointer"
+                  >
+                    Cập Nhật Đơn
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* TOAST NOTIFICATION */}
-      <ToastNotification toast={toastState} onClose={() => setToastState(null)} />
-    </div>
+        {/* TOAST NOTIFICATION */}
+        <ToastNotification toast={toastState} onClose={() => setToastState(null)} />
+      </div>
+    </ConfigProvider>
   );
 }

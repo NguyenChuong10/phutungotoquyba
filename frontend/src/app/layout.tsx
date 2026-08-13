@@ -69,6 +69,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { AntdRegistry } from "@ant-design/nextjs-registry";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -118,7 +120,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning={true}>
-        <MainLayout>{children}</MainLayout>
+        <AntdRegistry>
+          <MainLayout>{children}</MainLayout>
+        </AntdRegistry>
       </body>
     </html>
   );
