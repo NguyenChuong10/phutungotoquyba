@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+// Đọc cấu hình từ biến môi trường (.env) cho Backend Server (mặc định cho Dev)
+const backendProtocol = (process.env.NEXT_PUBLIC_API_PROTOCOL || "http") as "http" | "https";
+const backendHostname = process.env.NEXT_PUBLIC_API_HOSTNAME || "localhost";
+const backendPort = process.env.NEXT_PUBLIC_API_PORT || "5000";
+const backendUploadDestination =
+  process.env.NEXT_PUBLIC_UPLOADS_DESTINATION ||
+  `${backendProtocol}://${backendHostname}:${backendPort}/uploads/:path*`;
+
 const securityHeaders = [
   {
     key: "X-DNS-Prefetch-Control",
@@ -41,14 +49,14 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
       },
       {
-        protocol: "http",
-        hostname: "localhost",
-        port: "5000",
+        protocol: backendProtocol,
+        hostname: backendHostname,
+        ...(backendPort ? { port: backendPort } : {}),
       },
       {
-        protocol: "http",
+        protocol: backendProtocol,
         hostname: "127.0.0.1",
-        port: "5000",
+        ...(backendPort ? { port: backendPort } : {}),
       },
     ],
   },
@@ -56,7 +64,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/uploads/:path*",
-        destination: "http://localhost:5000/uploads/:path*",
+        destination: backendUploadDestination,
       },
     ];
   },
