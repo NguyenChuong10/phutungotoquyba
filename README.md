@@ -128,9 +128,11 @@ PhuTungOtoQuyBa/
 
 ---
 
-## ⚙️ 5. CẤU HÌNH BIẾN MÔI TRƯỜNG
+## ⚙️ 5. CẤU HÌNH BIẾN MÔI TRƯỜNG (ENVIRONMENT TEMPLATES)
 
-### 1. Frontend (`frontend/.env.local`):
+> ⚠️ **LƯU Ý BẢO MẬT:** Không commit trực tiếp thông tin bảo mật hay mật khẩu CSDL lên Git. Hãy tạo các file `.env.local` (phía Frontend) và `.env` (phía Backend) từ các file mẫu bên dưới:
+
+### 1. Mẫu Cấu Hình Frontend (`frontend/.env.example`):
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
 NEXT_PUBLIC_WS_URL=ws://localhost:5000/ws
@@ -138,12 +140,12 @@ INTERNAL_API_URL=http://host.docker.internal:5000/api/v1
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-### 2. Backend (`backend/.env`):
+### 2. Mẫu Cấu Hình Backend (`backend/.env.example`):
 ```env
 PORT=5000
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/phutungquyba?schema=public"
-JWT_SECRET=quyba_secret_key_2026_production
-CORS_ORIGIN=http://localhost:3000
+DATABASE_URL="postgresql://YOUR_DB_USER:YOUR_DB_PASSWORD@localhost:5432/phutungquyba?schema=public"
+JWT_SECRET="YOUR_SUPER_SECRET_JWT_KEY"
+CORS_ORIGIN="http://localhost:3000"
 ```
 
 ---
