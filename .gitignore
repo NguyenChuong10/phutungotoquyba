@@ -46,3 +46,7 @@ Thumbs.db
 *.sln
 *.sw?
 
+# DB
+*.sqlite
+database/postgresql-data/
+postgres/
