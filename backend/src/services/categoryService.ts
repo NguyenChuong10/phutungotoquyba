@@ -167,7 +167,7 @@ export class CategoryService {
     }
 
     // Check total products linked directly to this category or via child subcategories
-    const childProductCount = category.children.reduce((acc, sub) => acc + sub._count.products, 0);
+    const childProductCount = category.children.reduce((acc: number, sub: any) => acc + sub._count.products, 0);
     const totalProducts = category._count.products + childProductCount;
 
     if (totalProducts > 0) {

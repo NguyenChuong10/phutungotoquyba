@@ -84,7 +84,7 @@ export class OrderService {
       where: { id: { in: productIds } },
     });
 
-    const productMap = new Map(products.map((p) => [p.id, p]));
+    const productMap = new Map(products.map((p: any) => [p.id, p]));
 
     let calculatedTotal = 0;
     const orderItemsData = requestedItems.map((item) => {
@@ -117,7 +117,7 @@ export class OrderService {
     const notesVal = this.sanitizeText(input.notes) || null;
 
     // Create Order & OrderItems within transaction
-    const order = await prisma.$transaction(async (tx) => {
+    const order = await prisma.$transaction(async (tx: any) => {
       const newOrder = await tx.order.create({
         data: {
           orderCode,
@@ -204,14 +204,14 @@ export class OrderService {
     ]);
 
     // Attach Customer Stats for badging
-    const phoneNumbers = [...new Set(orders.map((o) => o.customerPhone))];
+    const phoneNumbers = [...new Set(orders.map((o: any) => o.customerPhone))];
     const customers = await prisma.customer.findMany({
       where: { phone: { in: phoneNumbers } },
     });
-    const customerMap = new Map(customers.map((c) => [c.phone, c]));
+    const customerMap = new Map(customers.map((c: any) => [c.phone, c]));
 
-    const ordersWithStats = orders.map((o) => {
-      const cust = customerMap.get(o.customerPhone);
+    const ordersWithStats = orders.map((o: any) => {
+      const cust: any = customerMap.get(o.customerPhone);
       return {
         ...o,
         customerStats: {
@@ -382,7 +382,7 @@ export class OrderService {
       : 0;
 
     // Process Top 5 Most Requested Auto Parts
-    const topRequestedParts = orderItemsGrouped.map((item, idx) => ({
+    const topRequestedParts = orderItemsGrouped.map((item: any, idx: number) => ({
       rank: idx + 1,
       productId: item.productId,
       productName: item.productName || "Phụ Tùng Xe Tải Q.BA",
@@ -400,7 +400,7 @@ export class OrderService {
       daysMap.set(dateKey, 0);
     }
 
-    recentOrdersTimeline.forEach((ord) => {
+    recentOrdersTimeline.forEach((ord: any) => {
       const d = new Date(ord.createdAt);
       const dateKey = `${d.getDate()}/${d.getMonth() + 1}`;
       if (daysMap.has(dateKey)) {
