@@ -1,15 +1,15 @@
 import { Briefcase, Users, CheckCircle, MapPin, PhoneCall } from "lucide-react";
-
 import ApplicationForm from "@/components/public/ApplicationForm";
-
+import { API_BASE_URL } from "@/config/api";
 
 export const metadata = {
   title: "Tuyển Dụng Nhân Sự - Phụ Tùng Ô Tô Q.BA Đà Nẵng",
   description: "Tuyển dụng Nhân viên Kinh doanh phụ tùng xe tải, Kỹ thuật viên tra Catalog & Thủ kho phụ tùng tại Phụ Tùng Ô Tô Q.BA Đà Nẵng. Thu nhập 12-25 triệu + Hoa hồng hấp dẫn.",
 };
 
-const jobs = [
+const defaultJobs = [
   {
+    id: 1,
     title: "NHÂN VIÊN KINH DOANH PHỤ TÙNG XE TẢI",
     salary: "12.000.000đ - 25.000.000đ + % Hoa hồng",
     location: "43-45 Nguyễn Văn Tạo, Q. Thanh Khê, Đà Nẵng",
@@ -24,11 +24,11 @@ const jobs = [
     responsibilities: [
       "Báo giá và tư vấn bán lẻ/bán sỉ phụ tùng cho khách hàng trực tiếp và qua Zalo/Điện thoại",
       "Chăm sóc danh sách garage, hạm đội xe ben, xe đầu kéo khu vực Miền Trung, Tây Nguyên và toàn quốc",
-
       "Phối hợp với kho hàng chuẩn bị đơn hàng gửi xe toàn quốc"
     ]
   },
   {
+    id: 2,
     title: "KỸ THUẬT VIÊN TRA CATALOG & MÃ PHỤ TÙNG",
     salary: "10.000.000đ - 18.000.000đ",
     location: "43-45 Nguyễn Văn Tạo, Q. Thanh Khê, Đà Nẵng",
@@ -46,6 +46,7 @@ const jobs = [
     ]
   },
   {
+    id: 3,
     title: "THỦ KHO & QUẢN LÝ KIỆN HÀNG PHỤ TÙNG",
     salary: "9.000.000đ - 14.000.000đ",
     location: "43-45 Nguyễn Văn Tạo, Q. Thanh Khê, Đà Nẵng",
@@ -64,10 +65,26 @@ const jobs = [
   }
 ];
 
-export default function CareersPage() {
+async function getJobPostings() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/jobs`, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        return data.data;
+      }
+    }
+  } catch (err) {
+    console.error("Failed to fetch jobs from API:", err);
+  }
+  return defaultJobs;
+}
+
+export default async function CareersPage() {
+  const jobs = await getJobPostings();
+
   return (
     <div>
-
       {/* 1. Open Job Positions List */}
       <section className="pt-32 md:pt-40 pb-20 bg-white">
         <div className="container mx-auto px-4 max-w-7xl space-y-12">
@@ -79,13 +96,12 @@ export default function CareersPage() {
             <h2 className="text-3xl sm:text-4xl font-black font-heading uppercase text-slate-900">
               VỊ TRÍ ĐANG <span className="text-brand">TUYỂN DỤNG</span>
             </h2>
-
           </div>
 
           <div className="space-y-8">
-            {jobs.map((job, idx) => (
+            {jobs.map((job: any, idx: number) => (
               <div 
-                key={`job-card-${idx}`}
+                key={job.id || `job-card-${idx}`}
                 className="p-8 md:p-10 rounded-3xl bg-slate-50 border border-slate-200/90 hover:border-brand/50 shadow-xl transition-all duration-300 space-y-6"
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-200">
@@ -124,7 +140,7 @@ export default function CareersPage() {
                       Yêu Cầu Ứng Viên:
                     </h4>
                     <ul className="space-y-2 text-xs sm:text-sm text-gray-600">
-                      {job.requirements.map((req, rIdx) => (
+                      {Array.isArray(job.requirements) && job.requirements.map((req: string, rIdx: number) => (
                         <li key={`req-${idx}-${rIdx}`} className="flex items-start gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0 mt-1.5"></span>
                           <span>{req}</span>
@@ -139,7 +155,7 @@ export default function CareersPage() {
                       Mô Tả Công Việc:
                     </h4>
                     <ul className="space-y-2 text-xs sm:text-sm text-gray-600">
-                      {job.responsibilities.map((res, resIdx) => (
+                      {Array.isArray(job.responsibilities) && job.responsibilities.map((res: string, resIdx: number) => (
                         <li key={`res-${idx}-${resIdx}`} className="flex items-start gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-900 shrink-0 mt-1.5"></span>
                           <span>{res}</span>
@@ -154,7 +170,7 @@ export default function CareersPage() {
         </div>
       </section>
 
-      {/* 4. Application Form Section */}
+      {/* Application Form Section */}
       <section className="py-20 bg-slate-50 border-t border-slate-200">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
@@ -215,7 +231,6 @@ export default function CareersPage() {
           </div>
         </div>
       </section>
-
     </div>
   );
 }

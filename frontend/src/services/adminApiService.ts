@@ -475,4 +475,47 @@ export class AdminApiService {
       body: JSON.stringify(settings),
     });
   }
+
+  /**
+   * Get Public Active Job Postings
+   */
+  static async getPublicJobs() {
+    return await fetchApi("/jobs");
+  }
+
+  /**
+   * Get All Job Postings for Admin
+   */
+  static async getAllJobs() {
+    return await fetchApi("/jobs/admin");
+  }
+
+  /**
+   * Create Job Posting
+   */
+  static async createJob(jobData: Record<string, unknown>) {
+    return await fetchApi("/jobs/admin", {
+      method: "POST",
+      body: JSON.stringify(jobData),
+    });
+  }
+
+  /**
+   * Update Job Posting
+   */
+  static async updateJob(id: number, jobData: Record<string, unknown>) {
+    return await fetchApi(`/jobs/admin/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(jobData),
+    });
+  }
+
+  /**
+   * Delete Job Posting
+   */
+  static async deleteJob(id: number) {
+    return await fetchApi(`/jobs/admin/${id}`, {
+      method: "DELETE",
+    });
+  }
 }

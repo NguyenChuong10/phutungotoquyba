@@ -46,8 +46,10 @@ if (process.env.NODE_ENV !== "test") {
     try {
       const { ensurePartnerBrandsTable } = require("./services/partnerBrandService");
       const { ensureSystemSettingsTable } = require("./services/settingService");
+      const { ensureJobPostingsTable } = require("./services/jobPostingService");
       await ensurePartnerBrandsTable();
       await ensureSystemSettingsTable();
+      await ensureJobPostingsTable();
     } catch {
       // Auto table init fallback
     }

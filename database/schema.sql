@@ -163,6 +163,23 @@ CREATE TABLE IF NOT EXISTS partner_brands (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 13. BANG TUYEN DUNG NHAN SU (JOB_POSTINGS)
+CREATE TABLE IF NOT EXISTS job_postings (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    type VARCHAR(100) DEFAULT 'Toàn thời gian',
+    salary VARCHAR(255) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    quantity VARCHAR(100) DEFAULT '01 Người',
+    requirements JSONB DEFAULT '[]'::jsonb,
+    responsibilities JSONB DEFAULT '[]'::jsonb,
+    is_active BOOLEAN DEFAULT TRUE,
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ====================================================================
 -- CHI MUC OPTIMIZATION (INDEXES) THAM CHIEU TOC DO TRA CUU HOẢ TỐC
 -- ====================================================================
@@ -177,3 +194,5 @@ CREATE INDEX IF NOT EXISTS idx_orders_phone ON orders(customer_phone);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_news_slug ON news(slug);
 CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
+CREATE INDEX IF NOT EXISTS idx_job_postings_slug ON job_postings(slug);
+

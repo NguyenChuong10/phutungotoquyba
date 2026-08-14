@@ -10,6 +10,7 @@ import {
   FileText,
   Newspaper,
   Users,
+  Briefcase,
   Settings,
   ShieldCheck,
   ChevronRight,
@@ -54,6 +55,12 @@ const MENU_ITEMS = [
     name: 'Khách Hàng',
     href: '/admin/customers',
     icon: Users,
+    badge: null,
+  },
+  {
+    name: 'Quản Lý Tuyển Dụng',
+    href: '/admin/careers',
+    icon: Briefcase,
     badge: null,
   },
   {

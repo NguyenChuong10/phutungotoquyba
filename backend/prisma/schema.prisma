@@ -230,4 +230,23 @@ model PartnerBrand {
   @@map("partner_brands")
 }
 
+model JobPosting {
+  id               Int      @id @default(autoincrement())
+  title            String
+  slug             String   @unique
+  type             String   @default("Toàn thời gian")
+  salary           String
+  location         String
+  quantity         String   @default("01 Người")
+  requirements     Json     @default("[]")
+  responsibilities Json     @default("[]")
+  isActive         Boolean  @default(true) @map("is_active")
+  sortOrder        Int      @default(0) @map("sort_order")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("job_postings")
+}
+
+
 
