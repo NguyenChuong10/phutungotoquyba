@@ -118,6 +118,9 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* Nhúng Eruda DevTools ảo cho mobile */}
+        <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+        <script dangerouslySetInnerHTML={{ __html: "eruda.init();" }} />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning={true}>
         <AntdRegistry>

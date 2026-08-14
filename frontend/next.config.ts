@@ -21,7 +21,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: path.resolve(__dirname, "../"),
+  outputFileTracingRoot: path.resolve(process.cwd(), "../"),
   images: {
     remotePatterns: [
       {

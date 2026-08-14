@@ -18,19 +18,43 @@ const PORT = process.env.PORT || 5000;
 // Security Hardening: Disable Express Fingerprinting Header
 app.disable("x-powered-by");
 
-// Security & Parsing Middlewares
+// 1. CẤU HÌNH CORS ĐẶT ĐẦU TIÊN (Trước mọi middleware khác)
+const allowedOrigins = [
+  "https://phutungotoquyba.buiduchieu.id.vn",
+  "http://localhost:3000",
+  "http://42.118.98.35:3000",
+];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Cho phép requests không có origin (curl, mobile native app, server-to-server) hoặc thuộc whitelist
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Tạm thời cho qua để tránh chặn nhầm lúc test
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+  exposedHeaders: ["Set-Cookie"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Xử lý Preflight request cho tất cả các route
+
+// 2. HELMET & PARSERS
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
-// Serve Uploaded Files with security headers
+// 3. STATIC FILES
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// API Base Route V1 (Rate Limited)
+// 4. API ROUTES
 app.use("/api/v1", apiRateLimiter, routes);
 
-// Global Error Handler Middleware
+// 5. GLOBAL ERROR HANDLER (Phải nằm sau routes)
 app.use(errorHandler);
 
 // HTTP & WebSocket Server Setup

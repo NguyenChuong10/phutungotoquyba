@@ -17,7 +17,8 @@ services:
     image: phutungotoquyba-fe:1.0.0
     container_name: phutungotoquyba-fe
     restart: always
-    # environment:
+    env_file:
+      - .env.fe.production
     ports:
       - "3000:3000"
 
