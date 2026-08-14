@@ -152,14 +152,14 @@ export default function AdminOrdersPage() {
 
           // Compact Clean Customer Badges
           const totalOrders = o.customerStats?.totalOrders || 1;
-          let customerBadgeText = '🆕 Mới';
+          let customerBadgeText = 'Mới';
           let customerBadgeColor = 'bg-slate-100 text-slate-600 border-slate-200';
 
           if (totalOrders >= 5) {
-            customerBadgeText = `⭐ VIP (${totalOrders} đơn)`;
+            customerBadgeText = `VIP (${totalOrders} đơn)`;
             customerBadgeColor = 'bg-amber-100 text-amber-900 border-amber-300 font-bold';
           } else if (totalOrders >= 2) {
-            customerBadgeText = `🔄 ${totalOrders} đơn`;
+            customerBadgeText = `Khách Quen (${totalOrders} đơn)`;
             customerBadgeColor = 'bg-blue-100 text-blue-800 border-blue-200 font-bold';
           }
 
@@ -917,7 +917,7 @@ export default function AdminOrdersPage() {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Lắng nghe Real-Time 100% - Ant Design Enterprise Table với hỗ trợ mở rộng dòng và phân trang tự động.
+              Quản lý và xử lý các yêu cầu tư vấn báo giá linh kiện phụ tùng xe tải từ khách hàng.
             </p>
           </div>
 
@@ -1027,7 +1027,7 @@ export default function AdminOrdersPage() {
                 pageSizeOptions: ['10', '20', '50'],
                 showTotal: (total, range) => `${range[0]}-${range[1]} / Tổng ${total} khách hàng`,
               }}
-              scroll={{ x: 800 }}
+              scroll={{ x: 'max-content' }}
               size="middle"
             />
           ) : (
@@ -1046,7 +1046,7 @@ export default function AdminOrdersPage() {
                 pageSizeOptions: ['10', '20', '50'],
                 showTotal: (total, range) => `${range[0]}-${range[1]} / Tổng ${total} đơn báo giá`,
               }}
-              scroll={{ x: 900 }}
+              scroll={{ x: 'max-content' }}
               size="middle"
             />
           )}

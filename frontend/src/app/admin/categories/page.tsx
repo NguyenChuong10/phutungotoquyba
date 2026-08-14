@@ -563,9 +563,9 @@ export default function AdminCategoriesPage() {
               {totalMainCategories} Danh Mục Chính • {totalSubCategories} Danh Mục Phụ
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Đấu nối Real-Time 100% với PostgreSQL Database - Mọi thao tác Thêm, Sửa, Xóa cập nhật tức thì toàn hệ thống.
-          </p>
+            <p className="text-xs text-slate-500 mt-1">
+              Quản lý cấu trúc danh mục phụ tùng xe tải và danh sách các thương hiệu nhà máy sản xuất.
+            </p>
         </div>
       </div>
 

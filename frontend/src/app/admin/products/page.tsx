@@ -432,7 +432,7 @@ export default function AdminProductsPage() {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Đồng bộ Real-Time 100% với PostgreSQL Database - Ant Design Enterprise Table mượt mà.
+              Quản lý danh sách tất cả các mã phụ tùng xe tải trong kho Q.BA Đà Nẵng.
             </p>
           </div>
 
@@ -535,7 +535,7 @@ export default function AdminProductsPage() {
               pageSizeOptions: ['10', '20', '50'],
               showTotal: (total, range) => `${range[0]}-${range[1]} / Tổng ${total} sản phẩm kho Q.BA`,
             }}
-            scroll={{ x: 900 }}
+            scroll={{ x: 'max-content' }}
             size="middle"
           />
         </div>
