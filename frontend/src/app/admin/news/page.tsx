@@ -218,15 +218,67 @@ export default function AdminNewsPage() {
     setShowArticleModal(true);
   };
 
+  // Helper to parse content and extract section builder blocks
+  const parseContentAndSections = (fullContent: string) => {
+    if (!fullContent) return { mainContent: '', parsedSections: [] };
+
+    const sectionRegex = /<div class="p-6 bg-slate-50[^"]*">([\s\S]*?)<\/div>/gi;
+    const parsedSections: ArticleSectionItem[] = [];
+    let sectionIndex = 0;
+
+    let match;
+    while ((match = sectionRegex.exec(fullContent)) !== null) {
+      const blockHtml = match[1];
+
+      let heading = '';
+      const spanHeadingMatch = blockHtml.match(/<h3[^>]*>[\s\S]*?<span>([^<]+)<\/span>\s*<\/h3>/i);
+      if (spanHeadingMatch) {
+        heading = spanHeadingMatch[1].trim();
+      } else {
+        const h3Match = blockHtml.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
+        if (h3Match) {
+          heading = h3Match[1].replace(/<[^>]*>?/gm, '').trim();
+        }
+      }
+
+      let imageUrl = '';
+      const imgMatch = blockHtml.match(/<img[^>]+src=["']([^"']+)["']/i);
+      if (imgMatch) {
+        imageUrl = imgMatch[1];
+      }
+
+      let bodyText = '';
+      const pMatch = blockHtml.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+      if (pMatch) {
+        bodyText = pMatch[1].replace(/<br\s*\/?>/gi, '\n').trim();
+      }
+
+      sectionIndex++;
+      parsedSections.push({
+        id: `sec-${Date.now()}-${sectionIndex}-${Math.random().toString(36).substring(2, 6)}`,
+        heading: heading || `Bước ${sectionIndex}: `,
+        imageUrl,
+        bodyText,
+      });
+    }
+
+    const mainContent = fullContent.replace(/<div class="p-6 bg-slate-50[^"]*">[\s\S]*?<\/div>/gi, '').trim();
+
+    return { mainContent, parsedSections };
+  };
+
   // Open Edit Modal
   const handleOpenEdit = (article: NewsArticleItem) => {
     setEditingArticle(article);
     setTitle(article.title);
     setCategorySlug(article.categorySlug || 'cam-nang-ky-thuat');
-    setContent(article.content);
     setThumbnailUrl(article.thumbnailUrl || '/images/news-section/news-1.png');
     setIsFeatured(article.isFeatured);
-    setSections([]);
+
+    const { mainContent, parsedSections } = parseContentAndSections(article.content);
+    setContent(mainContent);
+    setSections(parsedSections);
+
     setShowArticleModal(true);
   };
 
