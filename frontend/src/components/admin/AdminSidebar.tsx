@@ -67,7 +67,7 @@ const MENU_ITEMS = [
 
 function SidebarInner({ onNavItemClick }: { onNavItemClick?: () => void }) {
   const pathname = usePathname();
-  const { pendingCount } = useAdminNotification();
+  const { unreadNotificationsCount, pendingCount } = useAdminNotification();
 
   return (
     <div className="flex flex-col justify-between h-full text-slate-300">
@@ -117,7 +117,7 @@ function SidebarInner({ onNavItemClick }: { onNavItemClick?: () => void }) {
               pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
 
             const displayBadge = item.href === '/admin/orders'
-              ? (pendingCount > 0 ? `${pendingCount} Mới` : null)
+              ? (unreadNotificationsCount > 0 ? `${unreadNotificationsCount} Mới` : null)
               : item.badge;
 
             return (

@@ -108,27 +108,31 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
     try {
       const res = await fetchApi("/orders/admin?limit=50");
       if (res.ok && res.data) {
-        const orders: any[] = res.data;
+        const rawOrders = Array.isArray(res.data) ? res.data : (res.data.orders || []);
+
+        const lastReadTime = typeof window !== "undefined"
+          ? Number(localStorage.getItem("quyba_admin_last_read_time") || 0)
+          : 0;
 
         // Deduplicate orders by unique id
         const uniqueOrdersMap = new Map<string, any>();
-        orders.forEach((o) => {
+        rawOrders.forEach((o: any) => {
           if (o.id && !uniqueOrdersMap.has(String(o.id))) {
             uniqueOrdersMap.set(String(o.id), o);
           }
         });
         const uniqueOrders = Array.from(uniqueOrdersMap.values());
 
-        // Count pending orders accurately
-        const pendingOrders = uniqueOrders.filter((o) => o.status === "pending");
-        const pending = pendingOrders.length;
-
         // Map notifications list from unique recent orders
         const notificationItems: AdminNotificationItem[] = uniqueOrders.slice(0, 10).map((o) => {
-          const formattedTime = new Date(o.createdAt).toLocaleTimeString("vi-VN", {
+          const orderTimeMs = o.createdAt ? new Date(o.createdAt).getTime() : 0;
+          const formattedTime = new Date(o.createdAt || Date.now()).toLocaleTimeString("vi-VN", {
             hour: "2-digit",
             minute: "2-digit",
           });
+
+          const isUnreadPending = o.status === "pending" && orderTimeMs > lastReadTime;
+
           return {
             id: String(o.id),
             orderCode: o.orderCode,
@@ -137,13 +141,15 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
             title: `Yêu cầu báo giá [${o.orderCode}]`,
             message: `${o.customerName || "Khách hàng"} (${o.customerPhone}) - ${o.items?.length || 1} mã phụ tùng`,
             time: formattedTime,
-            isRead: o.status !== "pending",
+            isRead: !isUnreadPending,
           };
         });
 
+        const unreadCount = notificationItems.filter((n) => !n.isRead).length;
+
         setNotifications(notificationItems);
-        setPendingCount(pending);
-        setUnreadNotificationsCount(pending);
+        setPendingCount(unreadCount);
+        setUnreadNotificationsCount(unreadCount);
       }
     } catch {
       // Keep existing
@@ -287,7 +293,11 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
   }, [refreshNotifications, triggerToast]);
 
   const markAllAsRead = useCallback(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("quyba_admin_last_read_time", Date.now().toString());
+    }
     setUnreadNotificationsCount(0);
+    setPendingCount(0);
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   }, []);
 
