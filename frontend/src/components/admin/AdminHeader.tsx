@@ -3,14 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Search, Bell, Plus, Menu, LogOut, UserCheck, Volume2, CheckCheck, FileText, ChevronRight } from 'lucide-react';
+import { Bell, Plus, Menu, LogOut, UserCheck, Volume2, CheckCheck, FileText, ChevronRight } from 'lucide-react';
 import { useAdminSidebar } from './AdminSidebarContext';
 import { useAdminNotification } from '@/context/AdminNotificationContext';
 import { secureStorage } from '@/utils/secureStorage';
 
 export default function AdminHeader() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
   const [adminUser, setAdminUser] = useState<{ fullName: string; role: string; email: string } | null>(null);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -49,8 +48,8 @@ export default function AdminHeader() {
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs">
-      {/* Left: Mobile Toggle & Search Bar */}
-      <div className="flex items-center gap-2 sm:gap-4 flex-1 max-w-lg">
+      {/* Left: Mobile Toggle */}
+      <div className="flex items-center gap-2 sm:gap-4">
         {/* Mobile Hamburger Menu Toggle */}
         <button
           onClick={toggleMobileSidebar}
@@ -59,18 +58,6 @@ export default function AdminHeader() {
         >
           <Menu className="w-5 h-5" />
         </button>
-
-        {/* Global Search Bar */}
-        <div className="relative w-full">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tra cứu Part No, Mã nội bộ, SĐT..."
-            className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all placeholder:text-slate-400 text-slate-800 font-medium"
-          />
-        </div>
       </div>
 
       {/* Right: Actions & Info */}
