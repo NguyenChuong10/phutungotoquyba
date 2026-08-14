@@ -18,6 +18,7 @@ export interface AdminNotificationItem {
 interface AdminNotificationContextType {
   pendingCount: number;
   unreadNotificationsCount: number;
+  totalProductsCount: number;
   notifications: AdminNotificationItem[];
   playChimeSound: () => void;
   refreshNotifications: () => Promise<void>;
@@ -91,6 +92,7 @@ export function playChimeSound() {
 export function AdminNotificationProvider({ children }: { children: React.ReactNode }) {
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState<number>(0);
+  const [totalProductsCount, setTotalProductsCount] = useState<number>(0);
   const [notifications, setNotifications] = useState<AdminNotificationItem[]>([]);
   const [toastState, setToastState] = useState<ToastMessage | null>(null);
 
@@ -106,6 +108,13 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
   // Fetch initial notifications ONCE on mount
   const refreshNotifications = useCallback(async () => {
     try {
+      // Fetch products count
+      const prodRes = await fetchApi("/admin/products?limit=1");
+      if (prodRes.ok) {
+        const total = prodRes.pagination?.total || (Array.isArray(prodRes.data) ? prodRes.data.length : 0);
+        setTotalProductsCount(total);
+      }
+
       const res = await fetchApi("/orders/admin?limit=50");
       if (res.ok && res.data) {
         const rawOrders = Array.isArray(res.data) ? res.data : (res.data.orders || []);
@@ -306,6 +315,7 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
       value={{
         pendingCount,
         unreadNotificationsCount,
+        totalProductsCount,
         notifications,
         playChimeSound,
         refreshNotifications,
