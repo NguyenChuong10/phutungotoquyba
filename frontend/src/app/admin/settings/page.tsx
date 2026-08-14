@@ -411,21 +411,7 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
-                  <label className="font-bold text-slate-800 text-xs block">
-                    Tần Số Tự Động Refresh Dashboard (Giây)
-                  </label>
-                  <select
-                    value={settings.autoRefreshInterval}
-                    onChange={(e) => handleChangeSetting('autoRefreshInterval', e.target.value)}
-                    className="w-full p-2 border border-slate-200 rounded-xl bg-white text-xs font-extrabold text-slate-900"
-                  >
-                    <option value="5">Mỗi 5 giây (Hỏa tốc)</option>
-                    <option value="15">Mỗi 15 giây (Tiêu chuẩn)</option>
-                    <option value="30">Mỗi 30 giây</option>
-                    <option value="60">Mỗi 60 giây (1 phút)</option>
-                  </select>
-                </div>
+
 
                 <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-start gap-2.5 text-xs text-emerald-900">
                   <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
