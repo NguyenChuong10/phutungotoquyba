@@ -5,7 +5,7 @@
 -- ====================================================================
 
 -- 1. BANG NGUOI DUNG & NHAN VIEN QUAN TRI (USERS)
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     role VARCHAR(50) NOT NULL DEFAULT 'sales', -- super_admin, sales, warehouse, content_editor, customer
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE users (
 );
 
 -- 2. BANG DANH MUC PHU TUNG & CHUNG LOAI XE (CATEGORIES)
-CREATE TABLE categories (
+CREATE TABLE IF NOT EXISTS categories (
     id SERIAL PRIMARY KEY,
     parent_id INT REFERENCES categories(id) ON DELETE SET NULL,
     name VARCHAR(255) NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE categories (
 );
 
 -- 3. BANG THUONG HIEU SAN XUAT (BRANDS)
-CREATE TABLE brands (
+CREATE TABLE IF NOT EXISTS brands (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     slug VARCHAR(255) UNIQUE NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE brands (
 );
 
 -- 4. BANG SAN PHAM PHU TUNG O TO (PRODUCTS)
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
     category_id INT REFERENCES categories(id) ON DELETE SET NULL,
     brand_id INT REFERENCES brands(id) ON DELETE SET NULL,
@@ -66,7 +66,7 @@ CREATE TABLE products (
 );
 
 -- 5. BANG BOHINH ANH SAN PHAM (PRODUCT_IMAGES)
-CREATE TABLE product_images (
+CREATE TABLE IF NOT EXISTS product_images (
     id SERIAL PRIMARY KEY,
     product_id INT REFERENCES products(id) ON DELETE CASCADE,
     image_url VARCHAR(500) NOT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE product_images (
 );
 
 -- 6. BANG DON HANG & YEU CAU BAO GIA (ORDERS / QUOTATIONS)
-CREATE TABLE orders (
+CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
     order_code VARCHAR(50) UNIQUE NOT NULL, -- Ma don (vd: QB-ORD-20260807-001)
     user_id INT REFERENCES users(id) ON DELETE SET NULL, -- Tai khoan phu trách hoac NULL neu khach vang lai
@@ -96,7 +96,7 @@ CREATE TABLE orders (
 );
 
 -- 7. BANG CHI TIET PHU TUNG TRONG DON BAO GIA (ORDER_ITEMS)
-CREATE TABLE order_items (
+CREATE TABLE IF NOT EXISTS order_items (
     id SERIAL PRIMARY KEY,
     order_id INT REFERENCES orders(id) ON DELETE CASCADE,
     product_id INT REFERENCES products(id) ON DELETE RESTRICT,
@@ -108,7 +108,7 @@ CREATE TABLE order_items (
 );
 
 -- 8. BANG BAI VIET TIN TUC & CAM NANG KY THUAT (NEWS)
-CREATE TABLE news (
+CREATE TABLE IF NOT EXISTS news (
     id SERIAL PRIMARY KEY,
     author_id INT REFERENCES users(id) ON DELETE SET NULL,
     title VARCHAR(255) NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE news (
 );
 
 -- 9. BANG KHANH HANG THONG KE (CUSTOMERS DIRECTORY)
-CREATE TABLE customers (
+CREATE TABLE IF NOT EXISTS customers (
     id SERIAL PRIMARY KEY,
     user_id INT UNIQUE REFERENCES users(id) ON DELETE SET NULL,
     full_name VARCHAR(255) NOT NULL,
@@ -137,17 +137,43 @@ CREATE TABLE customers (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 10. BANG DANH MUC TIN TUC (NEWS_CATEGORIES)
+CREATE TABLE IF NOT EXISTS news_categories (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 11. BANG CAU HINH HE THONG (SYSTEM_SETTINGS)
+CREATE TABLE IF NOT EXISTS system_settings (
+    id SERIAL PRIMARY KEY,
+    key VARCHAR(255) UNIQUE NOT NULL,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 12. BANG THUONG HIEU DOI TAC (PARTNER_BRANDS)
+CREATE TABLE IF NOT EXISTS partner_brands (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    logo_url VARCHAR(500) NOT NULL,
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ====================================================================
 -- CHI MUC OPTIMIZATION (INDEXES) THAM CHIEU TOC DO TRA CUU HOẢ TỐC
 -- ====================================================================
-CREATE INDEX idx_products_part_number ON products(part_number);
-CREATE INDEX idx_products_internal_code ON products(internal_code);
-CREATE INDEX idx_products_slug ON products(slug);
-CREATE INDEX idx_products_category ON products(category_id);
-CREATE INDEX idx_products_brand ON products(brand_id);
-CREATE INDEX idx_categories_slug ON categories(slug);
-CREATE INDEX idx_brands_slug ON brands(slug);
-CREATE INDEX idx_orders_phone ON orders(customer_phone);
-CREATE INDEX idx_orders_status ON orders(status);
-CREATE INDEX idx_news_slug ON news(slug);
-CREATE INDEX idx_customers_phone ON customers(phone);
+CREATE INDEX IF NOT EXISTS idx_products_part_number ON products(part_number);
+CREATE INDEX IF NOT EXISTS idx_products_internal_code ON products(internal_code);
+CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
+CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
+CREATE INDEX IF NOT EXISTS idx_products_brand ON products(brand_id);
+CREATE INDEX IF NOT EXISTS idx_categories_slug ON categories(slug);
+CREATE INDEX IF NOT EXISTS idx_brands_slug ON brands(slug);
+CREATE INDEX IF NOT EXISTS idx_orders_phone ON orders(customer_phone);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_news_slug ON news(slug);
+CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);

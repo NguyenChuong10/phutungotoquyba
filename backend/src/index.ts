@@ -38,9 +38,19 @@ const server = http.createServer(app);
 initWebSocketServer(server);
 
 if (process.env.NODE_ENV !== "test") {
-  server.listen(PORT, () => {
+  server.listen(PORT, async () => {
     console.log(`🚀 [Q.BA Enterprise API] Server running on http://localhost:${PORT}`);
     console.log(`⚡ [WebSocket Real-Time Server]: ws://localhost:${PORT}/ws`);
+
+    // Ensure database tables exist automatically
+    try {
+      const { ensurePartnerBrandsTable } = require("./services/partnerBrandService");
+      const { ensureSystemSettingsTable } = require("./services/settingService");
+      await ensurePartnerBrandsTable();
+      await ensureSystemSettingsTable();
+    } catch {
+      // Auto table init fallback
+    }
   });
 }
 
