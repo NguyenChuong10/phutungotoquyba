@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Search,
   Filter,
@@ -13,6 +14,7 @@ import {
   Tag,
   CornerDownRight,
   Package,
+  X,
 } from "lucide-react";
 
 import { formatImageUrl } from "@/utils/imageHelper";
@@ -20,10 +22,13 @@ import { AdminApiService, CategoryTreeItem } from "@/services/adminApiService";
 import { productsData, categoriesList as initialCategoriesList, brandsList, Product, CategoryData } from "@/data/productsData";
 import QuotationModal from "@/components/public/QuotationModal";
 
-export default function ProductsPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
+function ProductsContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || searchParams.get("q") || "");
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(searchParams.get("subCategory") || null);
   const [selectedBrand, setSelectedBrand] = useState("Tất cả thương hiệu");
 
   // Dynamic Categories, Products & Brands List fetched from PostgreSQL DB
@@ -170,11 +175,21 @@ export default function ProductsPage() {
     });
   }, [searchQuery, selectedCategory, selectedSubCategory, selectedBrand]);
 
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    if (val.trim() === "" && (searchParams.has("search") || searchParams.has("q"))) {
+      router.replace("/products");
+    }
+  };
+
   const resetFilters = () => {
     setSearchQuery("");
     setSelectedCategory("all");
     setSelectedSubCategory(null);
     setSelectedBrand("Tất cả thương hiệu");
+    if (searchParams.has("search") || searchParams.has("q") || searchParams.has("category") || searchParams.has("subCategory")) {
+      router.replace("/products");
+    }
   };
 
   return (
@@ -211,9 +226,18 @@ export default function ProductsPage() {
                 type="text"
                 placeholder="Nhập Mã Phụ Tùng (vd: VG1560080012, JS160T...) hoặc Tên phụ tùng..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-brand focus:bg-white transition-all"
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full pl-12 pr-10 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-brand focus:bg-white transition-all font-medium"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => handleSearchChange("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-600 transition-colors p-1 cursor-pointer rounded-full hover:bg-slate-200"
+                  title="Xóa từ khóa (Trả về tất cả sản phẩm)"
+                >
+                  <X size={18} />
+                </button>
+              )}
             </div>
 
             <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
@@ -433,5 +457,17 @@ export default function ProductsPage() {
         product={modalProduct}
       />
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#111317] flex items-center justify-center text-white text-sm font-bold">
+        Đang tải danh mục sản phẩm Q.BA...
+      </div>
+    }>
+      <ProductsContent />
+    </Suspense>
   );
 }
