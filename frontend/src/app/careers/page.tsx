@@ -7,77 +7,19 @@ export const metadata = {
   description: "Tuyển dụng Nhân viên Kinh doanh phụ tùng xe tải, Kỹ thuật viên tra Catalog & Thủ kho phụ tùng tại Phụ Tùng Ô Tô Q.BA Đà Nẵng. Thu nhập 12-25 triệu + Hoa hồng hấp dẫn.",
 };
 
-const defaultJobs = [
-  {
-    id: 1,
-    title: "NHÂN VIÊN KINH DOANH PHỤ TÙNG XE TẢI",
-    salary: "12.000.000đ - 25.000.000đ + % Hoa hồng",
-    location: "43-45 Nguyễn Văn Tạo, Q. Thanh Khê, Đà Nẵng",
-    quantity: "03 Người",
-    type: "Toàn thời gian",
-    requirements: [
-      "Am hiểu hoặc từng bán phụ tùng xe tải nặng Trung Quốc (HOWO, Shacman, FAW, Dongfeng...)",
-      "Có khả năng giao tiếp tốt với chủ xe, tài xế, chủ garage và đơn vị vận tải",
-      "Nhanh nhẹn, trung thực, có tinh thần trách nhiệm cao với công việc",
-      "Có kỹ năng tra cứu mã sản phẩm cơ bản là một lợi thế"
-    ],
-    responsibilities: [
-      "Báo giá và tư vấn bán lẻ/bán sỉ phụ tùng cho khách hàng trực tiếp và qua Zalo/Điện thoại",
-      "Chăm sóc danh sách garage, hạm đội xe ben, xe đầu kéo khu vực Miền Trung, Tây Nguyên và toàn quốc",
-      "Phối hợp với kho hàng chuẩn bị đơn hàng gửi xe toàn quốc"
-    ]
-  },
-  {
-    id: 2,
-    title: "KỸ THUẬT VIÊN TRA CATALOG & MÃ PHỤ TÙNG",
-    salary: "10.000.000đ - 18.000.000đ",
-    location: "43-45 Nguyễn Văn Tạo, Q. Thanh Khê, Đà Nẵng",
-    quantity: "02 Người",
-    type: "Toàn thời gian",
-    requirements: [
-      "Tốt nghiệp Chuyên ngành Ô tô hoặc có 1 năm kinh nghiệm tra cứu catalog kỹ thuật",
-      "Thành thạo phần mềm tra mã Sinotruk, Weichai, Yuchai, Fast Gear",
-      "Cẩn thận, chính xác 100% trong việc soi mã phụ tùng cơ khí"
-    ],
-    responsibilities: [
-      "Tiếp nhận số khung (VIN), mã động cơ từ khách hàng để xuất mã phụ tùng chính xác",
-      "Đảm bảo tư vấn đúng thông số kỹ thuật (lá lót, phớt, chạt tay gạt, bộ rơ-moóc...)",
-      "Cập nhật dữ liệu danh mục phụ tùng mới nhập kho"
-    ]
-  },
-  {
-    id: 3,
-    title: "THỦ KHO & QUẢN LÝ KIỆN HÀNG PHỤ TÙNG",
-    salary: "9.000.000đ - 14.000.000đ",
-    location: "43-45 Nguyễn Văn Tạo, Q. Thanh Khê, Đà Nẵng",
-    quantity: "02 Người",
-    type: "Toàn thời gian",
-    requirements: [
-      "Sức khỏe tốt, chịu khó, cẩn thận trong việc sắp xếp hàng hóa phụ tùng nặng",
-      "Trung thực, có kinh nghiệm quản lý kho hàng cơ khí/ô tô là một lợi thế",
-      "Biết đóng gói thùng gỗ, cố định kiện hàng chịu lực"
-    ],
-    responsibilities: [
-      "Quản lý nhập - xuất - tồn kho phụ tùng xe tải Q.BA",
-      "Đóng gói hàng hóa chắc chắn và giao gửi chành xe toàn quốc đúng tiến độ",
-      "Kiểm kê hàng định kỳ cùng bộ phận kế toán"
-    ]
-  }
-];
-
 async function getJobPostings() {
   try {
     const res = await fetch(`${API_BASE_URL}/jobs`, { cache: "no-store" });
     if (res.ok) {
       const data = await res.json();
-      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+      if (data.success && Array.isArray(data.data)) {
         return data.data;
       }
     }
   } catch (err) {
     console.error("Failed to fetch jobs from API:", err);
   }
-  return defaultJobs;
+  return [];
 }
 
 export default async function CareersPage() {
@@ -98,8 +40,17 @@ export default async function CareersPage() {
             </h2>
           </div>
 
-          <div className="space-y-8">
-            {jobs.map((job: any, idx: number) => (
+          {jobs.length === 0 ? (
+            <div className="p-12 rounded-3xl bg-slate-50 border border-slate-200 text-center space-y-3">
+              <Briefcase className="w-10 h-10 text-gray-400 mx-auto" />
+              <h3 className="text-base font-extrabold text-slate-900">Hiện Tại Chưa Có Vị Trí Tuyển Dụng Mới</h3>
+              <p className="text-xs text-gray-500 max-w-md mx-auto">
+                Quý ứng viên có thể nộp CV trực tiếp qua Zalo phòng Nhân sự hoặc nộp hồ sơ tại cửa hàng Q.BA Đà Nẵng để lưu thông tin khi có đợt tuyển mới.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {jobs.map((job: any, idx: number) => (
               <div 
                 key={job.id || `job-card-${idx}`}
                 className="p-8 md:p-10 rounded-3xl bg-slate-50 border border-slate-200/90 hover:border-brand/50 shadow-xl transition-all duration-300 space-y-6"
@@ -167,6 +118,7 @@ export default async function CareersPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
       </section>
 

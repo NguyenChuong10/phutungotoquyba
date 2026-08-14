@@ -23,6 +23,84 @@ export async function ensureJobPostingsTable() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    // Auto-seed initial job postings into PostgreSQL CSDL if table is empty
+    const db = (prisma as any).jobPosting;
+    const count = await db.count();
+    if (count === 0) {
+      const initialJobs = [
+        {
+          title: "NHÂN VIÊN KINH DOANH PHỤ TÙNG XE TẢI",
+          slug: "nhan-vien-kinh-doanh-phu-tung-xe-tai",
+          salary: "12.000.000đ - 25.000.000đ + % Hoa hồng",
+          location: "43-45 Nguyễn Văn Tạo, Q. Thanh Khê, Đà Nẵng",
+          quantity: "03 Người",
+          type: "Toàn thời gian",
+          requirements: [
+            "Am hiểu hoặc từng bán phụ tùng xe tải nặng Trung Quốc (HOWO, Shacman, FAW, Dongfeng...)",
+            "Có khả năng giao tiếp tốt với chủ xe, tài xế, chủ garage và đơn vị vận tải",
+            "Nhanh nhẹn, trung thực, có tinh thần trách nhiệm cao với công việc",
+            "Có kỹ năng tra cứu mã sản phẩm cơ bản là một lợi thế"
+          ],
+          responsibilities: [
+            "Báo giá và tư vấn bán lẻ/bán sỉ phụ tùng cho khách hàng trực tiếp và qua Zalo/Điện thoại",
+            "Chăm sóc danh sách garage, hạm đội xe ben, xe đầu kéo khu vực Miền Trung, Tây Nguyên và toàn quốc",
+            "Phối hợp với kho hàng chuẩn bị đơn hàng gửi xe toàn quốc"
+          ],
+          isActive: true,
+          sortOrder: 1,
+        },
+        {
+          title: "KỸ THUẬT VIÊN TRA CATALOG & MÃ PHỤ TÙNG",
+          slug: "ky-thuat-vien-tra-catalog-ma-phu-tung",
+          salary: "10.000.000đ - 18.000.000đ",
+          location: "43-45 Nguyễn Văn Tạo, Q. Thanh Khê, Đà Nẵng",
+          quantity: "02 Người",
+          type: "Toàn thời gian",
+          requirements: [
+            "Tốt nghiệp Chuyên ngành Ô tô hoặc có 1 năm kinh nghiệm tra cứu catalog kỹ thuật",
+            "Thành thạo phần mềm tra mã Sinotruk, Weichai, Yuchai, Fast Gear",
+            "Cẩn thận, chính xác 100% trong việc soi mã phụ tùng cơ khí"
+          ],
+          responsibilities: [
+            "Tiếp nhận số khung (VIN), mã động cơ từ khách hàng để xuất mã phụ tùng chính xác",
+            "Đảm bảo tư vấn đúng thông số kỹ thuật (lá lót, phớt, chạt tay gạt, bộ rơ-moóc...)",
+            "Cập nhật dữ liệu danh mục phụ tùng mới nhập kho"
+          ],
+          isActive: true,
+          sortOrder: 2,
+        },
+        {
+          title: "THỦ KHO & QUẢN LÝ KIỆN HÀNG PHỤ TÙNG",
+          slug: "thu-kho-quan-ly-kien-hang-phu-tung",
+          salary: "9.000.000đ - 14.000.000đ",
+          location: "43-45 Nguyễn Văn Tạo, Q. Thanh Khê, Đà Nẵng",
+          quantity: "02 Người",
+          type: "Toàn thời gian",
+          requirements: [
+            "Sức khỏe tốt, chịu khó, cẩn thận trong việc sắp xếp hàng hóa phụ tùng nặng",
+            "Trung thực, có kinh nghiệm quản lý kho hàng cơ khí/ô tô là một lợi thế",
+            "Biết đóng gói thùng gỗ, cố định kiện hàng chịu lực"
+          ],
+          responsibilities: [
+            "Quản lý nhập - xuất - tồn kho phụ tùng xe tải Q.BA",
+            "Đóng gói hàng hóa chắc chắn và giao gửi chành xe toàn quốc đúng tiến độ",
+            "Kiểm kê hàng định kỳ cùng bộ phận kế toán"
+          ],
+          isActive: true,
+          sortOrder: 3,
+        }
+      ];
+
+      for (const jobData of initialJobs) {
+        try {
+          await db.create({ data: jobData });
+        } catch {
+          // Ignore unique duplicate slug fallback
+        }
+      }
+    }
+
     isJobTableVerified = true;
   } catch (err) {
     console.error("Auto table creation check failed for job_postings:", err);
