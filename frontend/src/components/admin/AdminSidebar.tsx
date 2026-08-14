@@ -11,7 +11,6 @@ import {
   Newspaper,
   Users,
   Settings,
-  ArrowLeft,
   ShieldCheck,
   ChevronRight,
   X,
@@ -159,31 +158,6 @@ function SidebarInner({ onNavItemClick }: { onNavItemClick?: () => void }) {
             );
           })}
         </nav>
-      </div>
-
-      {/* Bottom Section: User Info & Back to Site */}
-      <div className="p-3 border-t border-slate-800 space-y-2 mt-auto">
-        <div className="p-3 rounded-lg bg-slate-800/60 border border-slate-800 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center font-bold text-white shadow-md text-sm flex-shrink-0">
-            QB
-          </div>
-          <div className="overflow-hidden">
-            <p className="text-xs font-bold text-white truncate">Ban Quản Lý Q.BA</p>
-            <p className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-              Đang hoạt động
-            </p>
-          </div>
-        </div>
-
-        <Link
-          href="/"
-          onClick={() => onNavItemClick?.()}
-          className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition-all border border-slate-700/60"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Về trang chủ Q.BA</span>
-        </Link>
       </div>
     </div>
   );
