@@ -113,14 +113,14 @@ export class CustomerService {
 
     // Calculate VIP Badges
     const resultList = Array.from(customerMap.values()).map((c) => {
-      let vipBadgeText = "🆕 Khách Mới";
+      let vipBadgeText = "Khách Mới";
       let vipBadgeColor = "bg-blue-100 text-blue-800 border-blue-200 font-bold";
 
       if (c.totalOrders >= 5) {
-        vipBadgeText = "⭐ Khách VIP";
+        vipBadgeText = "Khách VIP";
         vipBadgeColor = "bg-purple-100 text-purple-800 border-purple-300 font-extrabold shadow-2xs animate-pulse";
       } else if (c.totalOrders >= 2) {
-        vipBadgeText = "🔄 Khách Quen";
+        vipBadgeText = "Khách Quen";
         vipBadgeColor = "bg-amber-100 text-amber-800 border-amber-200 font-bold";
       }
 

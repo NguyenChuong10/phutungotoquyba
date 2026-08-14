@@ -18,6 +18,7 @@ import {
   Crown,
   RotateCw,
   Phone,
+  UserCheck,
 } from 'lucide-react';
 import { AdminApiService } from '@/services/adminApiService';
 
@@ -258,9 +259,16 @@ export default function AdminCustomersPage() {
 
                     <td className="p-3.5 whitespace-nowrap">
                       <span
-                        className={`inline-block px-2.5 py-1 rounded-full text-[10px] border ${customer.vipBadgeColor}`}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] border ${customer.vipBadgeColor}`}
                       >
-                        {customer.vipBadgeText}
+                        {customer.totalOrders >= 5 ? (
+                          <Crown className="w-3.5 h-3.5 text-amber-500 fill-amber-400 shrink-0" />
+                        ) : customer.totalOrders >= 2 ? (
+                          <RotateCw className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                        ) : (
+                          <UserCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                        )}
+                        <span>{customer.vipBadgeText.replace(/^[^\w\s\u00C0-\u024F\u1E00-\u1EFF]+/g, '').trim()}</span>
                       </span>
                     </td>
 
@@ -417,8 +425,15 @@ export default function AdminCustomersPage() {
                   <h3 className="font-extrabold text-slate-900 text-base">
                     Lịch Sử Báo Giá: {historyCustomer.fullName}
                   </h3>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] border ${historyCustomer.vipBadgeColor}`}>
-                    {historyCustomer.vipBadgeText}
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] border ${historyCustomer.vipBadgeColor}`}>
+                    {historyCustomer.totalOrders >= 5 ? (
+                      <Crown className="w-3 h-3 text-amber-500 fill-amber-400 shrink-0" />
+                    ) : historyCustomer.totalOrders >= 2 ? (
+                      <RotateCw className="w-3 h-3 text-amber-700 shrink-0" />
+                    ) : (
+                      <UserCheck className="w-3 h-3 text-blue-600 shrink-0" />
+                    )}
+                    <span>{historyCustomer.vipBadgeText.replace(/^[^\w\s\u00C0-\u024F\u1E00-\u1EFF]+/g, '').trim()}</span>
                   </span>
                 </div>
                 <p className="text-xs text-red-600 font-extrabold font-mono mt-0.5 flex items-center gap-1">
