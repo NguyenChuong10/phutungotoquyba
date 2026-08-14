@@ -580,12 +580,12 @@ export default function AdminOrdersPage() {
       key: 'customerName',
       sorter: (a: CustomerGroupData, b: CustomerGroupData) => a.customerName.localeCompare(b.customerName),
       render: (_: any, record: CustomerGroupData) => (
-        <div>
-          <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
-            {record.customerName}
+        <div className="w-full">
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-extrabold text-slate-900 text-xs truncate">{record.customerName}</span>
             <Tag
               color={record.latestOrder.customerBadgeText.includes('VIP') ? 'gold' : record.ordersCount > 1 ? 'blue' : 'default'}
-              className="m-0 text-[10px]"
+              className="m-0 text-[10px] shrink-0"
             >
               {record.latestOrder.customerBadgeText}
             </Tag>
@@ -701,10 +701,10 @@ export default function AdminOrdersPage() {
       key: 'customer',
       sorter: (a: OrderData, b: OrderData) => a.customerName.localeCompare(b.customerName),
       render: (_: any, record: OrderData) => (
-        <div>
-          <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1">
-            {record.customerName}
-            <Tag color={record.customerBadgeText.includes('VIP') ? 'gold' : 'default'} className="m-0 text-[10px]">
+        <div className="w-full">
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-extrabold text-slate-900 text-xs truncate">{record.customerName}</span>
+            <Tag color={record.customerBadgeText.includes('VIP') ? 'gold' : 'default'} className="m-0 text-[10px] shrink-0">
               {record.customerBadgeText}
             </Tag>
           </div>
