@@ -93,7 +93,7 @@ function AdminLoginForm() {
           </h1>
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-red-100/70 border border-red-200 text-brand text-[11px] font-extrabold uppercase tracking-wider mt-2 shadow-xs">
             <Sparkles size={13} className="animate-spin text-brand" />
-            <span>Hệ Thống Kho Phục Vụ 24/7 Đà Nẵng</span>
+            <span>Hệ Thống Kho Phụ Tùng Q.BA Đà Nẵng</span>
           </div>
         </div>
 

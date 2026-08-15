@@ -251,7 +251,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
               {/* Quick Zalo Contact Box */}
               <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-br from-[#D90429] to-[#99021C] text-white shadow-2xl space-y-4">
                 <span className="px-3 py-1 rounded-full bg-white/20 text-white text-[10px] font-black uppercase tracking-wider inline-block">
-                  HỖ TRỢ KỸ THUẬT 24/7
+                  HỖ TRỢ KỸ THUẬT Q.BA
                 </span>
                 <h4 className="font-black text-xl uppercase font-heading text-white">
                   TƯ VẤN BÁO GIÁ HỎA TỐC

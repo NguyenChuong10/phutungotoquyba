@@ -63,7 +63,7 @@ export default function ProductDetailActions({ product }: ProductDetailActionsPr
           className="inline-flex items-center justify-center gap-2 text-emerald-400 hover:text-emerald-300 font-extrabold text-sm uppercase tracking-wider transition-colors"
         >
           <Phone size={16} />
-          GỌI HOTLINE 0903.588.167 (24/7)
+          GỌI HOTLINE 0903.588.167
         </a>
       </div>
 

@@ -6,7 +6,7 @@ import ContactForm from "@/components/public/ContactForm";
 
 export const metadata = {
   title: "Liên Hệ & Báo Giá - Phụ Tùng Ô Tô Q.BA Đà Nẵng",
-  description: "Liên hệ Phụ Tùng Ô Tô Q.BA tại 43-45 Nguyễn Văn Tạo, Đà Nẵng. Hotline 24/7: 0903.588.167. Nhận tư vấn báo giá mã phụ tùng xe ben, xe đầu kéo, xe tải Trung Quốc.",
+  description: "Liên hệ Phụ Tùng Ô Tô Q.BA tại 43-45 Nguyễn Văn Tạo, Đà Nẵng. Hotline: 0903.588.167. Nhận tư vấn báo giá mã phụ tùng xe ben, xe đầu kéo, xe tải Trung Quốc.",
 };
 
 const contactCards = [
@@ -20,7 +20,7 @@ const contactCards = [
   },
   {
     icon: Phone,
-    title: "HOTLINE BÁO GIÁ 24/7",
+    title: "HOTLINE BÁO GIÁ TRỰC TIẾP",
     detail: "0903.588.167",
     subText: "Tư vấn kỹ thuật đúng mã phụ tùng hỏa tốc",
     linkText: "Gọi điện ngay",
@@ -39,7 +39,7 @@ const contactCards = [
     title: "THỜI GIAN PHỤC VỤ",
     detail: "Từ Thứ 2 Đến Chủ Nhật",
     subText: "Phục vụ cả Ngày lễ & Tết",
-    linkText: "Hỗ trợ 24/7 qua Zalo",
+    linkText: "Hỗ trợ qua Zalo",
     linkHref: "https://zalo.me/0903588167"
   }
 ];
@@ -56,7 +56,7 @@ export default function ContactPage() {
         <div className="container mx-auto px-4 max-w-7xl relative z-10 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand/10 border border-brand/30 text-brand text-xs font-black tracking-widest uppercase mb-4">
             <span className="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
-            Hỗ Trợ Kỹ Thuật & Báo Giá 24/7
+            Hỗ Trợ Kỹ Thuật & Báo Giá Trực Tiếp
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-6xl font-black font-heading uppercase tracking-wide leading-tight mb-6">

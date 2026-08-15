@@ -338,7 +338,7 @@ export default function NewsIndexPage() {
                   {/* Direct Zalo Technical Support Banner */}
                   <div className="p-6 rounded-2xl bg-gradient-to-br from-[#D90429] to-[#99021C] text-white shadow-2xl space-y-4">
                     <span className="px-3 py-1 rounded-full bg-white/20 text-white text-[10px] font-black uppercase tracking-wider inline-block">
-                      TƯ VẤN TRỰC TIẾP 24/7
+                      TƯ VẤN TRỰC TIẾP Q.BA
                     </span>
                     <h4 className="font-black text-lg uppercase font-heading text-white">
                       KẾT NỐI KỸ THUẬT Q.BA
