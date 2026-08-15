@@ -80,19 +80,61 @@ export class OrderService {
       ? input.items
       : [{ productId: defaultProductId, quantity: 1, itemNote: "Yêu cầu tư vấn báo giá" }];
 
-    const productIds = requestedItems.map((i) => i.productId);
-    const products = await prisma.product.findMany({
-      where: { id: { in: productIds } },
+    const productIds = requestedItems
+      .map((i) => i.productId)
+      .filter((id): id is number => typeof id === "number" && !isNaN(id));
+    const partNumbers = requestedItems
+      .map((i) => i.partNumber?.trim())
+      .filter((pn): pn is string => Boolean(pn && pn.length > 0));
+
+    const dbProducts = await prisma.product.findMany({
+      where: {
+        OR: [
+          ...(productIds.length > 0 ? [{ id: { in: productIds } }] : []),
+          ...(partNumbers.length > 0 ? [{ partNumber: { in: partNumbers } }] : []),
+        ],
+      },
     });
 
-    const productMap = new Map(products.map((p: any) => [p.id, p]));
+    const productByIdMap = new Map(dbProducts.map((p: any) => [p.id, p]));
+    const productByPartNoMap = new Map(
+      dbProducts.map((p: any) => [p.partNumber.trim().toUpperCase(), p])
+    );
 
     let calculatedTotal = 0;
     const orderItemsData = requestedItems.map((item) => {
-      const p = productMap.get(item.productId) || fallbackProduct;
+      let p: any = undefined;
+
+      // 1. Match by Part Number first if provided
+      if (item.partNumber && item.partNumber.trim().length > 0) {
+        p = productByPartNoMap.get(item.partNumber.trim().toUpperCase());
+      }
+
+      // 2. If not matched by Part Number, check Product ID match, but ensure Part Number does not conflict
+      if (!p && item.productId) {
+        const candidate = productByIdMap.get(item.productId);
+        if (candidate) {
+          if (item.partNumber && item.partNumber.trim().length > 0) {
+            if (candidate.partNumber.trim().toUpperCase() === item.partNumber.trim().toUpperCase()) {
+              p = candidate;
+            }
+          } else {
+            p = candidate;
+          }
+        }
+      }
+
       const productIdToUse = p ? p.id : defaultProductId;
-      const productNameToUse = p ? p.name : "Phụ Tùng Xe Tải Q.BA";
-      const partNumberToUse = p ? p.partNumber : "QB-PART-01";
+      const productNameToUse = p
+        ? p.name
+        : item.productName && item.productName.trim().length > 0
+        ? this.sanitizeText(item.productName)
+        : "Phụ Tùng Xe Tải Q.BA";
+      const partNumberToUse = p
+        ? p.partNumber
+        : item.partNumber && item.partNumber.trim().length > 0
+        ? this.sanitizeText(item.partNumber)
+        : "QB-PART-01";
       const unitPriceNumber = p ? Number(p.price) || 0 : 0;
       const subtotal = unitPriceNumber * item.quantity;
       calculatedTotal += subtotal;

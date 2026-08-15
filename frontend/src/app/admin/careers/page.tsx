@@ -10,6 +10,7 @@ import {
   Edit,
   Trash2,
   CheckCircle2,
+  PauseCircle,
   Clock,
   Loader2,
   MapPin,
@@ -386,14 +387,24 @@ export default function AdminCareersPage() {
                     <td className="py-4 px-4 text-center">
                       <button
                         onClick={() => handleToggleActive(job)}
-                        className={`px-3 py-1 rounded-full text-[11px] font-black border cursor-pointer transition-all ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold border cursor-pointer transition-all ${
                           job.isActive
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                             : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
                         }`}
                         title="Bấm để ẩn/hiện tin tuyển dụng"
                       >
-                        {job.isActive ? '🟢 Đang Tuyển' : '⚪ Tạm Dừng'}
+                        {job.isActive ? (
+                          <>
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>Đang Tuyển</span>
+                          </>
+                        ) : (
+                          <>
+                            <PauseCircle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span>Tạm Dừng</span>
+                          </>
+                        )}
                       </button>
                     </td>
 

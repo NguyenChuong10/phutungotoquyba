@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useQuotation } from "@/context/QuotationContext";
 import { quotationService } from "@/services/quotationService";
+import { parseNumericProductId } from "@/utils/productHelper";
 import { Trash2, Plus, Minus, Send, CheckCircle2, Package, ArrowLeft, ShieldCheck, Truck, Clock } from "lucide-react";
 
 export default function QuotationPage() {
@@ -30,7 +31,9 @@ export default function QuotationPage() {
       customerName: fullName,
       note: `Danh sách báo giá (${totalItems} mã):\n${itemsSummary}\n\nGhi chú thêm: ${generalNote}`,
       items: items.map((i) => ({
-        productId: Number(i.product.id) || 1,
+        productId: parseNumericProductId(i.product.id),
+        partNumber: i.product.partNumber,
+        productName: i.product.name,
         quantity: i.quantity,
       })),
     };

@@ -19,6 +19,7 @@ import {
   FileText,
   Star,
   Lightbulb,
+  Tag,
 } from 'lucide-react';
 import { AdminApiService } from '@/services/adminApiService';
 
@@ -477,7 +478,8 @@ export default function AdminNewsPage() {
             onClick={() => setShowCategoryModal(true)}
             className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
           >
-            <span>🏷️ Quản Lý Danh Mục</span>
+            <Tag className="w-4 h-4" />
+            <span>Quản Lý Danh Mục</span>
           </button>
 
           <button
@@ -590,8 +592,12 @@ export default function AdminNewsPage() {
                       {article.author?.fullName || 'Ban Quản Lý Q.BA'}
                     </td>
 
-                    <td className="p-3.5 font-mono font-extrabold text-slate-900 whitespace-nowrap">
-                      👁️ {article.views.toLocaleString()} lượt
+                    <td className="p-3.5 whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1.5 font-mono font-extrabold text-slate-900 bg-slate-100/80 px-2.5 py-1 rounded-lg border border-slate-200/60">
+                        <Eye className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                        <span>{article.views.toLocaleString()}</span>
+                        <span className="text-[10px] font-normal text-slate-400">lượt</span>
+                      </span>
                     </td>
 
                     <td className="p-3.5 whitespace-nowrap">

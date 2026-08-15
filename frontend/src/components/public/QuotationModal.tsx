@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { X, ShoppingCart, User, Phone, Mail, FileText, Send, CheckCircle2, MessageSquare, ShieldCheck, Loader2 } from "lucide-react";
 import { Product } from "@/data/productsData";
 import { quotationService } from "@/services/quotationService";
+import { parseNumericProductId } from "@/utils/productHelper";
 
 interface QuotationModalProps {
   isOpen: boolean;
@@ -66,7 +67,16 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
       phoneNumber: sanitize(phone),
       customerEmail: sanitize(email) || undefined,
       notes: fullNote || undefined,
-      items: product ? [{ productId: Number(product.id) || 2, quantity: 1 }] : [],
+      items: product
+        ? [
+            {
+              productId: parseNumericProductId(product.id),
+              partNumber: product.partNumber,
+              productName: product.name,
+              quantity: 1,
+            },
+          ]
+        : [],
     };
 
     try {
@@ -102,7 +112,16 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
       phoneNumber: safePhone,
       customerEmail: sanitize(email) || undefined,
       notes: `Chat Zalo: ${prodInfo} - Ghi chú: ${safeNote}`,
-      items: product ? [{ productId: Number(product.id) || 2, quantity: 1 }] : [],
+      items: product
+        ? [
+            {
+              productId: parseNumericProductId(product.id),
+              partNumber: product.partNumber,
+              productName: product.name,
+              quantity: 1,
+            },
+          ]
+        : [],
     });
 
     const message = encodeURIComponent(`Xin chào Q.BA, tôi là ${safeName} (SĐT: ${safePhone}). Tôi cần báo giá: ${prodInfo}. Ghi chú: ${safeNote}`);

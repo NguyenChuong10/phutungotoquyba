@@ -18,7 +18,9 @@ export const createQuotationOrderSchema = z.object({
   items: z
     .array(
       z.object({
-        productId: z.number().int().positive().default(2),
+        productId: z.number().int().positive().optional().default(2),
+        partNumber: z.string().trim().optional(),
+        productName: z.string().trim().optional(),
         quantity: z.number().int().positive().default(1),
         itemNote: z.string().trim().optional(),
       })

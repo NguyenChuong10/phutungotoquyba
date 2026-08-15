@@ -1,5 +1,7 @@
 export interface QuotationItemInput {
   productId: number;
+  partNumber?: string;
+  productName?: string;
   quantity?: number;
   itemNote?: string;
 }
