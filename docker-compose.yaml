@@ -2,25 +2,25 @@ version: "3.9"
 
 services:
   phutungotoquyba-be:
-    image: phutungotoquyba-be:1.0.0
+    image: nguyenchuong10/phutungotoquyba-be:1.0.0
     container_name: phutungotoquyba-be
     restart: always
     # environment:
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
     volumes:
       - ./uploads:/app/uploads
     depends_on:
       - phutungotoquyba-db
 
   phutungotoquyba-fe:
-    image: phutungotoquyba-fe:1.0.0
+    image: nguyenchuong10/phutungotoquyba-fe:1.0.0
     container_name: phutungotoquyba-fe
     restart: always
     env_file:
       - .env.fe.production
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
 
   phutungotoquyba-db:
     image: postgres:15
@@ -31,6 +31,6 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: phutungotoquyba
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - ./postgres:/var/lib/postgresql/data

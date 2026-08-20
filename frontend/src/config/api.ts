@@ -3,14 +3,14 @@ import { secureStorage } from "@/utils/secureStorage";
 // Phân biệt URL API khi render phía Server (SSR trong Docker) và phía Client (Trình duyệt)
 const defaultBaseUrl =
   typeof window === "undefined"
-    ? (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://host.docker.internal:5000/api/v1")
-    : (process.env.NEXT_PUBLIC_API_URL || "https://phutungotoquyba-be.buiduchieu.id.vn/api/v1");
+    ? (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1")
+    : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1");
 
 export const API_BASE_URL = defaultBaseUrl.replace(/\/$/, ""); // Xóa dấu / ở cuối nếu có
 
 export const WS_BASE_URL = 
   process.env.NEXT_PUBLIC_WS_URL || 
-  "wss://phutungotoquyba-be.buiduchieu.id.vn/ws";
+  "ws://localhost:5000/ws";
 
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const token = typeof window !== "undefined" ? secureStorage.getItem("quyba_admin_token") : null;

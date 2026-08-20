@@ -26,6 +26,7 @@ ENV NEXT_PUBLIC_API_PROTOCOL="http"
 ENV NEXT_PUBLIC_API_HOSTNAME="baked_hostname"
 ENV NEXT_PUBLIC_API_PORT="59999"
 ENV NEXT_PUBLIC_API_URL="http://baked_api_url/api/v1"
+ENV NEXT_PUBLIC_WS_URL="ws://baked_ws_url/ws"
 ENV NEXT_PUBLIC_SITE_URL="http://baked_site_url"
 ENV NEXT_PUBLIC_UPLOADS_DESTINATION="http://baked_uploads_destination/uploads/:path*"
 
