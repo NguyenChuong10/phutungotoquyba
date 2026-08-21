@@ -19,11 +19,12 @@ const PORT = process.env.PORT || 5000;
 app.disable("x-powered-by");
 
 // 1. CẤU HÌNH CORS ĐẶT ĐẦU TIÊN (Trước mọi middleware khác)
-const allowedOrigins = [
-  "https://phutungotoquyba.buiduchieu.id.vn",
-  "http://localhost:3000",
-  "http://42.118.98.35:3000",
-];
+const envCorsOrigins = process.env.CORS_ALLOWED_ORIGINS || process.env.ALLOWED_ORIGINS;
+const allowedOrigins = envCorsOrigins
+  ? envCorsOrigins.split(",").map((o) => o.trim()).filter(Boolean)
+  : [
+    "http://localhost:3000",
+  ];
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
