@@ -69,12 +69,16 @@ export class NewsService {
   }
 
   /**
-   * Public Get News Detail by Slug (Increments Views Counter)
+   * Public Get News Detail by Slug or ID (Increments Views Counter)
    */
-  static async getNewsBySlug(slug: string) {
-    const cleanSlug = slug.trim();
-    const article = await prisma.news.findUnique({
-      where: { slug: cleanSlug },
+  static async getNewsBySlug(slugOrId: string) {
+    const cleanParam = slugOrId.trim();
+    const isNumeric = /^\d+$/.test(cleanParam);
+
+    const article = await prisma.news.findFirst({
+      where: isNumeric
+        ? { OR: [{ id: parseInt(cleanParam, 10) }, { slug: cleanParam }] }
+        : { slug: cleanParam },
       include: {
         author: {
           select: { id: true, fullName: true },
@@ -103,6 +107,7 @@ export class NewsService {
    */
   static async createNews(data: {
     title: string;
+    slug?: string;
     categorySlug?: string;
     content: string;
     thumbnailUrl?: string;
@@ -116,16 +121,19 @@ export class NewsService {
       throw new AppError("Nội dung bài viết không được để trống", 400);
     }
 
-    const baseSlug = slugify(data.title);
-    const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
+    let finalSlug = data.slug ? slugify(data.slug) : slugify(data.title);
+    const slugCheck = await prisma.news.findUnique({ where: { slug: finalSlug } });
+    if (slugCheck) {
+      finalSlug = `${finalSlug}-${Date.now().toString().slice(-4)}`;
+    }
 
     const newArticle = await prisma.news.create({
       data: {
         title: data.title.trim(),
-        slug: uniqueSlug,
+        slug: finalSlug,
         categorySlug: data.categorySlug || "cam-nang-ky-thuat",
         content: data.content.trim(),
-        thumbnailUrl: data.thumbnailUrl || "/images/news-section/news-1.png",
+        thumbnailUrl: data.thumbnailUrl || "/images/logo/logonen.png",
         isFeatured: data.isFeatured ?? false,
         authorId: data.authorId || null,
       },
@@ -141,6 +149,7 @@ export class NewsService {
     id: number,
     data: {
       title?: string;
+      slug?: string;
       categorySlug?: string;
       content?: string;
       thumbnailUrl?: string;
@@ -153,7 +162,17 @@ export class NewsService {
     }
 
     let slug = existing.slug;
-    if (data.title && data.title.trim() !== existing.title) {
+    if (data.slug && data.slug.trim()) {
+      const targetSlug = slugify(data.slug);
+      const slugConflict = await prisma.news.findFirst({
+        where: { slug: targetSlug, NOT: { id } },
+      });
+      if (slugConflict) {
+        slug = `${targetSlug}-${Date.now().toString().slice(-4)}`;
+      } else {
+        slug = targetSlug;
+      }
+    } else if (data.title && data.title.trim() !== existing.title) {
       slug = `${slugify(data.title)}-${Date.now().toString().slice(-4)}`;
     }
 

@@ -11,6 +11,7 @@ export default function IntroSection() {
       </div>
 
       <div className="container mx-auto px-4 lg:px-8 max-w-7xl relative z-10">
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
           {/* Left Column: Intro Text (Hình 1) */}

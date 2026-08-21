@@ -2,7 +2,7 @@
  * Utility helper to sanitize and format product image URLs safely across Frontend and Backend.
  */
 export function formatImageUrl(url?: string | null): string {
-  const DEFAULT_FALLBACK = "/images/vehicle-category/dongco.png";
+  const DEFAULT_FALLBACK = "/images/logo/logonen.png";
 
   if (
     !url ||

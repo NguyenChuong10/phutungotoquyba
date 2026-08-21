@@ -395,6 +395,13 @@ export class AdminApiService {
   }
 
   /**
+   * Fetch Single News Article by Slug or ID
+   */
+  static async getNewsBySlug(slugOrId: string | number) {
+    return await fetchApi(`/news/${slugOrId}`);
+  }
+
+  /**
    * Create News Article
    */
   static async createNews(data: Record<string, unknown>) {

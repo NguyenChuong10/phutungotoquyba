@@ -4,22 +4,53 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { X } from "lucide-react";
+import { AdminApiService } from "@/services/adminApiService";
+import { formatImageUrl } from "@/utils/imageHelper";
 
-const products = [
-  { id: 'p1', src: '/images/vehicle-category/dongco.png', alt: 'Động Cơ', desc: 'Hệ thống động cơ diesel mạnh mẽ, bền bỉ, tiết kiệm nhiên liệu, phù hợp cho các dòng xe tải nặng và máy công trình. Đảm bảo sức kéo vượt trội trên mọi địa hình.' },
-  { id: 'p2', src: '/images/vehicle-category/ben.png', alt: 'Ben', desc: 'Hệ thống thủy lực ben chịu tải siêu trường siêu trọng, hoạt động mượt mà và cực kỳ ổn định trong điều kiện làm việc khắc nghiệt tại các mỏ đá, công trường.' },
-  { id: 'p3', src: '/images/vehicle-category/cabin.png', alt: 'Cabin', desc: 'Các chi tiết thân vỏ và nội thất cabin chất lượng cao (ghế hơi, mặt ga lăng, đèn pha), đảm bảo an toàn và sự thoải mái tối đa cho người lái trong các chuyến đi dài.' },
-  { id: 'p4', src: '/images/vehicle-category/gam.png', alt: 'Gầm', desc: 'Hệ thống khung gầm đúc chắc chắn, nhíp và giảm xóc chịu lực cực tốt, rô tuyn tay lái chuẩn xác, giúp xe vận hành đầm chắc trên mọi cung đường phức tạp.' },
-  { id: 'p5', src: '/images/vehicle-category/hopso.png', alt: 'Hộp Số', desc: 'Hộp số đa cấp truyền động mượt mà, bộ đồng tốc cao cấp giúp sang số nhẹ nhàng, tối ưu hóa toàn bộ công suất từ động cơ truyền đến các trục bánh xe.' },
-  { id: 'p6', src: '/images/vehicle-category/romooc.png', alt: 'RƠ-MOOC', desc: 'Linh kiện rơ-mooc chuyên dụng: chân chống, mâm phanh, trục cầu, búp sen phanh, móc kéo... Đạt tiêu chuẩn an toàn cao nhất và chịu tải trọng siêu cường.' },
-  { id: 'p7', src: '/images/vehicle-category/sealphot.png', alt: 'Seal Phốt', desc: 'Bộ phớt làm kín (sin, phớt git, phớt trục khuỷu) từ vật liệu cao cấp chịu nhiệt độ cao, chịu hóa chất và dầu nhớt cực tốt, ngăn chặn rò rỉ triệt để.' },
-  { id: 'p8', src: '/images/vehicle-category/vongbi.png', alt: 'Vòng Bi', desc: 'Các loại vòng bi, bạc đạn công nghiệp (bi moay ơ, bi hộp số, bi chữ thập) có độ chính xác tuyệt đối, giảm ma sát tối đa và tăng cường tuổi thọ chi tiết máy.' }
-];
+interface VehicleCategoryItem {
+  id: string | number;
+  src: string;
+  alt: string;
+  desc: string;
+  slug?: string;
+}
 
+const DEFAULT_CATEGORY_ICONS: Record<string, string> = {
+  'dong-co-may-phat': '/images/vehicle-category/dongco.png',
+  'ben-thuy-luc': '/images/vehicle-category/ben.png',
+  'cabin-than-vo': '/images/vehicle-category/cabin.png',
+  'gam-cau-phanh': '/images/vehicle-category/gam.png',
+  'hop-so-bo-dong-toc': '/images/vehicle-category/hopso.png',
+  'linh-kien-ro-mooc': '/images/vehicle-category/romooc.png',
+  'gioang-seal-phot': '/images/vehicle-category/sealphot.png',
+  'vong-bi-bac-dan': '/images/vehicle-category/vongbi.png',
+};
 
 export default function VehicleCategory() {
-  const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
+  const [categoriesList, setCategoriesList] = useState<VehicleCategoryItem[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<VehicleCategoryItem | null>(null);
   const [isModalImageLoading, setIsModalImageLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const tree = await AdminApiService.getCategoriesTree();
+        if (tree && tree.length > 0) {
+          const items: VehicleCategoryItem[] = tree.map((cat: any) => ({
+            id: cat.id || cat.slug,
+            src: formatImageUrl(cat.imageUrl) || DEFAULT_CATEGORY_ICONS[cat.slug] || '/images/vehicle-category/dongco.png',
+            alt: cat.name,
+            desc: cat.description || `Danh mục phụ tùng ${cat.name} chính hãng xe tải nặng Q.BA Đà Nẵng.`,
+            slug: cat.slug,
+          }));
+          setCategoriesList(items);
+        }
+      } catch (err) {
+        console.error("Failed to load vehicle categories:", err);
+      }
+    }
+    loadCategories();
+  }, []);
 
   // Khóa scroll body khi mở Modal
   useEffect(() => {
@@ -32,6 +63,10 @@ export default function VehicleCategory() {
       document.body.style.overflow = 'unset';
     };
   }, [selectedProduct]);
+
+  if (categoriesList.length === 0) {
+    return null;
+  }
 
 
   return (
@@ -60,7 +95,7 @@ export default function VehicleCategory() {
           <div className="flex w-max animate-marquee motion-reduce:animate-none hover:[animation-play-state:paused]">
             {Array.from({ length: 2 }).map((_, setIndex) => (
               <div key={`set-${setIndex}`} className="flex gap-12 px-6">
-                {products.map((product) => (
+                {categoriesList.map((product) => (
                   <div 
                     key={`${setIndex}-${product.id}`} 
                     onClick={() => {

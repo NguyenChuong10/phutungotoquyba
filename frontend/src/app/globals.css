@@ -49,6 +49,14 @@ body {
   overflow-x: hidden;
 }
 
+/* Force System Inter Font on Editor Canvas & Article Content */
+.article-rich-body,
+.article-rich-body *,
+[contenteditable="true"],
+[contenteditable="true"] * {
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
 /* Custom Red/Slate Enterprise Scrollbar - Always Visible & Bold */
 .custom-scrollbar {
   scrollbar-width: thin;

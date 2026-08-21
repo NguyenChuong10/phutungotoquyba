@@ -1,19 +1,18 @@
 import React from "react";
-
 import { MapPin, Phone, Mail, Clock, Truck, MessageSquare } from "lucide-react";
 import ContactForm from "@/components/public/ContactForm";
-
+import { siteConfig } from "@/config/siteConfig";
 
 export const metadata = {
-  title: "Liên Hệ & Báo Giá - Phụ Tùng Ô Tô Q.BA Đà Nẵng",
-  description: "Liên hệ Phụ Tùng Ô Tô Q.BA tại 43-45 Nguyễn Văn Tạo, Đà Nẵng. Hotline: 0903.588.167. Nhận tư vấn báo giá mã phụ tùng xe ben, xe đầu kéo, xe tải Trung Quốc.",
+  title: `Liên Hệ & Báo Giá - ${siteConfig.name}`,
+  description: `Liên hệ ${siteConfig.name} tại ${siteConfig.address}. Hotline: ${siteConfig.hotline}. Nhận tư vấn báo giá mã phụ tùng xe ben, xe đầu kéo, xe tải Trung Quốc.`,
 };
 
 const contactCards = [
   {
     icon: MapPin,
     title: "ĐỊA CHỈ CỬA HÀNG",
-    detail: "43-45 Nguyễn Văn Tạo, P. An Khê, Q. Thanh Khê, Đà Nẵng",
+    detail: siteConfig.address,
     subText: "Trung tâm giao thương phụ tùng miền Trung",
     linkText: "Xem vị trí Google Maps",
     linkHref: "#google-maps-section"
@@ -21,26 +20,26 @@ const contactCards = [
   {
     icon: Phone,
     title: "HOTLINE BÁO GIÁ TRỰC TIẾP",
-    detail: "0903.588.167",
+    detail: siteConfig.hotline,
     subText: "Tư vấn kỹ thuật đúng mã phụ tùng hỏa tốc",
     linkText: "Gọi điện ngay",
-    linkHref: "tel:0903588167"
+    linkHref: `tel:${siteConfig.hotlineRaw}`
   },
   {
     icon: Mail,
     title: "EMAIL THƯƠNG MẠI",
-    detail: "phutungotoqbadanang@gmail.com",
+    detail: siteConfig.email,
     subText: "Tiếp nhận đơn hàng & hợp đồng doanh nghiệp",
     linkText: "Gửi Email",
-    linkHref: "mailto:phutungotoqbadanang@gmail.com"
+    linkHref: `mailto:${siteConfig.email}`
   },
   {
     icon: Clock,
     title: "THỜI GIAN PHỤC VỤ",
-    detail: "Từ Thứ 2 Đến Chủ Nhật",
+    detail: siteConfig.workingHours,
     subText: "Phục vụ cả Ngày lễ & Tết",
     linkText: "Hỗ trợ qua Zalo",
-    linkHref: "https://zalo.me/0903588167"
+    linkHref: siteConfig.zaloLink
   }
 ];
 

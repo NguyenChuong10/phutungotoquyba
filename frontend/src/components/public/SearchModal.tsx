@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Search, X, ArrowRight, Package, Tag, CheckCircle2 } from "lucide-react";
 import { formatImageUrl } from "@/utils/imageHelper";
-import { productService } from "@/services/productService";
+import { AdminApiService } from "@/services/adminApiService";
 import { Product } from "@/types/product";
 
 interface SearchModalProps {
@@ -52,14 +52,43 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Lọc sản phẩm thời gian thực khi gõ
+  // Lọc sản phẩm thời gian thực từ API khi gõ
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
       return;
     }
-    const filtered = productService.filterProducts({ searchQuery: query });
-    setResults(filtered);
+    let isSubscribed = true;
+    async function searchApi() {
+      try {
+        const res = await AdminApiService.getPublicProducts({ search: query.trim(), limit: 20 });
+        if (isSubscribed && res.ok && res.data) {
+          const mapped: Product[] = res.data.map((p: any) => ({
+            id: String(p.id),
+            partNumber: p.partNumber || `PN-${p.id}`,
+            name: p.name,
+            categorySlug: p.category?.slug || '',
+            categoryName: p.category?.name || '',
+            brand: p.brand?.name || '',
+            price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString()} ₫` : 'Liên hệ Báo Giá',
+            imageSrc: formatImageUrl(p.images?.[0]?.imageUrl || p.image || p.imageSrc),
+            description: p.description || '',
+            specifications: p.specifications || {},
+            compatibility: p.compatibility || [],
+          }));
+          setResults(mapped);
+        }
+      } catch (err) {
+        console.error("Search API error:", err);
+      }
+    }
+    const timer = setTimeout(() => {
+      searchApi();
+    }, 250);
+    return () => {
+      isSubscribed = false;
+      clearTimeout(timer);
+    };
   }, [query]);
 
   if (!isOpen) return null;

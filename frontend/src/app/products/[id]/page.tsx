@@ -44,12 +44,11 @@ async function getProductDetail(id: string) {
         };
       }
     }
-  } catch {
-    // API server offline fallback
+  } catch (err) {
+    console.error("Failed to fetch product detail:", err);
   }
 
-  // Fallback to static mock data
-  return productsData.find((p) => p.id === id) || null;
+  return null;
 }
 
 export async function generateStaticParams() {

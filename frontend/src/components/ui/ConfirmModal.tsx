@@ -105,14 +105,15 @@ export default function ConfirmModal({
 
             {itemName && (
               <div className="p-3 rounded-2xl bg-slate-900 text-white font-extrabold text-xs sm:text-sm font-mono break-all inline-flex items-center justify-center gap-2 max-w-full shadow-md border border-slate-800">
-                <span className="text-red-400">🗑️</span>
+                <Trash2 className="w-4 h-4 text-red-400 shrink-0" />
                 <span>&ldquo;{itemName}&rdquo;</span>
               </div>
             )}
 
             {isDanger && (
               <div className="p-2.5 rounded-xl bg-red-50 border border-red-100 text-red-600 text-[11px] font-semibold flex items-center justify-center gap-1.5">
-                <span>⚠️ Thao tác này sẽ xóa dữ liệu vĩnh viễn và không thể khôi phục.</span>
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                <span>Thao tác này sẽ xóa dữ liệu vĩnh viễn và không thể khôi phục.</span>
               </div>
             )}
           </div>

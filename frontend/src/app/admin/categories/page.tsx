@@ -504,7 +504,7 @@ export default function AdminCategoriesPage() {
     if (editingBrandData) {
       try {
         await AdminApiService.updateBrand(editingBrandData.id, { name: brandNameInput.trim() });
-      } catch {}
+      } catch { }
 
       setBrandsListState((prev) =>
         prev.map((b) =>
@@ -526,7 +526,7 @@ export default function AdminCategoriesPage() {
         if (res.ok && res.data) {
           createdId = res.data.id;
         }
-      } catch {}
+      } catch { }
 
       const newBrand: BrandItem = {
         id: createdId,
@@ -563,9 +563,9 @@ export default function AdminCategoriesPage() {
               {totalMainCategories} Danh Mục Chính • {totalSubCategories} Danh Mục Phụ
             </span>
           </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Quản lý cấu trúc danh mục phụ tùng xe tải và danh sách các thương hiệu nhà máy sản xuất.
-            </p>
+          <p className="text-xs text-slate-500 mt-1">
+            Quản lý cấu trúc danh mục phụ tùng xe tải và danh sách các thương hiệu nhà máy sản xuất.
+          </p>
         </div>
       </div>
 
@@ -574,11 +574,10 @@ export default function AdminCategoriesPage() {
         <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
           <button
             onClick={() => setActiveTab('CATEGORIES')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${
-              activeTab === 'CATEGORIES'
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${activeTab === 'CATEGORIES'
                 ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800'
-            }`}
+              }`}
           >
             <Layers className="w-4 h-4 text-red-600" />
             <span>Quản Lý Phân Cấp Master-Detail ({totalMainCategories})</span>
@@ -586,11 +585,10 @@ export default function AdminCategoriesPage() {
 
           <button
             onClick={() => setActiveTab('BRANDS')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${
-              activeTab === 'BRANDS'
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${activeTab === 'BRANDS'
                 ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800'
-            }`}
+              }`}
           >
             <Truck className="w-4 h-4 text-red-600" />
             <span>Thương Hiệu Phụ Tùng ({brandsListState.length})</span>
@@ -655,18 +653,16 @@ export default function AdminCategoriesPage() {
                       setSelectedMainId(mainCat.id);
                       setSubCategoryPage(1);
                     }}
-                    className={`p-3.5 transition-all cursor-pointer flex items-center justify-between border-l-4 ${
-                      isSelected
+                    className={`p-3.5 transition-all cursor-pointer flex items-center justify-between border-l-4 ${isSelected
                         ? 'border-l-red-600 bg-red-50/50 shadow-2xs'
                         : 'border-l-transparent hover:bg-slate-50'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="min-w-0">
                         <h4
-                          className={`font-extrabold text-xs sm:text-sm truncate ${
-                            isSelected ? 'text-red-600' : 'text-slate-900'
-                          }`}
+                          className={`font-extrabold text-xs sm:text-sm truncate ${isSelected ? 'text-red-600' : 'text-slate-900'
+                            }`}
                         >
                           {mainCat.name}
                         </h4>
@@ -707,9 +703,8 @@ export default function AdminCategoriesPage() {
                       </div>
 
                       <ChevronRight
-                        className={`w-4 h-4 transition-transform ${
-                          isSelected ? 'text-red-600 translate-x-0.5' : 'text-slate-300'
-                        }`}
+                        className={`w-4 h-4 transition-transform ${isSelected ? 'text-red-600 translate-x-0.5' : 'text-slate-300'
+                          }`}
                       />
                     </div>
                   </div>
@@ -1093,8 +1088,8 @@ export default function AdminCategoriesPage() {
           deleteConfirmState.type === 'BRAND'
             ? 'Xóa Thương Hiệu Phụ Tùng'
             : deleteConfirmState.isSub
-            ? 'Xóa Danh Mục Phụ Con'
-            : 'Xóa Danh Mục Chính'
+              ? 'Xóa Danh Mục Phụ Con'
+              : 'Xóa Danh Mục Chính'
         }
         message={
           deleteConfirmState.type === 'BRAND'

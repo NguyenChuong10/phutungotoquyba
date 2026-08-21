@@ -435,25 +435,25 @@ export default function AdminOrdersPage() {
           prev.map((o) =>
             o.id === orderId
               ? {
-                  ...o,
-                  status: newStatus as any,
-                  statusText:
-                    newStatus === 'confirmed'
-                      ? 'ĐÃ XÁC NHẬN'
-                      : newStatus === 'completed'
+                ...o,
+                status: newStatus as any,
+                statusText:
+                  newStatus === 'confirmed'
+                    ? 'ĐÃ XÁC NHẬN'
+                    : newStatus === 'completed'
                       ? 'HOÀN THÀNH'
                       : newStatus === 'cancelled'
-                      ? 'ĐÃ HỦY'
-                      : 'MỚI GỬI',
-                  statusColor:
-                    newStatus === 'confirmed'
-                      ? 'bg-blue-100 text-blue-800 border-blue-200'
-                      : newStatus === 'completed'
+                        ? 'ĐÃ HỦY'
+                        : 'MỚI GỬI',
+                statusColor:
+                  newStatus === 'confirmed'
+                    ? 'bg-blue-100 text-blue-800 border-blue-200'
+                    : newStatus === 'completed'
                       ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
                       : newStatus === 'cancelled'
-                      ? 'bg-slate-200 text-slate-700 border-slate-300'
-                      : 'bg-red-100 text-red-800 border-red-200',
-                }
+                        ? 'bg-slate-200 text-slate-700 border-slate-300'
+                        : 'bg-red-100 text-red-800 border-red-200',
+              }
               : o
           )
         );
@@ -966,18 +966,16 @@ export default function AdminOrdersPage() {
             <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs self-start md:self-auto">
               <button
                 onClick={() => setGroupByCustomer(true)}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  groupByCustomer ? 'bg-white text-red-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${groupByCustomer ? 'bg-white text-red-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
               >
                 <Users className="w-3.5 h-3.5 text-red-600" />
                 <span>Gom Nhóm Theo Khách Hàng ({customerGroups.length})</span>
               </button>
               <button
                 onClick={() => setGroupByCustomer(false)}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  !groupByCustomer ? 'bg-white text-red-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${!groupByCustomer ? 'bg-white text-red-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
               >
                 <ListFilter className="w-3.5 h-3.5" />
                 <span>Xem Tất Cả Đơn Lẻ ({filteredOrders.length})</span>
@@ -997,11 +995,10 @@ export default function AdminOrdersPage() {
               <button
                 key={`status-tab-${st.key}`}
                 onClick={() => setFilterStatus(st.key)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 cursor-pointer ${
-                  filterStatus === st.key
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 cursor-pointer ${filterStatus === st.key
                     ? 'bg-red-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 {st.label}
               </button>
@@ -1081,11 +1078,10 @@ export default function AdminOrdersPage() {
               <div className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xs">
                 <button
                   onClick={() => setActiveTab('detail')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    activeTab === 'detail'
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'detail'
                       ? 'bg-red-50 text-red-600 border border-red-200'
                       : 'text-slate-500 hover:text-slate-900'
-                  }`}
+                    }`}
                 >
                   <Package className="w-3.5 h-3.5" />
                   <span>Chi Tiết Đơn Hiện Tại</span>
@@ -1093,11 +1089,10 @@ export default function AdminOrdersPage() {
 
                 <button
                   onClick={() => setActiveTab('history')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    activeTab === 'history'
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'history'
                       ? 'bg-blue-50 text-blue-600 border border-blue-200'
                       : 'text-slate-500 hover:text-slate-900'
-                  }`}
+                    }`}
                 >
                   <History className="w-3.5 h-3.5" />
                   <span>Lịch Sử Mua Hàng ({customerHistory.length} đơn)</span>
@@ -1174,11 +1169,10 @@ export default function AdminOrdersPage() {
                         type="button"
                         disabled={updatingStatus}
                         onClick={() => handleQuickStatusChange(selectedOrder.id, 'pending')}
-                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                          selectedOrder.status === 'pending'
+                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${selectedOrder.status === 'pending'
                             ? 'bg-red-600 text-white shadow-xs'
                             : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                        }`}
+                          }`}
                       >
                         <Clock className="w-3.5 h-3.5" />
                         <span>Mới Gửi</span>
@@ -1188,11 +1182,10 @@ export default function AdminOrdersPage() {
                         type="button"
                         disabled={updatingStatus}
                         onClick={() => handleQuickStatusChange(selectedOrder.id, 'confirmed')}
-                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                          selectedOrder.status === 'confirmed'
+                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${selectedOrder.status === 'confirmed'
                             ? 'bg-blue-600 text-white shadow-xs'
                             : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                        }`}
+                          }`}
                       >
                         <UserCheck className="w-3.5 h-3.5" />
                         <span>Đã Xác Nhận</span>
@@ -1202,11 +1195,10 @@ export default function AdminOrdersPage() {
                         type="button"
                         disabled={updatingStatus}
                         onClick={() => handleQuickStatusChange(selectedOrder.id, 'completed')}
-                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                          selectedOrder.status === 'completed'
+                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${selectedOrder.status === 'completed'
                             ? 'bg-emerald-600 text-white shadow-xs'
                             : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                        }`}
+                          }`}
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>Hoàn Thành</span>
@@ -1216,11 +1208,10 @@ export default function AdminOrdersPage() {
                         type="button"
                         disabled={updatingStatus}
                         onClick={() => handleQuickStatusChange(selectedOrder.id, 'cancelled')}
-                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                          selectedOrder.status === 'cancelled'
+                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${selectedOrder.status === 'cancelled'
                             ? 'bg-slate-700 text-white shadow-xs'
                             : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                        }`}
+                          }`}
                       >
                         <AlertCircle className="w-3.5 h-3.5" />
                         <span>Hủy Đơn</span>

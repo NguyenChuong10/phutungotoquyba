@@ -47,11 +47,12 @@ export class NewsController {
    */
   static async createNews(req: Request, res: Response, next: NextFunction) {
     try {
-      const { title, categorySlug, content, thumbnailUrl, isFeatured } = req.body;
+      const { title, slug, categorySlug, content, thumbnailUrl, isFeatured } = req.body;
       const user = (req as any).user;
 
       const newArticle = await NewsService.createNews({
         title,
+        slug,
         categorySlug,
         content,
         thumbnailUrl,
@@ -75,10 +76,11 @@ export class NewsController {
   static async updateNews(req: Request, res: Response, next: NextFunction) {
     try {
       const id = parseInt(req.params.id);
-      const { title, categorySlug, content, thumbnailUrl, isFeatured } = req.body;
+      const { title, slug, categorySlug, content, thumbnailUrl, isFeatured } = req.body;
 
       const updated = await NewsService.updateNews(id, {
         title,
+        slug,
         categorySlug,
         content,
         thumbnailUrl,

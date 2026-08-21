@@ -1,32 +1,46 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { AdminApiService } from "@/services/adminApiService";
 
-const cards = [
-  {
-    id: "news-1",
-    title: "THÔNG TIN DOANH NGHIỆP",
-    desc: "Các bài viết giới thiệu về hoạt động, sự kiện, thông báo của công ty Q.BA.",
-    imgUrl: "/images/news-section/quyba.png",
-    linkUrl: "/news/gioi-thieu-lich-su-25-nam-phat-trien-nang-luc-cung-cap-phu-tung-xe-tai-qba-da-nang-5511"
-  },
-  {
-    id: "news-2",
-    title: "THÔNG TIN SẢN PHẨM",
-    desc: "Các danh mục phụ tùng tại Q.BA.",
-    imgUrl: "/images/news-section/sanpham.png",
-    linkUrl: "/news/tong-quan-he-thong-phu-tung-xe-tai-nang-trung-quoc-san-kho-da-nang-howo-weichai-fast-gear-8447"
-  },
-  {
-    id: "news-3",
-    title: "CẨM NANG KỸ THUẬT",
-    desc: "Cẩm nang kỹ thuật, bảo dưỡng, lái xe.",
-    imgUrl: "/images/news-section/sanpham.png",
-    linkUrl: "/news/cam-nang-ky-thuat-bao-duong-dong-co-weichai-wp12-quy-trinh-kiem-tra-dinh-ky-50000km-7840"
-  }
-];
+interface NewsCardItem {
+  id: string | number;
+  title: string;
+  desc: string;
+  imgUrl: string;
+  linkUrl: string;
+}
 
 export default function NewsSection() {
+  const [cards, setCards] = useState<NewsCardItem[]>([]);
+
+  useEffect(() => {
+    async function loadTopNews() {
+      try {
+        const res = await AdminApiService.getNewsList();
+        if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
+          const items: NewsCardItem[] = res.data.slice(0, 3).map((art: any) => ({
+            id: art.id,
+            title: art.title,
+            desc: art.content ? art.content.replace(/<[^>]*>?/gm, '').slice(0, 120) + '...' : 'Cẩm nang kỹ thuật phụ tùng Q.BA',
+            imgUrl: art.thumbnailUrl || '/images/news-section/quyba.png',
+            linkUrl: `/news/${art.slug}`,
+          }));
+          setCards(items);
+        }
+      } catch (err) {
+        console.error("Failed to load news section:", err);
+      }
+    }
+    loadTopNews();
+  }, []);
+
+  if (cards.length === 0) {
+    return null;
+  }
+
   return (
     <section id="news" className="py-20 relative bg-white overflow-hidden">
       {/* Blueprint Grid Overlay for Industrial Feel */}

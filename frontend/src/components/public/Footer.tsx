@@ -2,15 +2,20 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Mail, Phone, ArrowUpRight } from "lucide-react";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
+import { siteConfig } from "@/config/siteConfig";
+import NoticeBar from "@/components/public/NoticeBar";
 
 export default function Footer() {
+  const { settings } = useSiteSettings();
+
   return (
-    <footer id="contact" className="bg-[#0B0F19] text-gray-300 pt-16 pb-8 border-t-4 border-brand relative overflow-hidden">
+    <footer id="contact" className="bg-[#0B0F19] text-gray-300 pt-16 pb-0 border-t-4 border-brand relative overflow-hidden">
       {/* Decorative Glow */}
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand/5 rounded-full filter blur-[120px] pointer-events-none"></div>
 
-      <div className="container mx-auto px-4 lg:px-8 max-w-7xl relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-12 mb-16 items-start">
+      <div className="container mx-auto px-4 lg:px-8 max-w-7xl relative z-10 pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-12 items-start">
           
           {/* Col 1: Brand & Contact Info (5 Cols) */}
           <div className="md:col-span-5 space-y-6">
@@ -32,22 +37,22 @@ export default function Footer() {
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-brand shrink-0 mt-0.5" />
                 <span className="leading-relaxed">
-                  Số 43-45-47 Đường Nguyễn Văn Tạo, Phường An Khê, Quận Thanh Khê, Đà Nẵng
+                  {settings.warehouseAddress || siteConfig.address}
                 </span>
               </div>
 
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-brand shrink-0" />
-                <a href="mailto:phutungotoqbadanang@gmail.com" className="hover:text-white transition-colors">
-                  phutungotoqbadanang@gmail.com
+                <a href={`mailto:${settings.emailContact || siteConfig.email}`} className="hover:text-white transition-colors">
+                  {settings.emailContact || siteConfig.email}
                 </a>
               </div>
 
               <div className="flex items-center gap-3 pt-1">
                 <Phone className="w-5 h-5 text-brand shrink-0" />
-                <span className="font-bold text-white text-base">
-                  0903.588.167
-                </span>
+                <a href={`tel:${settings.hotlineRaw || siteConfig.hotlineRaw}`} className="font-bold text-white text-base hover:text-brand transition-colors">
+                  {settings.hotlineZalo || siteConfig.hotline}
+                </a>
               </div>
             </div>
 
@@ -59,7 +64,7 @@ export default function Footer() {
               <div className="flex items-center gap-3">
                 {/* Facebook */}
                 <a 
-                  href="https://www.facebook.com/p/Ph%E1%BB%A5-t%C3%B9ng-%C3%B4-t%C3%B4-QBa-61574470388648/" 
+                  href={siteConfig.socialLinks.facebook} 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="w-10 h-10 bg-slate-800 hover:bg-brand text-white rounded-xl flex items-center justify-center transition-all duration-300 shadow-md hover:scale-105"
@@ -72,7 +77,7 @@ export default function Footer() {
 
                 {/* Zalo */}
                 <a 
-                  href="https://zalo.me/0903588167" 
+                  href={siteConfig.zaloLink} 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="w-10 h-10 bg-slate-800 hover:bg-blue-600 text-white rounded-xl flex items-center justify-center transition-all duration-300 shadow-md hover:scale-105"
@@ -154,6 +159,9 @@ export default function Footer() {
 
         </div>
       </div>
+
+      {/* Notice Bar Strip at Bottom of Footer */}
+      <NoticeBar />
     </footer>
   );
 }

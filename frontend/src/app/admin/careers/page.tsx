@@ -387,11 +387,10 @@ export default function AdminCareersPage() {
                     <td className="py-4 px-4 text-center">
                       <button
                         onClick={() => handleToggleActive(job)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold border cursor-pointer transition-all ${
-                          job.isActive
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold border cursor-pointer transition-all ${job.isActive
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                             : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
-                        }`}
+                          }`}
                         title="Bấm để ẩn/hiện tin tuyển dụng"
                       >
                         {job.isActive ? (

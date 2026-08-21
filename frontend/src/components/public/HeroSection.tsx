@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 
 const slides = [
   { 
@@ -49,6 +50,7 @@ const slides = [
 ];
 
 export default function HeroSection() {
+  const { settings } = useSiteSettings();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -84,15 +86,14 @@ export default function HeroSection() {
         </div>
       ))}
 
-      {/* Hero Title Container - Aligned Left with Image, Italic Heavy Font & Vertical Bar */}
-      <div className="absolute bottom-16 md:bottom-20 left-6 sm:left-12 md:left-16 lg:left-24 z-10 max-w-[90vw]">
+      {/* Hero Title & Sub-slogan Tagline */}
+      <div className="absolute bottom-16 md:bottom-20 left-6 sm:left-12 md:left-16 lg:left-24 z-10 max-w-4xl space-y-3">
         <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black italic uppercase tracking-wider font-heading leading-tight flex flex-wrap items-center gap-x-3 gap-y-1">
-          {/* Static "PHỤ TÙNG |" Text - Black color as requested */}
+          {/* Static "PHỤ TÙNG |" Text */}
           <span className="text-black drop-shadow-[0_2px_8px_rgba(255,255,255,0.6)] flex items-center gap-3">
             <span>PHỤ TÙNG</span>
             <span className="text-black font-light not-italic">|</span>
           </span>
-
 
           {/* Dynamic Category Text - Switches per slide in Red Italic Font */}
           <span className="relative inline-block min-w-[200px] sm:min-w-[260px] md:min-w-[360px] h-[1.3em]">
@@ -110,6 +111,16 @@ export default function HeroSection() {
             ))}
           </span>
         </h2>
+
+        {/* Industrial Red Bar Sub-slogan Tagline */}
+        {settings.homeHeroSlogan && (
+          <div className="flex items-center gap-3 pt-1">
+            <div className="h-5 w-1 bg-red-600 rounded-full shrink-0 shadow-sm"></div>
+            <p className="text-gray-200 text-xs sm:text-sm md:text-base font-bold tracking-widest uppercase drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] font-heading">
+              {settings.homeHeroSlogan}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Centered Slide Pagination Dots - Positioned centered at bottom */}

@@ -39,7 +39,7 @@ function getAudioContext(): AudioContext | null {
     }
   }
   if (globalAudioCtx && globalAudioCtx.state === "suspended") {
-    globalAudioCtx.resume().catch(() => {});
+    globalAudioCtx.resume().catch(() => { });
   }
   return globalAudioCtx;
 }
@@ -86,7 +86,7 @@ export function playChimeSound() {
     gain3.connect(ctx.destination);
     osc3.start(now + 0.25);
     osc3.stop(now + 0.85);
-  } catch {}
+  } catch { }
 }
 
 export function AdminNotificationProvider({ children }: { children: React.ReactNode }) {
@@ -267,7 +267,7 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
                 window.dispatchEvent(new CustomEvent("quyba_ws_status_update", { detail: message }));
               }
             }
-          } catch {}
+          } catch { }
         };
 
         ws.onclose = () => {
@@ -277,8 +277,8 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
           }, 5000);
         };
 
-        ws.onerror = () => {};
-      } catch {}
+        ws.onerror = () => { };
+      } catch { }
     };
 
     connectWebSocket();

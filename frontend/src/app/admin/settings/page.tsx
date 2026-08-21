@@ -390,11 +390,10 @@ export default function AdminSettingsPage() {
                           settings.enableSoundAlert === 'true' ? 'false' : 'true'
                         )
                       }
-                      className={`p-2 rounded-xl transition-all cursor-pointer font-bold text-xs flex items-center gap-1 ${
-                        settings.enableSoundAlert === 'true'
+                      className={`p-2 rounded-xl transition-all cursor-pointer font-bold text-xs flex items-center gap-1 ${settings.enableSoundAlert === 'true'
                           ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                           : 'bg-slate-200 text-slate-600'
-                      }`}
+                        }`}
                     >
                       {settings.enableSoundAlert === 'true' ? (
                         <>

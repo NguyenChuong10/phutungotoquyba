@@ -14,6 +14,7 @@ export interface Product {
   description: string;      // Mô tả chi tiết sản phẩm
   specifications: Record<string, string>; // Thông số kỹ thuật
   qualityStandard: string;  // Tiêu chuẩn chất lượng (vd: "Chính Hãng", "Loại 1 Cao Cấp")
+  price?: string;           // Giá sản phẩm hoặc "Liên hệ Báo Giá"
   inStock: boolean;         // Trạng thái sẵn kho
 }
 

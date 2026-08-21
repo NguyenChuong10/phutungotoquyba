@@ -17,9 +17,11 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      const scrolled = window.scrollY > 15;
+      setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
     };
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -50,10 +52,10 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 w-full z-40 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 w-full z-40 transition-colors duration-300 ease-in-out ${
           isTransparent
-            ? "bg-transparent border-b border-white/10 text-white shadow-none"
-            : "bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-md text-slate-900"
+            ? "bg-transparent text-white border-b border-transparent shadow-none"
+            : "bg-white/95 backdrop-blur-md text-slate-900 border-b border-slate-200/80 shadow-md"
         }`}
       >
         <div className="container mx-auto px-4 lg:px-8 max-w-7xl">
@@ -67,7 +69,7 @@ export default function Navbar() {
                   alt="Logo Phụ Tùng Ô Tô Q.BA"
                   width={450}
                   height={160}
-                  className={`w-auto h-11 md:h-13 object-contain transition-all duration-500 ${
+                  className={`w-auto h-11 md:h-13 object-contain transition-all duration-300 ease-in-out ${
                     isTransparent ? "brightness-0 invert drop-shadow-md" : "brightness-100"
                   }`}
                   priority
@@ -77,17 +79,17 @@ export default function Navbar() {
               {/* Inline Search Bar (Chuyển sang nền sáng khi lăn xuống) */}
               <div
                 onClick={() => setIsSearchOpen(true)}
-                className={`hidden sm:flex items-center gap-2.5 px-3.5 py-2 rounded-full border text-xs cursor-pointer transition-all duration-500 w-48 md:w-60 lg:w-72 shadow-inner group ${
+                className={`hidden sm:flex items-center gap-2.5 px-3.5 py-2 rounded-full border text-xs cursor-pointer transition-all duration-300 ease-in-out w-48 md:w-60 lg:w-72 shadow-inner group ${
                   isTransparent
                     ? "bg-slate-900/50 backdrop-blur-xs border-white/20 text-slate-200 hover:border-red-500/80 hover:bg-slate-900/70"
                     : "bg-slate-100 border-slate-200/90 text-slate-700 hover:border-red-500/60 hover:bg-slate-200/80"
                 }`}
                 title="Tra cứu phụ tùng"
               >
-                <Search className={`w-3.5 h-3.5 transition-colors shrink-0 ${
+                <Search className={`w-3.5 h-3.5 transition-colors duration-300 shrink-0 ${
                   isTransparent ? "text-slate-300 group-hover:text-red-400" : "text-slate-500 group-hover:text-red-600"
                 }`} />
-                <span className={`transition-colors truncate ${
+                <span className={`transition-colors duration-300 truncate ${
                   isTransparent ? "text-slate-300 group-hover:text-white drop-shadow-xs" : "text-slate-600 group-hover:text-slate-900"
                 }`}>
                   Tìm kiếm phụ tùng, mã part no...
@@ -107,7 +109,7 @@ export default function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`font-heading font-extrabold text-xs uppercase tracking-wider transition-colors py-1 relative ${
+                    className={`font-heading font-extrabold text-xs uppercase tracking-wider transition-colors duration-300 py-1 relative ${
                       isActive
                         ? isTransparent
                           ? "text-red-500 after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:bg-red-500"
@@ -128,7 +130,7 @@ export default function Navbar() {
               {/* Search Icon button for Mobile */}
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className={`sm:hidden p-2 rounded-full border cursor-pointer transition-colors ${
+                className={`sm:hidden p-2 rounded-full border cursor-pointer transition-colors duration-300 ${
                   isTransparent
                     ? "bg-slate-900/60 border-white/20 text-white hover:text-red-400"
                     : "bg-slate-100 border-slate-200 text-slate-800 hover:text-red-600"
@@ -138,10 +140,10 @@ export default function Navbar() {
                 <Search className="w-4 h-4" />
               </button>
 
-              {/* Quotation Cart Button (Đổi sang đỏ rực rỡ khi thanh chuyển sang màu trắng) */}
+              {/* Quotation Cart Button */}
               <Link
                 href="/quotation"
-                className={`relative px-4 py-2 rounded-full font-extrabold text-xs transition-all duration-500 shadow-md flex items-center gap-2 border group cursor-pointer ${
+                className={`relative px-4 py-2 rounded-full font-extrabold text-xs transition-all duration-300 ease-in-out shadow-md flex items-center gap-2 border group cursor-pointer ${
                   isTransparent
                     ? "bg-white hover:bg-red-600 text-slate-950 hover:text-white border-white/40"
                     : "bg-red-600 hover:bg-slate-900 text-white border-red-500 hover:border-slate-900"
@@ -150,7 +152,7 @@ export default function Navbar() {
               >
                 <span className="hidden sm:inline">Danh Sách Báo Giá</span>
                 {totalItems > 0 && (
-                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black transition-colors ${
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black transition-colors duration-300 ${
                     isTransparent
                       ? "bg-red-600 group-hover:bg-white text-white group-hover:text-red-600"
                       : "bg-white group-hover:bg-red-600 text-red-600 group-hover:text-white"
@@ -163,7 +165,7 @@ export default function Navbar() {
               {/* Mobile Menu Toggle Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className={`xl:hidden p-2 rounded-lg cursor-pointer transition-colors ${
+                className={`xl:hidden p-2 rounded-lg cursor-pointer transition-colors duration-300 ${
                   isTransparent ? "text-white hover:bg-white/10" : "text-slate-800 hover:bg-slate-100"
                 }`}
                 aria-label="Mở Menu"
