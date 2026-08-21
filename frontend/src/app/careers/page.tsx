@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { Briefcase, Users, CheckCircle, MapPin, PhoneCall } from "lucide-react";
 import ApplicationForm from "@/components/public/ApplicationForm";
 import { API_BASE_URL } from "@/config/api";
