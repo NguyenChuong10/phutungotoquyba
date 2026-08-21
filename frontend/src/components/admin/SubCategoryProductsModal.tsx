@@ -12,7 +12,9 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  ZoomIn,
 } from 'lucide-react';
+import ImagePreviewModal from '@/components/ui/ImagePreviewModal';
 import { AdminApiService } from '@/services/adminApiService';
 import { formatImageUrl } from '@/utils/imageHelper';
 import ConfirmModal from '@/components/ui/ConfirmModal';
@@ -63,6 +65,7 @@ export default function SubCategoryProductsModal({
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const itemsPerPage = 4;
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
 
   const [deleteProdConfirm, setDeleteProdConfirm] = useState<{
     isOpen: boolean;
@@ -230,7 +233,11 @@ export default function SubCategoryProductsModal({
                 {paginatedProducts.map((prod) => (
                   <tr key={`prod-modal-${prod.id}`} className="hover:bg-slate-50/80 transition-colors">
                     <td className="p-3.5 pl-5">
-                      <div className="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 relative overflow-hidden flex-shrink-0 shadow-2xs">
+                      <div
+                        onClick={() => setPreviewImage({ url: formatImageUrl(prod.image), title: `${prod.name} (Mã: ${prod.partNumber})` })}
+                        className="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 relative overflow-hidden flex-shrink-0 shadow-2xs cursor-pointer hover:scale-105 hover:ring-2 hover:ring-red-500 transition-all group"
+                        title="Bấm vào hình để phóng to ảnh sản phẩm"
+                      >
                         <Image
                           src={formatImageUrl(prod.image)}
                           alt={prod.name}
@@ -238,8 +245,11 @@ export default function SubCategoryProductsModal({
                           loading="lazy"
                           unoptimized
                           sizes="100vw"
-                          className="object-cover"
+                          className="object-cover group-hover:opacity-90"
                         />
+                        <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <ZoomIn className="w-4 h-4 text-white drop-shadow-md" />
+                        </div>
                       </div>
                     </td>
                     <td className="p-3.5">
@@ -338,6 +348,14 @@ export default function SubCategoryProductsModal({
 
       {/* TOAST NOTIFICATION */}
       <ToastNotification toast={toastState} onClose={() => setToastState(null)} />
+
+      {/* Fullscreen Image Zoom Lightbox Modal */}
+      <ImagePreviewModal
+        isOpen={!!previewImage}
+        imageUrl={previewImage?.url || null}
+        title={previewImage?.title}
+        onClose={() => setPreviewImage(null)}
+      />
     </div>
   );
 }

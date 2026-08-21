@@ -51,18 +51,18 @@ export class OrderService {
 
     const customerPhoneVal = input.customerPhone.trim();
 
-    // 2. Phone Cooldown check (Chống 1 SĐT spam bấm liên tục trong vòng 2 phút)
-    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    // 2. Short 5-second spam protection check
+    const fiveSecondsAgo = new Date(Date.now() - 5 * 1000);
     const recentDuplicate = await prisma.order.findFirst({
       where: {
         customerPhone: customerPhoneVal,
-        createdAt: { gte: twoMinutesAgo },
+        createdAt: { gte: fiveSecondsAgo },
       },
     });
 
     if (recentDuplicate) {
       throw new AppError(
-        "Số điện thoại này vừa gửi yêu cầu báo giá cách đây ít phút. Chuyên viên Q.BA đang tiếp nhận xử lý, vui lòng chờ gọi lại!",
+        "Hệ thống đang xử lý yêu cầu báo giá của bạn. Vui lòng chờ vài giây!",
         429
       );
     }

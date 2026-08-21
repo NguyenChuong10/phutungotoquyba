@@ -96,7 +96,7 @@ export default function AdminSettingsPage() {
           id: String(Date.now()),
           type: 'success',
           title: 'Lưu Cấu Hình Thành Công',
-          message: 'Đã lưu toàn bộ cấu hình hệ thống kho Q.BA vào CSDL!',
+          message: 'Đã lưu toàn bộ cấu hình hệ thống kho Q.BA thành công!',
         });
       } else {
         alert(res.message || 'Lỗi khi lưu cấu hình');
@@ -175,7 +175,7 @@ export default function AdminSettingsPage() {
             id: String(Date.now()),
             type: 'success',
             title: 'Cập Nhật Thành Công',
-            message: `Đã cập nhật thương hiệu [${res.data.name}] trong CSDL PostgreSQL!`,
+            message: `Đã cập nhật thương hiệu [${res.data.name}] thành công!`,
           });
         } else {
           alert(res.message || 'Không thể cập nhật thương hiệu.');
@@ -191,7 +191,7 @@ export default function AdminSettingsPage() {
             id: String(Date.now()),
             type: 'success',
             title: 'Thêm Mới Thành Công',
-            message: `Đã thêm thương hiệu [${res.data.name}] vào CSDL PostgreSQL!`,
+            message: `Đã thêm thương hiệu [${res.data.name}] thành công!`,
           });
         } else {
           alert(res.message || 'Không thể tạo thương hiệu mới.');
@@ -199,13 +199,13 @@ export default function AdminSettingsPage() {
       }
       setIsBrandModalOpen(false);
     } catch {
-      alert('Lỗi khi lưu dữ liệu thương hiệu vào CSDL.');
+      alert('Lỗi khi lưu dữ liệu thương hiệu.');
     }
   };
 
   // Delete Brand Partner permanently from PostgreSQL Database
   const handleDeleteBrand = async (id: number) => {
-    if (confirm('Bạn có chắc chắn muốn XÓA VĨNH VIỄN thương hiệu đối tác này khỏi CSDL PostgreSQL?')) {
+    if (confirm('Bạn có chắc chắn muốn XÓA VĨNH VIỄN thương hiệu đối tác này?')) {
       try {
         const res = await AdminApiService.deletePartnerBrand(id);
         if (res.ok) {
@@ -214,7 +214,7 @@ export default function AdminSettingsPage() {
             id: String(Date.now()),
             type: 'success',
             title: 'Đã Xóa Thành Công',
-            message: 'Thương hiệu đối tác đã được xóa vĩnh viễn khỏi CSDL PostgreSQL!',
+            message: 'Thương hiệu đối tác đã được xóa vĩnh viễn khỏi hệ thống!',
           });
         } else {
           alert(res.message || 'Không thể xóa thương hiệu.');
@@ -250,14 +250,14 @@ export default function AdminSettingsPage() {
           className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold shadow-md shadow-red-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 self-start sm:self-auto w-full sm:w-auto"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          <span>{saving ? 'Đang lưu CSDL...' : 'Lưu Cấu Hình Hệ Thống'}</span>
+          <span>{saving ? 'Đang lưu...' : 'Lưu Cấu Hình Hệ Thống'}</span>
         </button>
       </div>
 
       {loading ? (
         <div className="p-16 text-center bg-white rounded-2xl border border-slate-200/80 space-y-3">
           <Loader2 className="w-8 h-8 animate-spin mx-auto text-red-600" />
-          <p className="text-xs font-bold text-slate-600">Đang tải cấu hình hệ thống & thương hiệu từ PostgreSQL...</p>
+          <p className="text-xs font-bold text-slate-600">Đang tải cấu hình hệ thống & thương hiệu...</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -416,7 +416,7 @@ export default function AdminSettingsPage() {
                   <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <span className="font-extrabold block">Bảo Vệ An Toàn Dữ Liệu:</span>
-                    Mọi thay đổi cấu hình sẽ được lưu trực tiếp vào CSDL PostgreSQL và đồng bộ toàn hệ thống.
+                    Mọi thay đổi cấu hình sẽ được lưu trực tiếp và đồng bộ toàn hệ thống.
                   </div>
                 </div>
               </div>
@@ -433,14 +433,14 @@ export default function AdminSettingsPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="font-extrabold text-slate-900 text-base">
-                      Quản Lý Đối Tác Thương Hiệu (Database PostgreSQL Real-time)
+                      Quản Lý Đối Tác Thương Hiệu
                     </h2>
                     <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-extrabold">
                       {partnerBrands.length} Thương Hiệu
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Dữ liệu được lưu trữ trực tiếp vào bảng `partner_brands` trong PostgreSQL. Khi xóa/thêm sẽ được cập nhật vĩnh viễn trên CSDL.
+                    Dữ liệu được lưu trữ và cập nhật trực tiếp trên hệ thống khi thêm/xóa.
                   </p>
                 </div>
               </div>
@@ -458,7 +458,7 @@ export default function AdminSettingsPage() {
             {/* Grid display of Brand Partner Cards */}
             {partnerBrands.length === 0 ? (
               <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                <p className="text-xs font-bold text-slate-500">Chưa có thương hiệu đối tác nào trong CSDL.</p>
+                <p className="text-xs font-bold text-slate-500">Chưa có thương hiệu đối tác nào trong hệ thống.</p>
                 <button
                   type="button"
                   onClick={() => handleOpenBrandModal()}
@@ -634,7 +634,7 @@ export default function AdminSettingsPage() {
                   className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold shadow-md shadow-red-900/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
-                  <span>{editingBrand ? 'Cập Nhật Thương Hiệu' : 'Lưu Vào CSDL'}</span>
+                  <span>{editingBrand ? 'Cập Nhật Thương Hiệu' : 'Lưu Thương Hiệu'}</span>
                 </button>
               </div>
             </form>

@@ -255,7 +255,7 @@ export default function AdminCareersPage() {
           id: String(Date.now()),
           type: 'success',
           title: 'Xóa Tin Tuyển Dụng Thành Công',
-          message: `Đã xóa tin tuyển dụng "${deleteConfirmState.title}" khỏi CSDL!`,
+          message: `Đã xóa tin tuyển dụng "${deleteConfirmState.title}" khỏi hệ thống!`,
         });
         fetchJobs();
       } else {

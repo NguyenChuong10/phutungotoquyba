@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Sparkles, FileText, ImageIcon, Upload, Loader2, Trash2, Star } from 'lucide-react';
+import ImagePreviewModal from '@/components/ui/ImagePreviewModal';
+import { Sparkles, FileText, ImageIcon, Upload, Loader2, Trash2, Star, ZoomIn } from 'lucide-react';
 import { AdminApiService } from '@/services/adminApiService';
 import { formatImageUrl } from '@/utils/imageHelper';
 
@@ -56,16 +57,13 @@ export default function AddProductModal({
   );
   const [internalName, setInternalName] = useState(editingProduct?.internalName || '');
   
-  const [brandsList, setBrandsList] = useState<{ id: number; name: string }[]>([
-    { id: 55, name: 'HOWO Sinotruk' },
-    { id: 2, name: 'Weichai Power' },
-    { id: 57, name: 'Fast Gear' },
-    { id: 58, name: 'Shacman' },
-    { id: 10, name: 'FAW Group' },
-    { id: 11, name: 'Dongfeng Commercial' },
-    { id: 12, name: 'Yuchai Machinery' },
-  ]);
-  const [selectedBrandId, setSelectedBrandId] = useState<number>(editingProduct?.brandId || 55);
+  const [brandsList, setBrandsList] = useState<{ id: number; name: string }[]>([]);
+  const [selectedBrandId, setSelectedBrandId] = useState<number>(editingProduct?.brandId || 0);
+
+  const [categoriesTree, setCategoriesTree] = useState<any[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number>(
+    editingProduct?.rawProduct?.categoryId || activeSubModal?.id || 0
+  );
 
   const [stock, setStock] = useState(editingProduct?.stock || 10);
   const [material, setMaterial] = useState(
@@ -99,13 +97,20 @@ export default function AddProductModal({
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
 
   useEffect(() => {
-    async function loadBrands() {
+    async function loadData() {
       try {
-        const res = await AdminApiService.getBrands();
-        if (res.ok && res.data && res.data.length > 0) {
-          const list = res.data.map((b: any) => ({ id: b.id, name: b.name }));
+        const [brandsRes, catData] = await Promise.all([
+          AdminApiService.getBrands(),
+          AdminApiService.getCategoriesTree(),
+        ]);
+
+        const rawList = brandsRes?.data && Array.isArray(brandsRes.data) ? brandsRes.data : [];
+        const list = rawList.map((b: any) => ({ id: b.id, name: b.name }));
+
+        if (list.length > 0) {
           setBrandsList(list);
           if (editingProduct?.brandId) {
             setSelectedBrandId(editingProduct.brandId);
@@ -117,10 +122,29 @@ export default function AddProductModal({
             setSelectedBrandId(list[0].id);
           }
         }
+
+        if (catData && catData.length > 0) {
+          setCategoriesTree(catData);
+
+          const validSubIds: number[] = [];
+          catData.forEach((main: any) => {
+            if (main.children && main.children.length > 0) {
+              main.children.forEach((sub: any) => validSubIds.push(sub.id));
+            }
+          });
+
+          if (editingProduct?.rawProduct?.categoryId && validSubIds.includes(editingProduct.rawProduct.categoryId)) {
+            setSelectedCategoryId(editingProduct.rawProduct.categoryId);
+          } else if (activeSubModal?.id && validSubIds.includes(activeSubModal.id)) {
+            setSelectedCategoryId(activeSubModal.id);
+          } else if (validSubIds.length > 0) {
+            setSelectedCategoryId(validSubIds[0]);
+          }
+        }
       } catch {}
     }
-    loadBrands();
-  }, [editingProduct]);
+    loadData();
+  }, [editingProduct, activeSubModal]);
 
   // Handle Multi-file Upload
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,37 +198,38 @@ export default function AddProductModal({
   };
 
   const handleSaveProduct = async () => {
-    if (!partNo.trim() || !publicName.trim() || !internalCode.trim()) {
-      setErrorMsg('Vui lòng điền đầy đủ các trường (*)');
-      return;
-    }
-
-    if (imageList.length === 0) {
-      setErrorMsg('Vui lòng upload ít nhất 1 hình ảnh phụ tùng!');
+    if (!publicName.trim() || !internalCode.trim() || !internalName.trim()) {
+      setErrorMsg('Vui lòng nhập đầy đủ 3 trường bắt buộc (*): Tên sản phẩm công khai, Tên phụ tùng nội bộ kho, và Mã nội bộ Q.BA!');
       return;
     }
 
     setSaving(true);
     setErrorMsg(null);
 
-    const specsObject: Record<string, string> = {
-      'Mã Phụ Tùng (Part No.)': partNo.trim(),
-      'Chất liệu': material.trim() || 'Thép đúc hợp kim cao cấp',
-    };
+    const partNoVal = partNo.trim() || internalCode.trim();
 
-    const formattedImagesPayload = imageList.map((img, idx) => ({
-      imageUrl: img.imageUrl,
-      isPrimary: img.isPrimary,
-      sortOrder: idx,
-    }));
+    const specsObject: Record<string, string> = {
+      'Mã Phụ Tùng (Part No.)': partNoVal,
+    };
+    if (material.trim()) {
+      specsObject['Chất liệu'] = material.trim();
+    }
+
+    const formattedImagesPayload = imageList.length > 0
+      ? imageList.map((img, idx) => ({
+          imageUrl: img.imageUrl,
+          isPrimary: img.isPrimary,
+          sortOrder: idx,
+        }))
+      : [{ imageUrl: '/images/logo/logonen.png', isPrimary: true, sortOrder: 0 }];
 
     const payload = {
       name: publicName.trim(),
-      partNumber: partNo.trim(),
+      partNumber: partNoVal,
       internalCode: internalCode.trim(),
-      internalName: internalName.trim() || publicName.trim(),
-      categoryId: activeSubModal.id,
-      brandId: Number(selectedBrandId) || brandsList[0]?.id || 55,
+      internalName: internalName.trim(),
+      categoryId: Number(selectedCategoryId) || activeSubModal.id,
+      brandId: Number(selectedBrandId) || brandsList[0]?.id || 2,
       price: 0,
       costPrice: 0,
       stockQuantity: Number(stock) || 0,
@@ -233,8 +258,8 @@ export default function AddProductModal({
           setErrorMsg(detailErr);
         }
       }
-    } catch {
-      onSave();
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Không thể lưu sản phẩm. Vui lòng kiểm tra lại kết nối.');
     } finally {
       setSaving(false);
     }
@@ -269,12 +294,37 @@ export default function AddProductModal({
         )}
 
         <div className="space-y-3.5 text-xs">
+          {/* Category Selector */}
+          {categoriesTree.length > 0 && (
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">
+                Danh Mục Phụ Con (* Chọn đúng danh mục phụ để gán phụ tùng)
+              </label>
+              <select
+                value={selectedCategoryId}
+                onChange={(e) => setSelectedCategoryId(Number(e.target.value))}
+                className="w-full p-2.5 border border-slate-200 rounded-xl font-bold bg-white text-slate-900 focus:ring-2 focus:ring-red-500/20"
+              >
+                {categoriesTree
+                  .filter((main) => main.children && main.children.length > 0)
+                  .map((main) => (
+                    <optgroup key={`main-grp-${main.id}`} label={`📂 ${main.name}`}>
+                      {main.children.map((sub: any) => (
+                        <option key={`sub-opt-${sub.id}`} value={sub.id}>
+                          └─ {sub.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+              </select>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="font-bold text-slate-700 block mb-1">Mã Part No. (*)</label>
+              <label className="font-bold text-slate-700 block mb-1">Mã Part No. (Không bắt buộc)</label>
               <input
                 type="text"
-                required
                 value={partNo}
                 onChange={(e) => setPartNo(e.target.value)}
                 placeholder="HW19710-TB01"
@@ -307,9 +357,10 @@ export default function AddProductModal({
           </div>
 
           <div>
-            <label className="font-bold text-slate-700 block mb-1">Tên Phụ Tùng Nội Bộ (Kho)</label>
+            <label className="font-bold text-slate-700 block mb-1">Tên Phụ Tùng Nội Bộ Kho (*)</label>
             <input
               type="text"
+              required
               value={internalName}
               onChange={(e) => setInternalName(e.target.value)}
               placeholder="Tên thợ kho gọi..."
@@ -345,7 +396,7 @@ export default function AddProductModal({
           </div>
 
           <div>
-            <label className="font-bold text-slate-700 block mb-1">Chất Liệu Phụ Tùng (*)</label>
+            <label className="font-bold text-slate-700 block mb-1">Chất Liệu Phụ Tùng (Không bắt buộc)</label>
             <input
               type="text"
               value={material}
@@ -427,12 +478,25 @@ export default function AddProductModal({
                     <Star className={`w-3 h-3 ${img.isPrimary ? 'fill-amber-300 text-amber-300' : ''}`} />
                   </button>
 
+                  {/* Zoom Preview Button */}
+                  <button
+                    type="button"
+                    onClick={() => setPreviewImage({ url: formatImageUrl(img.imageUrl), title: `Ảnh sản phẩm #${idx + 1}` })}
+                    title="Bấm vào để phóng to xem ảnh"
+                    className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                  >
+                    <ZoomIn className="w-5 h-5 text-white drop-shadow-md" />
+                  </button>
+
                   {/* Delete Button */}
                   <button
                     type="button"
-                    onClick={() => handleRemoveImage(idx)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveImage(idx);
+                    }}
                     title="Xóa ảnh này"
-                    className="absolute top-1 right-1 p-1 rounded-md bg-slate-900/80 hover:bg-red-700 text-white shadow-sm transition-all cursor-pointer opacity-80 group-hover:opacity-100"
+                    className="absolute top-1 right-1 p-1 rounded-md bg-slate-900/70 hover:bg-red-600 text-white transition-all opacity-80 group-hover:opacity-100 cursor-pointer z-10"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
@@ -469,6 +533,14 @@ export default function AddProductModal({
           </button>
         </div>
       </div>
+
+      {/* Fullscreen Image Zoom Lightbox Modal */}
+      <ImagePreviewModal
+        isOpen={!!previewImage}
+        imageUrl={previewImage?.url || null}
+        title={previewImage?.title}
+        onClose={() => setPreviewImage(null)}
+      />
     </div>
   );
 }

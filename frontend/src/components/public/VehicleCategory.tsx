@@ -26,23 +26,50 @@ const DEFAULT_CATEGORY_ICONS: Record<string, string> = {
   'vong-bi-bac-dan': '/images/vehicle-category/vongbi.png',
 };
 
+const FALLBACK_BANNERS: VehicleCategoryItem[] = [
+  { id: 1, src: '/images/vehicle-category/dongco.png', alt: 'ĐỘNG CƠ & MÁY PHÁT', desc: 'Chủng loại phụ tùng động cơ Weichai, Yuchai, Cummins chính hãng xe tải nặng Q.BA Đà Nẵng.', slug: '/products' },
+  { id: 2, src: '/images/vehicle-category/gam.png', alt: 'GẦM & SEAL PHỐT', desc: 'Phụ tùng cầu xe, gầm phanh, gioăng phớt chịu nhiệt xe tải nặng.', slug: '/products' },
+  { id: 3, src: '/images/vehicle-category/romooc.png', alt: 'LINH KIỆN RƠ-MOÓC', desc: 'Cụm chân chống Fuwa, mâm moóc 50/90, bát nhíp, đinh kéo moóc.', slug: '/products' },
+  { id: 4, src: '/images/vehicle-category/hopso.png', alt: 'HỘP SỐ & BỘ ĐỒNG TỐC', desc: 'Hộp số Fast Gear, bánh răng đồng tốc 9JS, 10JSD, 12JSD.', slug: '/products' },
+  { id: 5, src: '/images/vehicle-category/cabin.png', alt: 'CABIN & THÂN VỎ', desc: 'Phụ tùng thân vỏ, mặt ca lăng, kính chắn gió, đèn pha xe HOWO, Shacman.', slug: '/products' },
+  { id: 6, src: '/images/vehicle-category/ben.png', alt: 'BEN THỦY LỰC', desc: 'Tháp nâng ben Hyva, bơm thủy lực, van nâng hạ thùng xe ben.', slug: '/products' },
+  { id: 7, src: '/images/vehicle-category/vongbi.png', alt: 'VÒNG BI BẠC ĐẠN', desc: 'Vòng bi moay ơ, bạc đạn tỳ, bạc đạn kim hộp số chịu tải nặng.', slug: '/products' },
+];
+
 export default function VehicleCategory() {
-  const [categoriesList, setCategoriesList] = useState<VehicleCategoryItem[]>([]);
+  const [categoriesList, setCategoriesList] = useState<VehicleCategoryItem[]>(FALLBACK_BANNERS);
   const [selectedProduct, setSelectedProduct] = useState<VehicleCategoryItem | null>(null);
   const [isModalImageLoading, setIsModalImageLoading] = useState(true);
+  const [imageErrorMap, setImageErrorMap] = useState<Record<string | number, boolean>>({});
 
   useEffect(() => {
     async function loadCategories() {
       try {
+        const bannersRes = await AdminApiService.getCategoryBannersPublic();
+        if (bannersRes && (bannersRes.ok || bannersRes.success) && Array.isArray(bannersRes.data) && bannersRes.data.length > 0) {
+          const items: VehicleCategoryItem[] = bannersRes.data.map((b: any) => ({
+            id: b.id,
+            src: formatImageUrl(b.imageUrl) || '/images/vehicle-category/dongco.png',
+            alt: b.title,
+            desc: b.description || `Danh mục phụ tùng ${b.title} chính hãng xe tải nặng Q.BA Đà Nẵng.`,
+            slug: b.linkUrl || '/products',
+          }));
+          setCategoriesList(items);
+          return;
+        }
+
         const tree = await AdminApiService.getCategoriesTree();
         if (tree && tree.length > 0) {
-          const items: VehicleCategoryItem[] = tree.map((cat: any) => ({
-            id: cat.id || cat.slug,
-            src: formatImageUrl(cat.imageUrl) || DEFAULT_CATEGORY_ICONS[cat.slug] || '/images/vehicle-category/dongco.png',
-            alt: cat.name,
-            desc: cat.description || `Danh mục phụ tùng ${cat.name} chính hãng xe tải nặng Q.BA Đà Nẵng.`,
-            slug: cat.slug,
-          }));
+          const items: VehicleCategoryItem[] = tree.map((cat: any) => {
+            const dbIcon = cat.iconUrl || cat.imageUrl;
+            return {
+              id: cat.id || cat.slug,
+              src: formatImageUrl(dbIcon) || DEFAULT_CATEGORY_ICONS[cat.slug] || '/images/vehicle-category/dongco.png',
+              alt: cat.name,
+              desc: cat.description || `Danh mục phụ tùng ${cat.name} chính hãng xe tải nặng Q.BA Đà Nẵng.`,
+              slug: cat.slug,
+            };
+          });
           setCategoriesList(items);
         }
       } catch (err) {
@@ -51,6 +78,10 @@ export default function VehicleCategory() {
     }
     loadCategories();
   }, []);
+
+  const handleImageError = (id: string | number) => {
+    setImageErrorMap((prev) => ({ ...prev, [id]: true }));
+  };
 
   // Khóa scroll body khi mở Modal
   useEffect(() => {
@@ -67,7 +98,6 @@ export default function VehicleCategory() {
   if (categoriesList.length === 0) {
     return null;
   }
-
 
   return (
     <section id="products" className="bg-[#111317] py-20 relative overflow-hidden">
@@ -106,11 +136,12 @@ export default function VehicleCategory() {
                   >
 
                     <Image
-                      src={product.src}
+                      src={imageErrorMap[product.id] ? (DEFAULT_CATEGORY_ICONS[product.slug || ''] || '/images/vehicle-category/dongco.png') : product.src}
                       alt={product.alt}
                       fill
                       sizes="280px"
                       className="object-cover"
+                      onError={() => handleImageError(product.id)}
                     />
                     {/* Overlay Text */}
                     <div className="absolute top-0 left-0 w-full pt-6 pb-12 px-4 bg-gradient-to-b from-black/90 via-black/40 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-0 z-10">

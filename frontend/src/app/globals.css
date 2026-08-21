@@ -80,3 +80,11 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #b91c1c;
 }
+
+@keyframes toast-progress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+.animate-toast-progress {
+  animation: toast-progress 4s linear forwards;
+}

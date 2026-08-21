@@ -2,65 +2,59 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { useSiteSettings } from "@/context/SiteSettingsContext";
+import { AdminApiService } from "@/services/adminApiService";
+import { formatImageUrl } from "@/utils/imageHelper";
 
-const slides = [
-  { 
-    id: "slide-1", 
-    bgImage: "/images/hero-section/phutungxedaukeo.png", 
-    alt: "Phụ tùng xe đầu kéo",
-    redText: "XE ĐẦU KÉO"
-  },
-  { 
-    id: "slide-2", 
-    bgImage: "/images/hero-section/phutungxeben.png", 
-    alt: "Phụ tùng xe ben",
-    redText: "XE BEN"
-  },
-  { 
-    id: "slide-3", 
-    bgImage: "/images/hero-section/phutungromooc.png", 
-    alt: "Phụ tùng rơ moóc",
-    redText: "RƠ-MOÓC"
-  },
-  { 
-    id: "slide-4", 
-    bgImage: "/images/hero-section/phutunghopso.png", 
-    alt: "Phụ tùng hộp số",
-    redText: "HỘP SỐ"
-  },
-  { 
-    id: "slide-5", 
-    bgImage: "/images/hero-section/phutunggam.png", 
-    alt: "Phụ tùng gầm",
-    redText: "GẦM"
-  },
-  { 
-    id: "slide-6", 
-    bgImage: "/images/hero-section/phutungdongcomayphat.png", 
-    alt: "Phụ tùng động cơ máy phát",
-    redText: "ĐỘNG CƠ MÁY PHÁT"
-  },
-  { 
-    id: "slide-7", 
-    bgImage: "/images/hero-section/phutungdongcomaycongtrinh.png", 
-    alt: "Phụ tùng động cơ máy công trình",
-    redText: "ĐỘNG CƠ MÁY CÔNG TRÌNH"
-  }
+interface SlideItem {
+  id: string | number;
+  bgImage: string;
+  alt: string;
+  redText: string;
+}
+
+const DEFAULT_SLIDES: SlideItem[] = [
+  { id: "slide-1", bgImage: "/images/hero-section/phutungxedaukeo.png", alt: "Phụ tùng xe đầu kéo", redText: "XE ĐẦU KÉO" },
+  { id: "slide-2", bgImage: "/images/hero-section/phutungxeben.png", alt: "Phụ tùng xe ben", redText: "XE BEN" },
+  { id: "slide-3", bgImage: "/images/hero-section/phutungromooc.png", alt: "Phụ tùng rơ moóc", redText: "RƠ-MOÓC" },
+  { id: "slide-4", bgImage: "/images/hero-section/phutunghopso.png", alt: "Phụ tùng hộp số", redText: "HỘP SỐ" },
+  { id: "slide-5", bgImage: "/images/hero-section/phutunggam.png", alt: "Phụ tùng gầm", redText: "GẦM" },
+  { id: "slide-6", bgImage: "/images/hero-section/phutungdongcomayphat.png", alt: "Phụ tùng động cơ máy phát", redText: "ĐỘNG CƠ MÁY PHÁT" },
+  { id: "slide-7", bgImage: "/images/hero-section/phutungdongcomaycongtrinh.png", alt: "Phụ tùng động cơ máy công trình", redText: "ĐỘNG CƠ MÁY CÔNG TRÌNH" }
 ];
 
 export default function HeroSection() {
-  const { settings } = useSiteSettings();
+  const [slides, setSlides] = useState<SlideItem[]>(DEFAULT_SLIDES);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
+    async function loadSlides() {
+      try {
+        const res = await AdminApiService.getHeroSlidesPublic();
+        if (res && (res.ok || res.success) && Array.isArray(res.data) && res.data.length > 0) {
+          const items: SlideItem[] = res.data.map((s: any) => ({
+            id: s.id,
+            bgImage: formatImageUrl(s.imageUrl) || '/images/hero-section/phutungxedaukeo.png',
+            alt: s.altText || `Phụ tùng ${s.title}`,
+            redText: s.title,
+          }));
+          setSlides(items);
+        }
+      } catch (err) {
+        console.error("Failed to load hero slides:", err);
+      }
+    }
+    loadSlides();
+  }, []);
+
+  useEffect(() => {
+    if (slides.length === 0) return;
     const timer = setInterval(() => {
       if (document.visibilityState === 'visible') {
         setCurrentSlide((prev) => (prev + 1) % slides.length);
       }
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
   return (
     <section className="relative w-full h-[95vh] min-h-[700px] max-h-[1000px] flex items-center justify-center overflow-hidden bg-slate-950">
@@ -100,7 +94,7 @@ export default function HeroSection() {
             {slides.map((slide, index) => (
               <span
                 key={`cat-${slide.id}`}
-                className={`absolute left-0 top-0 text-[#FF0000] drop-shadow-[0_4px_14px_rgba(0,0,0,0.95)] whitespace-nowrap transition-all duration-700 ease-out ${
+                className={`absolute left-0 top-0 text-[#FF0000] drop-shadow-[0_4px_14px_rgba(0,0,0,0.95)] whitespace-nowrap transition-all duration-700 ease-out pr-4 inline-block ${
                   index === currentSlide
                     ? 'opacity-100 translate-y-0 pointer-events-auto'
                     : 'opacity-0 translate-y-4 pointer-events-none'
@@ -112,15 +106,7 @@ export default function HeroSection() {
           </span>
         </h2>
 
-        {/* Industrial Red Bar Sub-slogan Tagline */}
-        {settings.homeHeroSlogan && (
-          <div className="flex items-center gap-3 pt-1">
-            <div className="h-5 w-1 bg-red-600 rounded-full shrink-0 shadow-sm"></div>
-            <p className="text-gray-200 text-xs sm:text-sm md:text-base font-bold tracking-widest uppercase drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] font-heading">
-              {settings.homeHeroSlogan}
-            </p>
-          </div>
-        )}
+
       </div>
 
       {/* Centered Slide Pagination Dots - Positioned centered at bottom */}

@@ -135,7 +135,7 @@ export default function AdminDashboardPage() {
       {loading ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <Loader2 className="w-8 h-8 animate-spin mx-auto text-red-600 mb-2" />
-          <p className="text-xs font-bold text-slate-500">Đang tính toán chỉ số thống kê Real-Time từ CSDL...</p>
+          <p className="text-xs font-bold text-slate-500">Đang tính toán chỉ số thống kê Real-Time...</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">

@@ -7,10 +7,10 @@ export const createProductSchema = z.object({
     .min(3, "Tên sản phẩm phải từ 3 ký tự trở lên")
     .max(200, "Tên sản phẩm không vượt quá 200 ký tự"),
   partNumber: z
-    .string({ required_error: "Vui lòng nhập Mã phụ tùng Part No." })
+    .string()
     .trim()
-    .min(2, "Mã Part No. không hợp lệ")
-    .max(100, "Mã Part No. quá dài"),
+    .optional()
+    .default(""),
   internalCode: z
     .string({ required_error: "Vui lòng nhập Mã quản lý nội bộ Q.BA" })
     .trim()

@@ -55,6 +55,7 @@ export class AdminApiService {
     name: string;
     parentId?: number | null;
     description?: string;
+    iconUrl?: string | null;
   }) {
     return await fetchApi("/admin/categories", {
       method: "POST",
@@ -67,7 +68,7 @@ export class AdminApiService {
    */
   static async updateCategory(
     id: number,
-    data: { name?: string; parentId?: number | null; description?: string }
+    data: { name?: string; parentId?: number | null; description?: string; iconUrl?: string | null }
   ) {
     return await fetchApi(`/admin/categories/${id}`, {
       method: "PUT",
@@ -80,6 +81,100 @@ export class AdminApiService {
    */
   static async deleteCategory(id: number) {
     return await fetchApi(`/admin/categories/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  /**
+   * Home Category Banners Management APIs
+   */
+  static async getCategoryBannersPublic() {
+    return await fetchApi("/category-banners");
+  }
+
+  static async getCategoryBannersAdmin() {
+    return await fetchApi("/admin/category-banners");
+  }
+
+  static async createCategoryBanner(data: {
+    title: string;
+    imageUrl: string;
+    description?: string;
+    linkUrl?: string;
+    sortOrder?: number;
+  }) {
+    return await fetchApi("/admin/category-banners", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async updateCategoryBanner(
+    id: number,
+    data: {
+      title?: string;
+      imageUrl?: string;
+      description?: string;
+      linkUrl?: string;
+      sortOrder?: number;
+      isActive?: boolean;
+    }
+  ) {
+    return await fetchApi(`/admin/category-banners/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteCategoryBanner(id: number) {
+    return await fetchApi(`/admin/category-banners/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  /**
+   * Home Hero Slides Management APIs
+   */
+  static async getHeroSlidesPublic() {
+    return await fetchApi("/hero-slides");
+  }
+
+  static async getHeroSlidesAdmin() {
+    return await fetchApi("/admin/hero-slides");
+  }
+
+  static async createHeroSlide(data: {
+    title: string;
+    imageUrl: string;
+    altText?: string;
+    linkUrl?: string;
+    sortOrder?: number;
+  }) {
+    return await fetchApi("/admin/hero-slides", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async updateHeroSlide(
+    id: number,
+    data: {
+      title?: string;
+      imageUrl?: string;
+      altText?: string;
+      linkUrl?: string;
+      sortOrder?: number;
+      isActive?: boolean;
+    }
+  ) {
+    return await fetchApi(`/admin/hero-slides/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteHeroSlide(id: number) {
+    return await fetchApi(`/admin/hero-slides/${id}`, {
       method: "DELETE",
     });
   }
@@ -263,6 +358,13 @@ export class AdminApiService {
 
     const data = await res.json();
     return { ok: res.ok, status: res.status, ...data };
+  }
+
+  /**
+   * Upload Product Image Alias
+   */
+  static async uploadProductImage(file: File) {
+    return await this.uploadImage(file);
   }
 
   /**

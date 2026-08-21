@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ShieldCheck, Truck, CheckCircle2, ChevronRight, FileText } from "lucide-react";
-import { productsData } from "@/data/productsData";
 import ProductDetailActions from "@/components/public/ProductDetailActions";
 import ProductImageGallery from "@/components/public/ProductImageGallery";
 import { API_BASE_URL } from "@/config/api";
@@ -63,9 +62,7 @@ export async function generateStaticParams() {
   } catch {
     // Fallback
   }
-  return productsData.map((product) => ({
-    id: product.id,
-  }));
+  return [];
 }
 
 export async function generateMetadata({ params }: PageProps) {
@@ -88,7 +85,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   }
 
   // Fetch all products to get related items dynamically
-  let allProducts = productsData;
+  let allProducts: any[] = [];
   try {
     const res = await fetch(`${API_BASE_URL}/products?limit=100`, { cache: "no-store" });
     if (res.ok) {

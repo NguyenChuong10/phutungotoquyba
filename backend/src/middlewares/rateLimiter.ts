@@ -18,15 +18,15 @@ export const loginRateLimiter = rateLimit({
 
 // 2. Giới hạn gửi yêu cầu báo giá (Chống Bot spam cơ sở dữ liệu)
 export const quotationRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 phút
-  max: 3, // Tối đa 3 đơn báo giá mỗi IP trong 15 phút
+  windowMs: 1 * 60 * 1000, // 1 phút
+  max: 100, // Tối đa 100 đơn báo giá / 1 phút / IP
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     success: false,
     error: {
       code: "RATE_LIMIT_EXCEEDED",
-      message: "Bạn đã gửi liên tiếp nhiều yêu cầu báo giá. Vì lý do chống spam, vui lòng đợi 15 phút trước khi gửi lại!"
+      message: "Tần suất gửi báo giá quá nhanh. Vui lòng chờ vài giây trước khi thử lại!"
     }
   }
 });

@@ -1,4 +1,5 @@
 import React from "react";
+import Script from "next/script";
 
 interface ArticleJsonLdProps {
   article: {
@@ -82,7 +83,8 @@ export default function ArticleJsonLd({ article, siteUrl = "https://phutungotoqu
   };
 
   return (
-    <script
+    <Script
+      id={`article-jsonld-${article.slug}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
     />

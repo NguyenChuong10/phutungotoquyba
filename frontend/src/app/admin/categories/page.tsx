@@ -61,158 +61,6 @@ interface ProductItem {
   image: string;
 }
 
-const CATEGORIES_HIERARCHICAL_MOCK: MainCategory[] = [
-  {
-    id: 1,
-    name: 'Động Cơ & Máy Phát',
-    slug: 'dong-co-may-phat',
-    description: 'Hệ thống động cơ Weichai, Yuchai, Sinotruk, Cummins và các linh kiện thay thế chuẩn nhà máy.',
-    subCategories: [
-      { id: 101, name: 'Bộ Piston & Xéc Măng', slug: 'piston-xec-mang', productCount: 420, description: 'Piston, xéc măng hơi, xéc măng dầu Weichai WP10, WP12, WD615.' },
-      { id: 102, name: 'Bơm Cao Áp & Kim Phun Diesel', slug: 'bom-cao-ap-kim-phun', productCount: 310, description: 'Kim phun điện tử Common Rail BOSCH, bơm cao áp nhiên liệu.' },
-      { id: 103, name: 'Củ Đề & Máy Phát Điện', slug: 'cu-de-may-phat', productCount: 280, description: 'Củ đề 24V 11KW, máy phát điện 80A Sinotruk, Weichai.' },
-      { id: 104, name: 'Phớt Git & Trục Khuỷu', slug: 'phot-git-truc-khuayu', productCount: 540, description: 'Phớt đuôi trục khuỷu, phớt xupap, bộ gioăng đại tu động cơ.' },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Hộp Số & Bộ Đồng Tốc',
-    slug: 'hop-so-bo-dong-toc',
-    description: 'Hộp số tổng thành Fast Gear 9JS, 10JSD, 12JS và bánh răng, bộ đồng tốc.',
-    subCategories: [
-      { id: 201, name: 'Bộ Đồng Tốc Hộp Số', slug: 'bo-dong-toc', productCount: 680, description: 'Đồng tốc số 1-2, 3-4, 5-6, 7-8 Fast Gear 10JSD160T, HW19710.' },
-      { id: 202, name: 'Bánh Răng & Trục Thứ Cấp', slug: 'banh-rang-truc-thu-cap', productCount: 520, description: 'Bánh răng số 1 đến 12, trục sơ cấp, trục thứ cấp hộp số.' },
-      { id: 203, name: 'Tay Số & Cụm Điền Số', slug: 'tay-so-cum-dien-so', productCount: 310, description: 'Bộ điền số phanh hơi, tay gạt số cabin xe tải nặng.' },
-    ],
-  },
-  {
-    id: 3,
-    name: 'Gầm - Cầu - Phanh',
-    slug: 'gam-cau-phanh',
-    description: 'Tăm bua lơ lửng, may ơ cầu sau, búp sen phanh lốc kê, bộ vi sai & nhíp gầm.',
-    subCategories: [
-      { id: 301, name: 'Tăm Bua & Phanh Hơi', slug: 'tam-bua-phanh-hoi', productCount: 890, description: 'Tăm bua 10 lỗ phanh hơi HW19710, má phanh đĩa & guốc phanh.' },
-      { id: 302, name: 'Búp Sen Phanh & Lốc Kê', slug: 'bup-sen-loc-ke', productCount: 430, description: 'Búp sen phanh 2 tầng 30/30, búp sen phanh đơn cầu trước.' },
-      { id: 303, name: 'May Ơ & Bộ Vi Sai Cầu', slug: 'may-o-bo-vi-sai', productCount: 610, description: 'Cụm vi sai cầu QJ1506, bánh răng vành chậu quả dứa HOWO.' },
-      { id: 304, name: 'Nhíp Cầu & Rơ Tuyn', slug: 'nhip-cau-ro-tuyn', productCount: 550, description: 'Nhíp gầm 12 lá chịu lực FAW, rơ tuyn ba đờ xông, rơ tuyn ngang.' },
-    ],
-  },
-  {
-    id: 4,
-    name: 'Ben Thủy Lực',
-    slug: 'ben-thuy-luc',
-    description: 'Tháp ben thủy lực Hyva, FC, van chia ben và bơm ben bánh răng chịu áp lực cao.',
-    subCategories: [
-      { id: 401, name: 'Ty Ben Thủy Lực', slug: 'ty-ben-thuy-luc', productCount: 290, description: 'Ty ben 4 đốt, 5 đốt Hyva FC157, FC179 chính hãng.' },
-      { id: 402, name: 'Van Chia Ben & Bơm Ben', slug: 'van-chia-ben-bom-ben', productCount: 390, description: 'Bơm ben 80L, 100L bánh răng, van điều khiển nâng hạ thùng ben.' },
-    ],
-  },
-  {
-    id: 5,
-    name: 'Linh Kiện Rơ-Moóc',
-    slug: 'linh-kien-ro-mooc',
-    description: 'Chân chống rơ-moóc Fuwa, đinh kéo mâm 50/90, bát nhíp & tay giằng rơ-moóc.',
-    subCategories: [
-      { id: 501, name: 'Chân Chống Rơ-Moóc Fuwa', slug: 'chan-chong-ro-mooc', productCount: 210, description: 'Cụm chân chống Fuwa 28 tấn chịu tải cao.' },
-      { id: 502, name: 'Đinh Kéo Mâm & Bát Nhíp Moóc', slug: 'dinh-keo-mam-bat-nhip', productCount: 320, description: 'Đinh kéo phi 50, phi 90, cụm mâm moóc Jost, Fuwa.' },
-    ],
-  },
-  {
-    id: 6,
-    name: 'Cabin & Thân Vỏ',
-    slug: 'cabin-than-vo',
-    description: 'Ghế hơi cabin, mặt ga lăng, cụm đèn pha LED, gương chiếu hậu & kính chắn gió.',
-    subCategories: [
-      { id: 601, name: 'Mặt Ga Lăng & Cụm Đèn Pha', slug: 'mat-ga-lang-cum-den', productCount: 480, description: 'Mặt ga lăng A7, V7G, X3000, đèn pha halogen & projector LED.' },
-      { id: 602, name: 'Ghế Hơi & Nội Thất Cabin', slug: 'ghe-hoi-noi-that', productCount: 360, description: 'Ghế hơi Grammer cao cấp, bóng hơi cabin, bảng đồng hồ taplo.' },
-      { id: 603, name: 'Gương Chiếu Hậu & Kính Chắn Gió', slug: 'guong-phieu-hau-kinh', productCount: 400, description: 'Cụm gương chỉnh điện sấy kính HOWO MAX, Shacman X3000.' },
-    ],
-  },
-  {
-    id: 7,
-    name: 'Gioăng & Seal Phốt',
-    slug: 'gioang-seal-phot',
-    description: 'Phớt git xupap, phớt đuôi trục khuỷu NOK, phớt moay ơ bánh xe & gioăng mặt máy.',
-    subCategories: [
-      { id: 701, name: 'Phớt Git & Gioăng Mặt Máy', slug: 'phot-git-gioang-mat-may', productCount: 650, description: 'Phớt NOK Nhật Bản, gioăng quy lát Weichai, Yuchai.' },
-      { id: 702, name: 'Phớt Đuôi Trục Khuỷu & Phớt Cầu', slug: 'phot-duoi-truc-khuayu-phot-cau', productCount: 410, description: 'Phớt lò xo kép chặn dầu động cơ và cụm vi sai.' },
-    ],
-  },
-  {
-    id: 8,
-    name: 'Vòng Bi - Bạc Đạn',
-    slug: 'vong-bi-bac-dan',
-    description: 'Vòng bi moay ơ bánh xe SKF, Koyo, bi chữ thập cầu & bạc đạn phanh.',
-    subCategories: [
-      { id: 801, name: 'Vòng Bi Moay Ơ Bánh Xe', slug: 'vong-bi-moay-o', productCount: 540, description: 'Bi moay ơ 32218, 32222 SKF, Koyo chịu lực cao.' },
-      { id: 802, name: 'Bi Chữ Thập & Bạc Đạn Khóa', slug: 'bi-chu-thap-bac-dan-khoa', productCount: 380, description: 'Bi chữ thập các đăng cầu sau xe ben 4 chân.' },
-    ],
-  },
-];
-
-const PRODUCTS_MOCK: ProductItem[] = [
-  {
-    id: 101,
-    name: 'Tăm Bua Lơ Lửng Cầu Sau HW19710',
-    internalName: 'Tăm bua 10 lỗ phanh hơi Sinotruk',
-    internalCode: 'QB-TB-19710-01',
-    partNumber: 'HW19710-TB01',
-    subCategorySlug: 'tam-bua-phanh-hoi',
-    subCategoryName: 'Tăm Bua & Phanh Hơi',
-    brand: 'HOWO Sinotruk',
-    stock: 48,
-    price: 'Liên hệ Báo Giá',
-    costPrice: '1,200,000 ₫',
-    description: 'Tăm bua đúc hợp kim gan chịu nhiệt cao, đục 10 lỗ bulong chuẩn xe tải nặng 3 chân 4 chân HOWO Sinotruk.',
-    image: '/images/vehicle-category/dongco.png',
-  },
-  {
-    id: 102,
-    name: 'Bộ Đồng Tốc Hộp Số Fast Gear 10JSD160T',
-    internalName: 'Đồng tốc hộp số Fast 10 số',
-    internalCode: 'QB-DT-10JSD-02',
-    partNumber: 'FG-10JSD-02',
-    subCategorySlug: 'bo-dong-toc',
-    subCategoryName: 'Bộ Đồng Tốc Hộp Số',
-    brand: 'Fast Gear',
-    stock: 12,
-    price: '3,850,000 ₫',
-    costPrice: '2,900,000 ₫',
-    description: 'Cụm đồng tốc số 1-2Fast Gear 10JSD160T chịu lực mòn cao, chống nhả số khi leo dốc tải nặng.',
-    image: '/images/about/kho-hang-1.png',
-  },
-  {
-    id: 103,
-    name: 'Búp Sen Phanh 2 Tầng Cầu Sau Shacman X3000',
-    internalName: 'Búp sen phanh lốc kê 30/30',
-    internalCode: 'QB-BS-3030-03',
-    partNumber: 'SHAC-BS-3030',
-    subCategorySlug: 'bup-sen-loc-ke',
-    subCategoryName: 'Búp Sen Phanh & Lốc Kê',
-    brand: 'Shacman',
-    stock: 3,
-    price: '1,450,000 ₫',
-    costPrice: '950,000 ₫',
-    description: 'Búp sen phanh hơi lốc kê 2 tầng 30/30 lò xo phanh khẩn cấp nhập khẩu chuẩn nhà máy Shacman.',
-    image: '/images/about/kho-hang-2.png',
-  },
-  {
-    id: 104,
-    name: 'Bộ Piston & Xéc Măng Động Cơ Weichai WP10',
-    internalName: 'Hơi Weichai WP10 tiêu chuẩn nhà máy',
-    internalCode: 'QB-PST-WP10-04',
-    partNumber: 'WC-PST-WP10',
-    subCategorySlug: 'piston-xec-mang',
-    subCategoryName: 'Bộ Piston & Xéc Măng',
-    brand: 'Weichai Power',
-    stock: 25,
-    price: 'Liên hệ Báo Giá',
-    costPrice: '4,500,000 ₫',
-    description: 'Bộ piston nhôm đúc phủ graphite chống xước xi lanh, xéc măng hơi mạ crom cứng chống ăn mòn.',
-    image: '/images/about/kho-hang-3.png',
-  },
-];
-
 interface BrandItem {
   id: number;
   name: string;
@@ -221,34 +69,23 @@ interface BrandItem {
   logo: string;
 }
 
-const BRANDS_INITIAL_MOCK: BrandItem[] = [
-  { id: 1, name: 'HOWO Sinotruk', origin: 'Trung Quốc', status: 'Hợp Tác Trực Tiếp', logo: '/images/logo/logonen.png' },
-  { id: 2, name: 'Shacman', origin: 'Trung Quốc', status: 'Hợp Tác Trực Tiếp', logo: '/images/logo/logonen.png' },
-  { id: 3, name: 'FAW Group', origin: 'Trung Quốc', status: 'Đại Lý Phân Phối', logo: '/images/logo/logonen.png' },
-  { id: 4, name: 'Weichai Power', origin: 'Trung Quốc', status: 'Đối Tác Chiến Lược', logo: '/images/logo/logonen.png' },
-  { id: 5, name: 'Fast Gear', origin: 'Trung Quốc', status: 'Đại Lý Phân Phối', logo: '/images/logo/logonen.png' },
-  { id: 6, name: 'Dongfeng Commercial', origin: 'Trung Quốc', status: 'Hợp Tác Trực Tiếp', logo: '/images/logo/logonen.png' },
-  { id: 7, name: 'Hyva Hydraulics', origin: 'Hà Lan / Trung Quốc', status: 'Đại Lý Phân Phối', logo: '/images/logo/logonen.png' },
-  { id: 8, name: 'Yuchai Machinery', origin: 'Trung Quốc', status: 'Đối Tác Chiến Lược', logo: '/images/logo/logonen.png' },
-];
-
 export default function AdminCategoriesPage() {
   const [activeTab, setActiveTab] = useState<'CATEGORIES' | 'BRANDS'>('CATEGORIES');
   const [searchMainQuery, setSearchMainQuery] = useState('');
   const [searchSubQuery, setSearchSubQuery] = useState('');
 
   // Selected Main Category ID (Master-Detail selection)
-  const [selectedMainId, setSelectedMainId] = useState<number>(1);
+  const [selectedMainId, setSelectedMainId] = useState<number | null>(null);
 
-  // Pagination States for Level 1 & Level 2
+  // Pagination States for Level 1 & Level 2 (7 items fill container height before paginating)
   const [mainCategoryPage, setMainCategoryPage] = useState<number>(1);
-  const mainCategoriesPerPage = 5;
+  const mainCategoriesPerPage = 7;
 
   const [subCategoryPage, setSubCategoryPage] = useState<number>(1);
-  const subCategoriesPerPage = 5;
+  const subCategoriesPerPage = 7;
 
   // Real-Time Database Categories Tree State
-  const [categoriesListState, setCategoriesListState] = useState<MainCategory[]>(CATEGORIES_HIERARCHICAL_MOCK);
+  const [categoriesListState, setCategoriesListState] = useState<MainCategory[]>([]);
 
   // Sub-Category Products Modal State (Lazy Loaded)
   const [activeSubModal, setActiveSubModal] = useState<SubCategory | null>(null);
@@ -266,10 +103,10 @@ export default function AdminCategoriesPage() {
   } | null>(null);
 
   // Real-Time Products State from PostgreSQL Database
-  const [liveProductsList, setLiveProductsList] = useState<ProductItem[]>(PRODUCTS_MOCK);
+  const [liveProductsList, setLiveProductsList] = useState<ProductItem[]>([]);
 
   // Brands Real-Time State & Modal Form States
-  const [brandsListState, setBrandsListState] = useState<BrandItem[]>(BRANDS_INITIAL_MOCK);
+  const [brandsListState, setBrandsListState] = useState<BrandItem[]>([]);
   const [showAddBrandModal, setShowAddBrandModal] = useState(false);
   const [editingBrandData, setEditingBrandData] = useState<BrandItem | null>(null);
   const [brandNameInput, setBrandNameInput] = useState('');
@@ -316,7 +153,7 @@ export default function AdminCategoriesPage() {
         setCategoriesListState(mappedList);
       }
     } catch {
-      // Keep existing state on API fetch fail
+      // API fetch fail
     }
   }, []);
 
@@ -344,7 +181,7 @@ export default function AdminCategoriesPage() {
         setLiveProductsList(mapped);
       }
     } catch {
-      // Keep mock fallback
+      // API fetch fail
     }
   }, []);
 
@@ -363,7 +200,7 @@ export default function AdminCategoriesPage() {
         setBrandsListState(mapped);
       }
     } catch {
-      // Keep existing mock state on API fail
+      // API fetch fail
     }
   }, []);
 
@@ -378,7 +215,7 @@ export default function AdminCategoriesPage() {
     return (
       categoriesListState.find((c) => c.id === selectedMainId) ||
       categoriesListState[0] ||
-      CATEGORIES_HIERARCHICAL_MOCK[0]
+      null
     );
   }, [selectedMainId, categoriesListState]);
 
@@ -468,15 +305,38 @@ export default function AdminCategoriesPage() {
       return;
     }
 
+    const targetId = deleteConfirmState.catId;
+    const isSub = deleteConfirmState.isSub;
+
     try {
-      const res = await AdminApiService.deleteCategory(deleteConfirmState.catId);
+      const res = await AdminApiService.deleteCategory(targetId);
       if (res.ok) {
         setToastState({
           id: String(Date.now()),
           type: 'success',
           title: 'Xóa Thành Công',
-          message: `Đã xóa ${deleteConfirmState.isSub ? 'danh mục phụ' : 'danh mục chính'} "${deleteConfirmState.catName}" khỏi cơ sở dữ liệu!`,
+          message: `Đã xóa ${isSub ? 'danh mục phụ' : 'danh mục chính'} "${deleteConfirmState.catName}" khỏi cơ sở dữ liệu!`,
         });
+
+        // Optimistic UI state update & automatic page index adjustment
+        setCategoriesListState((prev) => {
+          if (isSub) {
+            return prev.map((cat) => ({
+              ...cat,
+              subCategories: cat.subCategories ? cat.subCategories.filter((s) => s.id !== targetId) : [],
+            }));
+          } else {
+            const nextList = prev.filter((cat) => cat.id !== targetId);
+            const newTotalPages = Math.max(1, Math.ceil(nextList.length / mainCategoriesPerPage));
+            setMainCategoryPage((curr) => Math.min(curr, newTotalPages));
+            if (selectedMainId === targetId) {
+              setSelectedMainId(nextList[0]?.id || null);
+            }
+            return nextList;
+          }
+        });
+
+        // Sync with backend DB
         fetchRealtimeCategories();
       } else {
         setToastState({
@@ -569,36 +429,8 @@ export default function AdminCategoriesPage() {
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
-          <button
-            onClick={() => setActiveTab('CATEGORIES')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${activeTab === 'CATEGORIES'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-500 hover:text-slate-800'
-              }`}
-          >
-            <Layers className="w-4 h-4 text-red-600" />
-            <span>Quản Lý Phân Cấp Master-Detail ({totalMainCategories})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('BRANDS')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${activeTab === 'BRANDS'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-500 hover:text-slate-800'
-              }`}
-          >
-            <Truck className="w-4 h-4 text-red-600" />
-            <span>Thương Hiệu Phụ Tùng ({brandsListState.length})</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Tab 1: Master-Detail Split Panel View */}
-      {activeTab === 'CATEGORIES' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* Master-Detail Split Panel View */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left Panel (Col 4): List of Main Categories with Level 1 Pagination */}
           <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col h-[630px]">
             <div className="p-4 border-b border-slate-100 bg-slate-50/70 space-y-3 flex-shrink-0">
@@ -637,8 +469,8 @@ export default function AdminCategoriesPage() {
               </div>
             </div>
 
-            {/* Scrollable Main Category List */}
-            <div className="overflow-y-auto divide-y divide-slate-100 flex-1 custom-scrollbar">
+            {/* Paginated Main Category List */}
+            <div className="divide-y divide-slate-100 flex-1">
               {paginatedMainCategories.map((mainCat) => {
                 const isSelected = mainCat.id === selectedMainId;
                 const totalSub = mainCat.subCategories ? mainCat.subCategories.length : 0;
@@ -849,13 +681,10 @@ export default function AdminCategoriesPage() {
                         </td>
 
                         <td className="p-3">
-                          <button
-                            onClick={() => setActiveSubModal(sub)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-extrabold border border-emerald-200/80 transition-colors cursor-pointer"
-                          >
-                            <Package className="w-3 h-3 text-emerald-600" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-extrabold border border-emerald-200/80 cursor-default">
+                            <Package className="w-3 h-3 text-emerald-600 shrink-0" />
                             <span>{sub.productCount} mã SP</span>
-                          </button>
+                          </span>
                         </td>
 
                         <td className="p-3 pr-5 text-right">
@@ -872,7 +701,7 @@ export default function AdminCategoriesPage() {
                             <button
                               onClick={() => {
                                 setParentForSubCategory({ id: activeMainCategory.id, name: activeMainCategory.name });
-                                setEditingCategoryData({ id: sub.id, name: sub.name, description: sub.description, parentId: activeMainCategory.id });
+                                setEditingCategoryData({ id: sub.id, name: sub.name, description: sub.description, iconUrl: sub.iconUrl, parentId: activeMainCategory.id });
                                 setShowAddCategoryModal(true);
                               }}
                               className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
@@ -921,107 +750,6 @@ export default function AdminCategoriesPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Tab 2: Brands Management View */}
-      {activeTab === 'BRANDS' && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-          <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="font-bold text-slate-900 text-base">Thương Hiệu Sản Xuất Phụ Tùng</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Danh sách thương hiệu nhà máy cung cấp phụ tùng xe tải nặng Trung Quốc.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold border border-emerald-200">
-                {brandsListState.length} Hãng Sản Xuất
-              </span>
-              <button
-                onClick={() => {
-                  setEditingBrandData(null);
-                  setBrandNameInput('');
-                  setBrandOriginInput('Trung Quốc');
-                  setBrandStatusInput('Hợp Tác Trực Tiếp');
-                  setShowAddBrandModal(true);
-                }}
-                className="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md shadow-red-900/30 transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Thêm Thương Hiệu Mới</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-100/80 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
-                  <th className="p-3.5 pl-5">Logo & Tên Hãng</th>
-                  <th className="p-3.5">Xuất Xứ Nhà Máy</th>
-                  <th className="p-3.5">Trạng Thái Hợp Tác Kho Q.BA</th>
-                  <th className="p-3.5 pr-5 text-right">Thao Tác</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {brandsListState.map((brand) => (
-                  <tr key={brand.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="p-3.5 pl-5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-white border border-slate-200 p-1 relative flex-shrink-0">
-                          <Image
-                            src={brand.logo}
-                            alt={brand.name}
-                            fill
-                            loading="lazy"
-                            className="object-contain"
-                          />
-                        </div>
-                        <span className="font-extrabold text-slate-900 text-sm">{brand.name}</span>
-                      </div>
-                    </td>
-
-                    <td className="p-3.5 font-semibold text-slate-700">{brand.origin}</td>
-
-                    <td className="p-3.5">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-200">
-                        <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                        {brand.status}
-                      </span>
-                    </td>
-
-                    <td className="p-3.5 pr-5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => {
-                            setEditingBrandData(brand);
-                            setBrandNameInput(brand.name);
-                            setBrandOriginInput(brand.origin);
-                            setBrandStatusInput(brand.status);
-                            setShowAddBrandModal(true);
-                          }}
-                          className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all cursor-pointer"
-                          title="Chỉnh sửa thương hiệu"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteBrand(brand)}
-                          className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all cursor-pointer"
-                          title="Xóa thương hiệu"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
       {/* CREATE / EDIT CATEGORY MODAL */}
       {showAddCategoryModal && (

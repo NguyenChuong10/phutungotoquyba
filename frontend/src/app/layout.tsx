@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Montserrat, Inter } from "next/font/google";
 import "./globals.css";
 import MainLayout from "@/components/public/MainLayout";
@@ -114,13 +115,11 @@ export default function RootLayout({
       suppressHydrationWarning={true}
     >
       <head>
-        <script
+        <Script
+          id="root-localbusiness-jsonld"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        {/* Nhúng Eruda DevTools ảo cho mobile */}
-        <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-        <script dangerouslySetInnerHTML={{ __html: "eruda.init();" }} />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning={true}>
         <AntdRegistry>

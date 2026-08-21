@@ -8,6 +8,7 @@ export const createCategorySchema = z.object({
     .max(100, "Tên danh mục không vượt quá 100 ký tự"),
   parentId: z.number().int().positive().nullable().optional(),
   description: z.string().trim().max(500, "Mô tả không vượt quá 500 ký tự").optional(),
+  iconUrl: z.string().trim().nullable().optional(),
   sortOrder: z.number().int().default(0),
 });
 

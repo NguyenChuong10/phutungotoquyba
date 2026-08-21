@@ -288,7 +288,7 @@ export class JobPostingService {
       }
 
       await db.delete({ where: { id } });
-      return { success: true, message: "Đã xóa tin tuyển dụng thành công khỏi CSDL." };
+      return { success: true, message: "Đã xóa tin tuyển dụng thành công khỏi hệ thống." };
     } catch (err: any) {
       if (err?.code === 'P2021') {
         isJobTableVerified = false;
@@ -296,7 +296,7 @@ export class JobPostingService {
         const existing = await db.findUnique({ where: { id } });
         if (!existing) throw new AppError("Không tìm thấy tin tuyển dụng này", 404);
         await db.delete({ where: { id } });
-        return { success: true, message: "Đã xóa tin tuyển dụng thành công khỏi CSDL." };
+        return { success: true, message: "Đã xóa tin tuyển dụng thành công khỏi hệ thống." };
       }
       throw err;
     }

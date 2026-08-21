@@ -45,7 +45,8 @@ export default function AddCategoryModal({
         if (res.ok) {
           onSuccess();
         } else {
-          setErrorMsg(res.message || 'Cập nhật danh mục thất bại');
+          const errMsg = res.error?.message || res.message || 'Cập nhật danh mục thất bại';
+          setErrorMsg(errMsg);
         }
       } else {
         const res = await AdminApiService.createCategory({
@@ -57,11 +58,12 @@ export default function AddCategoryModal({
         if (res.ok) {
           onSuccess();
         } else {
-          setErrorMsg(res.message || 'Tạo danh mục thất bại');
+          const errMsg = res.error?.message || res.message || 'Tạo danh mục thất bại';
+          setErrorMsg(errMsg);
         }
       }
-    } catch {
-      setErrorMsg('Lỗi kết nối máy chủ. Vui lòng thử lại.');
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Lỗi kết nối máy chủ. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -108,7 +110,7 @@ export default function AddCategoryModal({
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
             <label className="font-bold text-slate-700 block mb-1">
-              Tên {isSubCategory ? 'Danh Mục Phụ' : 'Danh Mục Chính'} (*)
+              Tên Danh Mục Phụ Tùng (*)
             </label>
             <input
               type="text"
@@ -122,15 +124,15 @@ export default function AddCategoryModal({
 
           <div>
             <label className="font-bold text-slate-700 block mb-1 flex items-center gap-1">
-              <FileText className="w-3.5 h-3.5 text-red-600" />
-              <span>Mô Tả Danh Mục Phụ Tùng</span>
+              <FileText className="w-3.5 h-3.5 text-slate-400" />
+              <span>Mô Tả Danh Mục</span>
             </label>
             <textarea
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Nhập ghi chú chủng loại phụ tùng thuộc nhóm danh mục này..."
-              className="w-full p-3 border border-slate-200 rounded-xl text-slate-900 leading-relaxed focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              placeholder="Nhập mô tả tóm tắt chủng loại phụ tùng thuộc danh mục này..."
+              className="w-full p-3 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20"
             />
           </div>
 
@@ -149,7 +151,7 @@ export default function AddCategoryModal({
               className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-900/30 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
             >
               <Sparkles className="w-4 h-4" />
-              <span>{loading ? 'Đang lưu...' : isEditing ? 'Cập Nhật' : 'Lưu Danh Mục'}</span>
+              <span>{loading ? 'Đang lưu...' : isEditing ? 'Cập Nhật' : 'Tạo Mới'}</span>
             </button>
           </div>
         </form>

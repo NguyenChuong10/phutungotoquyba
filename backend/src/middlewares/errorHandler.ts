@@ -31,7 +31,19 @@ export function errorHandler(
     });
   }
 
-  // 3. Lỗi Server 500 không xác định
+  // 3. Lỗi Prisma Unique Constraint Violation (P2002)
+  if (err?.code === 'P2002') {
+    const fields = Array.isArray(err?.meta?.target) ? err.meta.target.join(', ') : 'tên hoặc mã';
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: "DUPLICATE_ERROR",
+        message: `Sản phẩm phụ tùng này (${fields}) đã tồn tại trong kho hàng và không được tạo lại!`
+      }
+    });
+  }
+
+  // 4. Lỗi Server 500 không xác định
   console.error("🔥 [Unhandled Server Error]:", err);
   return res.status(500).json({
     success: false,

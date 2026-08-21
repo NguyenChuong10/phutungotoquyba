@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import Script from "next/script";
 import { 
   Search, 
   Clock, 
@@ -153,7 +154,8 @@ export default function NewsIndexPage() {
   return (
     <div className="bg-slate-50 text-slate-900 min-h-screen font-sans">
       {/* 0. SEO JSON-LD Structured Data */}
-      <script
+      <Script
+        id="news-list-jsonld"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(newsListSchema) }}
       />
@@ -247,7 +249,7 @@ export default function NewsIndexPage() {
           {loading ? (
             <div className="p-20 text-center bg-slate-50 rounded-3xl border border-slate-200 space-y-3 shadow-xs">
               <Loader2 size={40} className="animate-spin text-[#D90429] mx-auto" />
-              <p className="text-xs font-bold text-slate-600">Đang tải tin tức kỹ thuật từ CSDL Q.BA...</p>
+              <p className="text-xs font-bold text-slate-600">Đang tải tin tức kỹ thuật...</p>
             </div>
           ) : (
             <>
@@ -264,6 +266,7 @@ export default function NewsIndexPage() {
                           alt={featuredArticle.title}
                           fill
                           priority
+                          sizes="(max-width: 1024px) 100vw, 60vw"
                           className="object-cover group-hover:scale-105 transition-transform duration-700"
                         />
                         <div className="absolute top-4 left-4 px-3.5 py-1.5 rounded-xl bg-[#D90429] text-white text-xs font-black uppercase tracking-wider shadow-md">
@@ -324,6 +327,7 @@ export default function NewsIndexPage() {
                                 src={art.imageSrc}
                                 alt={art.title}
                                 fill
+                                sizes="96px"
                                 className="object-cover group-hover:scale-110 transition-transform duration-500"
                               />
                             </div>

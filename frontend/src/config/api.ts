@@ -50,7 +50,8 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
       data = { message: text };
     }
 
-    return { status: response.status, ok: response.ok, ...data };
+    const errorMessage = data.error?.message || data.message;
+    return { status: response.status, ok: response.ok, message: errorMessage, ...data };
   } catch (error: any) {
     return {
       status: 500,

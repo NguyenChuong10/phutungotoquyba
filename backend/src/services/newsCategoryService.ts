@@ -57,7 +57,7 @@ export class NewsCategoryService {
 
     const existing = await prisma.newsCategory.findUnique({ where: { slug } });
     if (existing) {
-      throw new AppError("Danh mục này đã tồn tại trong CSDL", 400);
+      throw new AppError("Danh mục này đã tồn tại trong hệ thống", 400);
     }
 
     const newCategory = await prisma.newsCategory.create({

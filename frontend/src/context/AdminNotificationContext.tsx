@@ -283,16 +283,71 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
 
     connectWebSocket();
 
+    // Cross-Tab BroadcastChannel & Storage Event Listeners
+    const handleNewOrderSignal = (orderDetail?: any) => {
+      playChimeSound();
+      triggerToast(
+        "🔔 BÁO GIÁ MỚI GỬI ĐẾN!",
+        `Có đơn báo giá mới [${orderDetail?.orderCode || 'MỚI'}] vừa gửi đến hệ thống!`,
+        "success"
+      );
+      refreshNotifications();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("quyba_ws_new_order", { detail: orderDetail }));
+      }
+    };
+
+    const handleCustomNewOrderEvent = (e: any) => {
+      handleNewOrderSignal(e.detail);
+    };
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "quyba_new_order_ping") {
+        handleNewOrderSignal();
+      }
+    };
+
+    window.addEventListener("quyba_new_order", handleCustomNewOrderEvent);
+    window.addEventListener("storage", handleStorageChange);
+
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel("quyba_order_channel");
+      bc.onmessage = (event) => {
+        if (event.data?.type === "NEW_ORDER") {
+          handleNewOrderSignal(event.data.data);
+        }
+      };
+    } catch {}
+
+    // Auto 15-second Polling Fallback (Guarantees fresh notification even if WS drops)
+    const pollingInterval = setInterval(() => {
+      if (!isUnmounted) {
+        refreshNotifications();
+      }
+    }, 15000);
+
     return () => {
       isUnmounted = true;
+      clearInterval(pollingInterval);
+      window.removeEventListener("quyba_new_order", handleCustomNewOrderEvent);
+      window.removeEventListener("storage", handleStorageChange);
+      if (bc) {
+        try { bc.close(); } catch {}
+      }
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
       if (ws) {
         ws.onopen = null;
         ws.onmessage = null;
         ws.onclose = null;
         ws.onerror = null;
-        if (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN) {
+        if (ws.readyState === WebSocket.OPEN) {
           ws.close();
+        } else if (ws.readyState === WebSocket.CONNECTING) {
+          const currentWs = ws;
+          currentWs.onopen = () => {
+            try { currentWs.close(); } catch { }
+          };
         }
       }
       window.removeEventListener("click", handleUserInteraction);

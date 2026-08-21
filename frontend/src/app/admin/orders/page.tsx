@@ -275,12 +275,45 @@ export default function AdminOrdersPage() {
       );
     };
 
+    const handleNewOrderPing = () => {
+      fetchOrders();
+    };
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'quyba_new_order_ping') {
+        fetchOrders();
+      }
+    };
+
     window.addEventListener('quyba_ws_new_order', handleWsNewOrder);
+    window.addEventListener('quyba_new_order', handleNewOrderPing);
     window.addEventListener('quyba_ws_status_update', handleWsStatusUpdate);
+    window.addEventListener('storage', handleStorageChange);
+
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel('quyba_order_channel');
+      bc.onmessage = (event) => {
+        if (event.data?.type === 'NEW_ORDER') {
+          fetchOrders();
+        }
+      };
+    } catch {}
+
+    // Auto 10-second Polling Fallback (Guarantees new quotation orders appear even if WS/local events disconnect)
+    const pollInterval = setInterval(() => {
+      fetchOrders();
+    }, 10000);
 
     return () => {
+      clearInterval(pollInterval);
       window.removeEventListener('quyba_ws_new_order', handleWsNewOrder);
+      window.removeEventListener('quyba_new_order', handleNewOrderPing);
       window.removeEventListener('quyba_ws_status_update', handleWsStatusUpdate);
+      window.removeEventListener('storage', handleStorageChange);
+      if (bc) {
+        try { bc.close(); } catch {}
+      }
     };
   }, [fetchOrders]);
 
@@ -390,7 +423,7 @@ export default function AdminOrdersPage() {
           id: String(Date.now()),
           type: 'success',
           title: 'Đã Xóa Đơn',
-          message: `Đã xóa đơn báo giá [${orderCode}] khỏi hệ thống CSDL PostgreSQL!`,
+          message: `Đã xóa đơn báo giá [${orderCode}] khỏi hệ thống!`,
         });
         setOrdersList((prev) => prev.filter((o) => o.id !== orderId));
         if (selectedOrder?.id === orderId) setSelectedOrder(null);
@@ -458,11 +491,59 @@ export default function AdminOrdersPage() {
           )
         );
 
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setSelectedOrder((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  status: newStatus as any,
+                  statusText:
+                    newStatus === 'confirmed'
+                      ? 'ĐÃ XÁC NHẬN'
+                      : newStatus === 'completed'
+                        ? 'HOÀN THÀNH'
+                        : newStatus === 'cancelled'
+                          ? 'ĐÃ HỦY'
+                          : 'MỚI GỬI',
+                  statusColor:
+                    newStatus === 'confirmed'
+                      ? 'bg-blue-100 text-blue-800 border-blue-200'
+                      : newStatus === 'completed'
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                        : newStatus === 'cancelled'
+                          ? 'bg-slate-200 text-slate-700 border-slate-300'
+                          : 'bg-red-100 text-red-800 border-red-200',
+                }
+              : null
+          );
+        }
+
+        if (selectedCustomerGroup) {
+          setSelectedCustomerGroup((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              orders: prev.orders.map((o) =>
+                o.id === orderId ? { ...o, status: newStatus as any } : o
+              ),
+            };
+          });
+        }
+
+        const statusLabel =
+          newStatus === 'confirmed'
+            ? 'ĐÃ XÁC NHẬN'
+            : newStatus === 'completed'
+              ? 'HOÀN THÀNH'
+              : newStatus === 'cancelled'
+                ? 'ĐÃ HỦY'
+                : 'MỚI GỬI';
+
         setToastState({
           id: String(Date.now()),
           type: 'success',
           title: 'Cập Nhật Trạng Thái',
-          message: 'Đã cập nhật trạng thái đơn báo giá thành công!',
+          message: `Đã chuyển trạng thái đơn báo giá sang [${statusLabel}] thành công!`,
         });
         await refreshNotifications();
       } else {
@@ -1165,57 +1246,69 @@ export default function AdminOrdersPage() {
                       Thay Đổi Trạng Thái Xử Lý Đơn Báo Giá:
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      <button
-                        type="button"
-                        disabled={updatingStatus}
-                        onClick={() => handleQuickStatusChange(selectedOrder.id, 'pending')}
-                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${selectedOrder.status === 'pending'
-                            ? 'bg-red-600 text-white shadow-xs'
-                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                          }`}
-                      >
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>Mới Gửi</span>
-                      </button>
+                      {(() => {
+                        const currStatus = selectedOrder.status?.toString().toLowerCase();
+                        const isPending = currStatus === 'pending' || currStatus === 'mới gửi';
+                        const isConfirmed = currStatus === 'confirmed' || currStatus === 'đã xác nhận';
+                        const isCompleted = currStatus === 'completed' || currStatus === 'hoàn thành';
+                        const isCancelled = currStatus === 'cancelled' || currStatus === 'đã hủy';
 
-                      <button
-                        type="button"
-                        disabled={updatingStatus}
-                        onClick={() => handleQuickStatusChange(selectedOrder.id, 'confirmed')}
-                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${selectedOrder.status === 'confirmed'
-                            ? 'bg-blue-600 text-white shadow-xs'
-                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                          }`}
-                      >
-                        <UserCheck className="w-3.5 h-3.5" />
-                        <span>Đã Xác Nhận</span>
-                      </button>
+                        return (
+                          <>
+                            <button
+                              type="button"
+                              disabled={updatingStatus}
+                              onClick={() => handleQuickStatusChange(selectedOrder.id, 'pending')}
+                              className={`py-2.5 px-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${isPending
+                                  ? 'bg-red-600 text-white shadow-md shadow-red-900/20'
+                                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                                }`}
+                            >
+                              <Clock className="w-3.5 h-3.5" />
+                              <span>Mới Gửi</span>
+                            </button>
 
-                      <button
-                        type="button"
-                        disabled={updatingStatus}
-                        onClick={() => handleQuickStatusChange(selectedOrder.id, 'completed')}
-                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${selectedOrder.status === 'completed'
-                            ? 'bg-emerald-600 text-white shadow-xs'
-                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                          }`}
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Hoàn Thành</span>
-                      </button>
+                            <button
+                              type="button"
+                              disabled={updatingStatus}
+                              onClick={() => handleQuickStatusChange(selectedOrder.id, 'confirmed')}
+                              className={`py-2.5 px-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${isConfirmed
+                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20'
+                                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                                }`}
+                            >
+                              <UserCheck className="w-3.5 h-3.5" />
+                              <span>Đã Xác Nhận</span>
+                            </button>
 
-                      <button
-                        type="button"
-                        disabled={updatingStatus}
-                        onClick={() => handleQuickStatusChange(selectedOrder.id, 'cancelled')}
-                        className={`py-2 px-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer ${selectedOrder.status === 'cancelled'
-                            ? 'bg-slate-700 text-white shadow-xs'
-                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                          }`}
-                      >
-                        <AlertCircle className="w-3.5 h-3.5" />
-                        <span>Hủy Đơn</span>
-                      </button>
+                            <button
+                              type="button"
+                              disabled={updatingStatus}
+                              onClick={() => handleQuickStatusChange(selectedOrder.id, 'completed')}
+                              className={`py-2.5 px-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${isCompleted
+                                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/20'
+                                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                                }`}
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Hoàn Thành</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={updatingStatus}
+                              onClick={() => handleQuickStatusChange(selectedOrder.id, 'cancelled')}
+                              className={`py-2.5 px-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${isCancelled
+                                  ? 'bg-slate-800 text-white shadow-md shadow-slate-900/20'
+                                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                                }`}
+                            >
+                              <AlertCircle className="w-3.5 h-3.5" />
+                              <span>Hủy Đơn</span>
+                            </button>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -1230,14 +1323,14 @@ export default function AdminOrdersPage() {
                       <span className="text-blue-700">SĐT: {selectedOrder.phone} - Khách: {selectedOrder.customerName}</span>
                     </div>
                     <span className="px-2.5 py-1 rounded-full bg-blue-600 text-white font-extrabold">
-                      {customerHistory.length} Đơn Trong CSDL
+                      {customerHistory.length} Đơn Trong Hệ Thống
                     </span>
                   </div>
 
                   {loadingHistory ? (
                     <div className="p-8 text-center text-slate-500">
                       <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600 mb-2" />
-                      <p className="text-xs font-bold">Đang tải lịch sử mua hàng từ PostgreSQL...</p>
+                      <p className="text-xs font-bold">Đang tải lịch sử mua hàng từ hệ thống...</p>
                     </div>
                   ) : customerHistory.length === 0 ? (
                     <div className="p-6 text-center text-slate-400 bg-slate-50 rounded-xl text-xs font-medium">

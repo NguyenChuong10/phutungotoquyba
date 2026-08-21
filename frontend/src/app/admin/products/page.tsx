@@ -8,6 +8,7 @@ import { formatImageUrl } from '@/utils/imageHelper';
 import ToastNotification, { ToastMessage } from '@/components/ui/ToastNotification';
 import AddProductModal from '@/components/admin/AddProductModal';
 import StockAdjustmentModal from '@/components/admin/StockAdjustmentModal';
+import ImagePreviewModal from '@/components/ui/ImagePreviewModal';
 import { AdminApiService } from '@/services/adminApiService';
 import { Table, Tag as AntTag, Popconfirm, ConfigProvider, Tooltip } from 'antd';
 import {
@@ -26,6 +27,7 @@ import {
   Loader2,
   Package,
   Lock,
+  ZoomIn,
 } from 'lucide-react';
 
 interface ProductItem {
@@ -83,6 +85,9 @@ export default function AdminProductsPage() {
     slug: 'default',
   });
 
+  const [activeTab, setActiveTab] = useState<'all' | 'in_stock' | 'out_of_stock'>('all');
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
+
   const [toastState, setToastState] = useState<ToastMessage | null>(null);
 
   // Fetch Real-Time Products, Categories Tree & Brands from Backend
@@ -104,7 +109,7 @@ export default function AdminProductsPage() {
           if (p.stockQuantity === 0) statusStr = 'HẾT HÀNG';
           else if (p.stockQuantity <= 5) statusStr = 'SẮP HẾT HÀNG';
 
-          const primaryImg = p.images?.find((img: any) => img.isPrimary)?.imageUrl || p.images?.[0]?.imageUrl || '/images/products/hopso.png';
+          const primaryImg = p.images?.find((img: any) => img.isPrimary)?.imageUrl || p.images?.[0]?.imageUrl || '/images/logo/logonen.png';
 
           return {
             id: p.id,
@@ -142,11 +147,21 @@ export default function AdminProductsPage() {
           })),
         }));
         setCategoryGroups(groups);
+
+        const firstSub = catTree[0]?.children?.[0] || catTree[0];
+        if (firstSub) {
+          setActiveSubModal({
+            id: firstSub.id,
+            name: firstSub.name,
+            slug: firstSub.slug,
+          });
+        }
       }
 
       // 3. Process Brands List for Dropdown
-      if (brandsData && brandsData.length > 0) {
-        setBrandsList(brandsData.map((b: any) => ({ id: b.id, name: b.name })));
+      const partnerBrandsRes = await AdminApiService.getPartnerBrands();
+      if (partnerBrandsRes && partnerBrandsRes.data && Array.isArray(partnerBrandsRes.data)) {
+        setBrandsList(partnerBrandsRes.data.map((b: any) => ({ id: b.id, name: b.name })));
       }
     } catch {
       // Keep fallback
@@ -207,7 +222,7 @@ export default function AdminProductsPage() {
           id: String(Date.now()),
           type: 'success',
           title: 'Xóa Sản Phẩm Thành Công',
-          message: `Đã xóa mã sản phẩm "${productSku} - ${productName}" khỏi kho CSDL PostgreSQL!`,
+          message: `Đã xóa mã sản phẩm "${productSku} - ${productName}" khỏi kho hệ thống!`,
         });
         fetchRealtimeData();
       } else {
@@ -257,18 +272,28 @@ export default function AdminProductsPage() {
       title: 'Ảnh SEO',
       key: 'image',
       width: 70,
-      render: (_: any, record: ProductItem) => (
-        <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 relative overflow-hidden flex-shrink-0 shadow-2xs">
-          <Image
-            src={formatImageUrl(record.image)}
-            alt={record.name}
-            fill
-            unoptimized
-            sizes="48px"
-            className="object-cover"
-          />
-        </div>
-      ),
+      render: (_: any, record: ProductItem) => {
+        const fullImgUrl = formatImageUrl(record.image);
+        return (
+          <div
+            onClick={() => setPreviewImage({ url: fullImgUrl, title: `${record.name} (Mã: ${record.partNumber})` })}
+            className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 relative overflow-hidden flex-shrink-0 shadow-2xs cursor-pointer hover:scale-105 hover:ring-2 hover:ring-red-500 transition-all group"
+            title="Bấm vào hình để phóng to ảnh sản phẩm"
+          >
+            <Image
+              src={fullImgUrl}
+              alt={record.name}
+              fill
+              unoptimized
+              sizes="48px"
+              className="object-cover group-hover:opacity-90"
+            />
+            <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <ZoomIn className="w-4 h-4 text-white drop-shadow-md" />
+            </div>
+          </div>
+        );
+      },
     },
     {
       title: 'Mã Part No / Mã Nội Bộ',
@@ -390,7 +415,7 @@ export default function AdminProductsPage() {
 
           <Popconfirm
             title="Xóa sản phẩm này?"
-            description={`Bạn có chắc muốn xóa [${record.partNumber} - ${record.name}] khỏi CSDL?`}
+            description={`Bạn có chắc muốn xóa [${record.partNumber} - ${record.name}] khỏi hệ thống kho?`}
             onConfirm={() => executeDeleteProduct(record.id, record.partNumber, record.name)}
             okText="Xóa"
             cancelText="Hủy"
@@ -570,15 +595,23 @@ export default function AdminProductsPage() {
                 id: String(Date.now()),
                 type: 'success',
                 title: 'Lưu Sản Phẩm Thành Công',
-                message: 'Đã cập nhật dữ liệu sản phẩm trong CSDL PostgreSQL!',
+                message: 'Đã cập nhật dữ liệu sản phẩm trong hệ thống!',
               });
               fetchRealtimeData();
             }}
           />
         )}
 
-        {/* TOAST NOTIFICATION */}
+        {/* Toast Notification Popup */}
         <ToastNotification toast={toastState} onClose={() => setToastState(null)} />
+
+        {/* Fullscreen Image Zoom Lightbox Modal */}
+        <ImagePreviewModal
+          isOpen={!!previewImage}
+          imageUrl={previewImage?.url || null}
+          title={previewImage?.title}
+          onClose={() => setPreviewImage(null)}
+        />
       </div>
     </ConfigProvider>
   );

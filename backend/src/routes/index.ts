@@ -13,6 +13,8 @@ import newsRoutes from "./newsRoutes";
 import settingRoutes from "./settingRoutes";
 import partnerBrandRoutes from "./partnerBrandRoutes";
 import jobPostingRoutes from "./jobPostingRoutes";
+import categoryBannerRoutes from "./categoryBannerRoutes";
+import heroSlideRoutes from "./heroSlideRoutes";
 
 const router = Router();
 
@@ -24,6 +26,10 @@ router.get("/health", (_req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Public & Admin Banner & Slide Routes
+router.use("/", categoryBannerRoutes);
+router.use("/", heroSlideRoutes);
 
 // Public API Routes
 router.use("/auth", authRoutes);

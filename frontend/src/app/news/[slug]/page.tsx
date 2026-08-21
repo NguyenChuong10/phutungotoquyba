@@ -251,6 +251,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
                 alt={article.title}
                 fill
                 priority
+                sizes="(max-width: 1024px) 100vw, 66vw"
                 className="object-cover"
               />
             </div>

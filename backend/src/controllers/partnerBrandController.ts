@@ -26,7 +26,7 @@ export class PartnerBrandController {
       const brand = await PartnerBrandService.createPartnerBrand({ name, logoUrl });
       return res.status(201).json({
         success: true,
-        message: "Đã tạo thương hiệu đối tác mới vào CSDL.",
+        message: "Đã tạo thương hiệu đối tác mới thành công.",
         data: brand,
       });
     } catch (error) {
@@ -44,7 +44,7 @@ export class PartnerBrandController {
       const brand = await PartnerBrandService.updatePartnerBrand(id, { name, logoUrl });
       return res.json({
         success: true,
-        message: "Đã cập nhật thương hiệu đối tác trong CSDL.",
+        message: "Đã cập nhật thương hiệu đối tác thành công.",
         data: brand,
       });
     } catch (error) {

@@ -73,6 +73,16 @@ export default function AdminHeader() {
           </div>
         )}
 
+        {/* Sound Test / Unblock Button */}
+        <button
+          onClick={playChimeSound}
+          title="Bấm để phát thử âm thanh chuông báo giá mới"
+          className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+        >
+          <Volume2 className="w-4 h-4 text-emerald-600" />
+          <span className="hidden sm:inline">Thử Chuông Báo</span>
+        </button>
+
         {/* Notification Bell Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
@@ -163,14 +173,7 @@ export default function AdminHeader() {
           )}
         </div>
 
-        {/* Primary CTA: Add New Product */}
-        <Link
-          href="/admin/products"
-          className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">Thêm Sản Phẩm</span>
-        </Link>
+
 
         {/* Logout Button */}
         <button

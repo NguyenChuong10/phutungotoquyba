@@ -462,7 +462,7 @@ export default function AdminNewsPage() {
             id: String(Date.now()),
             type: 'success',
             title: 'Xóa Danh Mục Thành Công',
-            message: `Đã xóa danh mục "${deleteConfirmState.title}" khỏi CSDL!`,
+            message: `Đã xóa danh mục "${deleteConfirmState.title}" khỏi hệ thống!`,
           });
           fetchCategories();
         } else {

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { AlertTriangle, Trash2, X, Loader2, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, Trash2, X, Loader2 } from 'lucide-react';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -18,10 +18,10 @@ interface ConfirmModalProps {
 
 export default function ConfirmModal({
   isOpen,
-  title = 'Xác Nhận Xóa Dữ Liệu',
+  title = 'Xác Nhận Xóa',
   message,
   itemName,
-  confirmText = 'Xác Nhận Xóa',
+  confirmText = 'Xóa Vĩnh Viễn',
   cancelText = 'Hủy Bỏ',
   type = 'danger',
   isLoading = false,
@@ -51,110 +51,87 @@ export default function ConfirmModal({
   const isDanger = type === 'danger';
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
       <div 
-        className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden animate-in zoom-in-95 duration-200 z-[101]"
+        className="relative w-full max-w-sm bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200 z-[101] p-6 space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Gradient Beam */}
-        <div className={`h-2 w-full ${isDanger ? 'bg-gradient-to-r from-red-600 via-rose-500 to-red-700' : 'bg-gradient-to-r from-amber-500 to-orange-600'}`} />
-
         {/* Close Button */}
         <button
           disabled={isLoading}
           onClick={onCancel}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-40"
-          aria-label="Đóng cửa sổ"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
+          aria-label="Đóng"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        <div className="p-6 sm:p-7 text-center space-y-4">
-          {/* Animated Icon Container with Glowing Aura */}
-          <div className="relative mx-auto w-20 h-20 flex items-center justify-center">
-            <div className={`absolute inset-0 rounded-full blur-xl opacity-60 animate-pulse ${isDanger ? 'bg-red-400' : 'bg-amber-400'}`} />
-            <div className={`relative w-16 h-16 rounded-2xl flex items-center justify-center border shadow-inner ${
-              isDanger 
-                ? 'bg-gradient-to-br from-red-50 to-rose-100/90 border-red-200 text-red-600 ring-4 ring-red-500/10' 
-                : 'bg-gradient-to-br from-amber-50 to-orange-100/90 border-amber-200 text-amber-600 ring-4 ring-amber-500/10'
-            }`}>
-              {isDanger ? (
-                <Trash2 className="w-8 h-8 text-red-600 drop-shadow-xs" />
-              ) : (
-                <AlertTriangle className="w-8 h-8 text-amber-600 drop-shadow-xs" />
-              )}
-            </div>
-          </div>
-
-          {/* Title */}
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-100/80 text-red-700 text-[11px] font-extrabold uppercase tracking-wider">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Cảnh Báo Cảnh Báo</span>
-            </div>
-            <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
-              {title}
-            </h3>
-          </div>
-
-          {/* Message & Highlight Item Name */}
-          <div className="space-y-2.5">
-            <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
-              {message}
-            </p>
-
-            {itemName && (
-              <div className="p-3 rounded-2xl bg-slate-900 text-white font-extrabold text-xs sm:text-sm font-mono break-all inline-flex items-center justify-center gap-2 max-w-full shadow-md border border-slate-800">
-                <Trash2 className="w-4 h-4 text-red-400 shrink-0" />
-                <span>&ldquo;{itemName}&rdquo;</span>
-              </div>
-            )}
-
-            {isDanger && (
-              <div className="p-2.5 rounded-xl bg-red-50 border border-red-100 text-red-600 text-[11px] font-semibold flex items-center justify-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                <span>Thao tác này sẽ xóa dữ liệu vĩnh viễn và không thể khôi phục.</span>
-              </div>
+        {/* Clean Icon Badge */}
+        <div className="flex flex-col items-center text-center space-y-2 pt-1">
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center border ${
+            isDanger ? 'bg-red-50 border-red-100 text-red-600' : 'bg-amber-50 border-amber-100 text-amber-600'
+          }`}>
+            {isDanger ? (
+              <Trash2 className="w-6 h-6" />
+            ) : (
+              <AlertTriangle className="w-6 h-6" />
             )}
           </div>
 
-          {/* Action Buttons */}
-          <div className="pt-2 flex items-center justify-center gap-3">
-            <button
-              type="button"
-              disabled={isLoading}
-              onClick={onCancel}
-              className="w-1/2 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer disabled:opacity-50 active:scale-95"
-            >
-              {cancelText}
-            </button>
+          <h3 className="text-base font-extrabold text-slate-900 pt-1">
+            {title}
+          </h3>
 
-            <button
-              type="button"
-              disabled={isLoading}
-              onClick={onConfirm}
-              className={`w-1/2 py-3 px-4 rounded-xl text-white font-extrabold text-xs shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 disabled:opacity-50 ${
-                isDanger
-                  ? 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-rose-800 shadow-red-900/30'
-                  : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-amber-900/30'
-              }`}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Đang xóa...</span>
-                </>
-              ) : (
-                <>
-                  <Trash2 className="w-4 h-4" />
-                  <span>{confirmText}</span>
-                </>
-              )}
-            </button>
-          </div>
+          <p className="text-xs text-slate-500 font-medium leading-relaxed">
+            {message} {itemName && <strong className="text-slate-900 font-bold">&ldquo;{itemName}&rdquo;</strong>}?
+          </p>
+        </div>
+
+        {/* Highlighted Safety Note */}
+        <div className={`p-3 rounded-xl border text-[11px] font-bold text-center flex items-center justify-center gap-1.5 shadow-2xs ${
+          isDanger
+            ? 'bg-red-50 border-red-200/90 text-red-700'
+            : 'bg-amber-50 border-amber-200/90 text-amber-800'
+        }`}>
+          <AlertTriangle className={`w-3.5 h-3.5 shrink-0 ${isDanger ? 'text-red-600' : 'text-amber-600'}`} />
+          <span>Hành động này sẽ xóa dữ liệu vĩnh viễn và không thể khôi phục.</span>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 pt-1">
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={onCancel}
+            className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
+          >
+            {cancelText}
+          </button>
+
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={onConfirm}
+            className={`flex-1 py-2.5 rounded-xl text-white font-bold text-xs shadow-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 ${
+              isDanger
+                ? 'bg-red-600 hover:bg-red-700 shadow-red-900/20'
+                : 'bg-amber-600 hover:bg-amber-700 shadow-amber-900/20'
+            }`}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Đang xóa...</span>
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{confirmText}</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
   );
 }
-

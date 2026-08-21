@@ -68,12 +68,23 @@ export class CategoryService {
    * Create New Category (Main or Sub-Category via parentId)
    */
   static async createCategory(input: CreateCategoryInput) {
-    const slug = this.slugify(input.name);
+    const trimmedName = input.name.trim();
+    const slug = this.slugify(trimmedName);
+
+    // Check name uniqueness (case-insensitive)
+    const existingByName = await prisma.category.findFirst({
+      where: {
+        name: { equals: trimmedName, mode: 'insensitive' },
+      },
+    });
+    if (existingByName) {
+      throw new AppError(`Danh mục "${trimmedName}" đã tồn tại trong hệ thống. Vui lòng nhập tên khác!`, 400);
+    }
 
     // Check slug uniqueness
     const existing = await prisma.category.findUnique({ where: { slug } });
     if (existing) {
-      throw new AppError("Tên danh mục này đã tồn tại trong hệ thống", 400);
+      throw new AppError(`Danh mục "${trimmedName}" đã tồn tại trong hệ thống. Vui lòng nhập tên khác!`, 400);
     }
 
     // If parentId provided, verify parent exists
@@ -90,6 +101,7 @@ export class CategoryService {
         slug,
         parentId: input.parentId || null,
         description: input.description,
+        iconUrl: input.iconUrl || null,
         sortOrder: input.sortOrder || 0,
       },
       include: {
@@ -112,15 +124,26 @@ export class CategoryService {
 
     const dataToUpdate: Record<string, unknown> = {};
 
-    if (input.name && input.name !== category.name) {
-      dataToUpdate.name = input.name.trim();
-      const newSlug = this.slugify(input.name);
+    if (input.name && input.name.trim() !== category.name) {
+      const trimmedName = input.name.trim();
+      const newSlug = this.slugify(trimmedName);
+
+      const existingByName = await prisma.category.findFirst({
+        where: {
+          name: { equals: trimmedName, mode: 'insensitive' },
+          id: { not: id },
+        },
+      });
+      if (existingByName) {
+        throw new AppError(`Danh mục "${trimmedName}" đã tồn tại trong hệ thống. Vui lòng nhập tên khác!`, 400);
+      }
 
       const existingSlug = await prisma.category.findUnique({ where: { slug: newSlug } });
       if (existingSlug && existingSlug.id !== id) {
-        throw new AppError("Tên danh mục này bị trùng lặp với danh mục khác", 400);
+        throw new AppError(`Danh mục "${trimmedName}" đã tồn tại trong hệ thống. Vui lòng nhập tên khác!`, 400);
       }
 
+      dataToUpdate.name = trimmedName;
       dataToUpdate.slug = newSlug;
     }
 
@@ -132,6 +155,7 @@ export class CategoryService {
     }
 
     if (input.description !== undefined) dataToUpdate.description = input.description;
+    if (input.iconUrl !== undefined) dataToUpdate.iconUrl = input.iconUrl;
     if (input.sortOrder !== undefined) dataToUpdate.sortOrder = input.sortOrder;
 
     const updatedCategory = await prisma.category.update({
@@ -163,7 +187,8 @@ export class CategoryService {
     });
 
     if (!category) {
-      throw new AppError("Không tìm thấy danh mục để xóa", 404);
+      // If category is already deleted from DB, return success gracefully
+      return { success: true, message: "Danh mục đã được xóa thành công" };
     }
 
     // Check total products linked directly to this category or via child subcategories

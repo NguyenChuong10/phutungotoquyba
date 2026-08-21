@@ -19,12 +19,12 @@ function toSlug(str: string): string {
 
 export const getBrands = async (req: Request, res: Response): Promise<void> => {
   try {
-    const brands = await prisma.brand.findMany({
-      orderBy: { id: 'asc' },
+    const partnerBrands = await prisma.partnerBrand.findMany({
+      orderBy: { sortOrder: 'asc' },
     });
     res.json({
       ok: true,
-      data: brands,
+      data: partnerBrands,
     });
   } catch (error: any) {
     res.status(500).json({ ok: false, error: { message: error.message || 'Lỗi server khi lấy danh sách thương hiệu' } });

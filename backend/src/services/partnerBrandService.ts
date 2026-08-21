@@ -146,7 +146,7 @@ export class PartnerBrandService {
       }
 
       await db.delete({ where: { id } });
-      return { success: true, message: "Đã xóa thương hiệu đối tác thành công khỏi CSDL." };
+      return { success: true, message: "Đã xóa thương hiệu đối tác thành công khỏi hệ thống." };
     } catch (err: any) {
       if (err?.code === 'P2021') {
         isTableVerified = false;
@@ -154,7 +154,7 @@ export class PartnerBrandService {
         const existing = await db.findUnique({ where: { id } });
         if (!existing) throw new AppError("Không tìm thấy thương hiệu đối tác", 404);
         await db.delete({ where: { id } });
-        return { success: true, message: "Đã xóa thương hiệu đối tác thành công khỏi CSDL." };
+        return { success: true, message: "Đã xóa thương hiệu đối tác thành công khỏi hệ thống." };
       }
       throw err;
     }
