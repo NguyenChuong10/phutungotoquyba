@@ -34,6 +34,7 @@ interface SubCategory {
   slug: string;
   productCount: number;
   description: string;
+  iconUrl?: string;
 }
 
 interface MainCategory {
@@ -99,6 +100,7 @@ export default function AdminCategoriesPage() {
     id: number;
     name: string;
     description?: string;
+    iconUrl?: string;
     parentId?: number | null;
   } | null>(null);
 

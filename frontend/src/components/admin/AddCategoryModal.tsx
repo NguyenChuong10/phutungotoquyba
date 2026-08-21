@@ -6,7 +6,7 @@ import { AdminApiService } from '@/services/adminApiService';
 
 interface AddCategoryModalProps {
   parentCategory?: { id: number; name: string } | null;
-  editingCategory?: { id: number; name: string; description?: string; parentId?: number | null } | null;
+  editingCategory?: { id: number; name: string; description?: string; iconUrl?: string; parentId?: number | null } | null;
   onClose: () => void;
   onSuccess: () => void;
 }

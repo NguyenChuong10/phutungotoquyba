@@ -27,7 +27,21 @@ import {
 import { useAdminSidebar } from './AdminSidebarContext';
 import { useAdminNotification } from '@/context/AdminNotificationContext';
 
-const MENU_SECTIONS = [
+interface MenuItem {
+  name: string;
+  href: string;
+  icon: any;
+  badge: string | null;
+  badgeColor?: string;
+}
+
+interface MenuSection {
+  groupTitle: string;
+  groupIcon: any;
+  items: MenuItem[];
+}
+
+const MENU_SECTIONS: MenuSection[] = [
   {
     groupTitle: 'TỔNG QUAN',
     groupIcon: LayoutDashboard,
