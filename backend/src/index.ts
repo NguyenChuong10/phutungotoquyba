@@ -15,6 +15,9 @@ import { initWebSocketServer } from "./services/websocketService";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust Reverse Proxy (Nginx, Cloudflare, Docker Proxy, Load Balancer) for rate-limiting
+app.set("trust proxy", 1);
+
 // Security Hardening: Disable Express Fingerprinting Header
 app.disable("x-powered-by");
 
