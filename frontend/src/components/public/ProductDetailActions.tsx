@@ -5,6 +5,8 @@ import { Phone, ShoppingCart, PlusCircle, Check } from "lucide-react";
 import { Product } from "@/types/product";
 import QuotationModal from "@/components/public/QuotationModal";
 import { useQuotation } from "@/context/QuotationContext";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
+import { siteConfig } from "@/config/siteConfig";
 
 interface ProductDetailActionsProps {
   product: Product;
@@ -14,6 +16,7 @@ export default function ProductDetailActions({ product }: ProductDetailActionsPr
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const { addItem } = useQuotation();
+  const { settings } = useSiteSettings();
 
   const handleAddToCart = () => {
     addItem(product);
@@ -21,49 +24,51 @@ export default function ProductDetailActions({ product }: ProductDetailActionsPr
     setTimeout(() => setIsAdded(false), 2000);
   };
 
-  return (
-    <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 text-white space-y-4 shadow-2xl">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-bold uppercase text-[#FF0000] tracking-widest">TƯ VẤN & BÁO GIÁ HỎA TỐC</span>
-        <span className="text-xs text-slate-400">Phản hồi trong 5 phút</span>
-      </div>
+  const phoneText = settings.hotlineZalo || siteConfig.hotline;
+  const rawPhone = settings.hotlineRaw || siteConfig.hotlineRaw;
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  return (
+    <div className="space-y-2.5 pt-2">
+      {/* Main Action Buttons Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         <button 
+          type="button"
           onClick={() => setIsModalOpen(true)}
-          className="py-4 px-6 rounded-2xl bg-gradient-to-r from-[#FF0000] to-red-700 hover:from-red-600 hover:to-[#FF0000] text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
+          className="py-3.5 px-4 rounded-xl bg-brand hover:bg-red-700 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95"
         >
-          <ShoppingCart size={18} />
-          BÁO GIÁ ZALO 1-CLICK
+          <ShoppingCart size={17} />
+          <span>Báo Giá Zalo 1-Click</span>
         </button>
 
         <button 
+          type="button"
           onClick={handleAddToCart}
-          className={`py-4 px-6 rounded-2xl border font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${
+          className={`py-3.5 px-4 rounded-xl border font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 ${
             isAdded
-              ? "bg-emerald-600 border-emerald-500 text-white"
-              : "bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 hover:text-white"
+              ? "bg-emerald-600 border-emerald-600 text-white"
+              : "bg-slate-900 hover:bg-slate-800 border-slate-900 text-white"
           }`}
         >
           {isAdded ? (
             <>
-              <Check size={18} /> ĐÃ THÊM BÁO GIÁ
+              <Check size={17} /> <span>Đã Thêm Báo Giá</span>
             </>
           ) : (
             <>
-              <PlusCircle size={18} /> THÊM VÀO DANH SÁCH
+              <PlusCircle size={17} /> <span>Thêm Vào Danh Sách</span>
             </>
           )}
         </button>
       </div>
 
-      <div className="pt-2 text-center">
+      {/* Direct Hotline Contact Button */}
+      <div>
         <a 
-          href="tel:0903588167"
-          className="inline-flex items-center justify-center gap-2 text-emerald-400 hover:text-emerald-300 font-extrabold text-sm uppercase tracking-wider transition-colors"
+          href={`tel:${rawPhone}`}
+          className="w-full py-3 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 text-emerald-800 font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
         >
-          <Phone size={16} />
-          GỌI HOTLINE 0903.588.167
+          <Phone size={15} className="text-emerald-600 animate-pulse shrink-0" />
+          <span>Gọi Hotline Tư Vấn: {phoneText}</span>
         </a>
       </div>
 

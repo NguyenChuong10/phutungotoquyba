@@ -157,7 +157,10 @@ export class ProductService {
     const whereCondition: Record<string, unknown> = {};
 
     if (query.categoryId) {
-      whereCondition.categoryId = query.categoryId;
+      whereCondition.OR = [
+        { categoryId: query.categoryId },
+        { category: { parentId: query.categoryId } },
+      ];
     }
 
     if (query.brandId) {
@@ -182,7 +185,9 @@ export class ProductService {
         take: limit,
         orderBy: { createdAt: "desc" },
         include: {
-          category: { select: { id: true, name: true, slug: true } },
+          category: {
+            select: { id: true, name: true, slug: true, parent: { select: { id: true, name: true, slug: true } } },
+          },
           brand: { select: { id: true, name: true, slug: true } },
           images: { orderBy: { isPrimary: "desc" } },
         },

@@ -124,7 +124,11 @@ export default function SubCategoryProductsModal({
   const filteredProducts = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     const rawList = productsMock.filter(
-      (p) => p.subCategorySlug === activeSubModal.slug || p.subCategoryName === activeSubModal.name
+      (p) =>
+        p.subCategorySlug === activeSubModal.slug ||
+        p.subCategoryName === activeSubModal.name ||
+        (p as any).mainCategorySlug === activeSubModal.slug ||
+        (p as any).mainCategory === activeSubModal.name
     );
     if (!q) return rawList;
     return rawList.filter(

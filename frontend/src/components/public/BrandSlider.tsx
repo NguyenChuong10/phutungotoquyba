@@ -15,7 +15,7 @@ export default function BrandSlider() {
   useEffect(() => {
     async function loadPartnerBrands() {
       try {
-        const res = await fetchApi("/partner-brands");
+        const res = await fetchApi("/brands");
         if (res.ok && Array.isArray(res.data)) {
           setBrands(res.data);
         }

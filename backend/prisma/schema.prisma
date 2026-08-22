@@ -84,7 +84,7 @@ model Product {
   description     String?   @db.Text
   price           Decimal   @default(0.00) @db.Decimal(12, 2)
   inStock         Boolean   @default(true) @map("in_stock")
-  qualityStandard String    @default("Loai 1 Cao Cap") @map("quality_standard")
+  qualityStandard String    @default("") @map("quality_standard")
   compatibility   Json      @default("[]")
   specifications  Json      @default("{}")
 

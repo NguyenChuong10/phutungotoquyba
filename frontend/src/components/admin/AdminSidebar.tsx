@@ -139,14 +139,11 @@ function SidebarInner({ onNavItemClick }: { onNavItemClick?: () => void }) {
   const pathname = usePathname();
   const { unreadNotificationsCount, totalProductsCount } = useAdminNotification();
 
-  // Accordion State: Manage open/close for each section group
+  // Accordion State: Manage open/close for each section group (All open by default for optimal UX)
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     MENU_SECTIONS.forEach((sec) => {
-      const hasActive = sec.items.some(
-        (item) => pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
-      );
-      initial[sec.groupTitle] = hasActive || sec.groupTitle === 'TỔNG QUAN';
+      initial[sec.groupTitle] = true;
     });
     return initial;
   });
@@ -238,10 +235,7 @@ function SidebarInner({ onNavItemClick }: { onNavItemClick?: () => void }) {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-400 font-bold border border-slate-700/60">
-                    {section.items.length}
-                  </span>
+                <div className="flex items-center shrink-0">
                   <ChevronDown
                     className={`w-3.5 h-3.5 transition-transform duration-300 ${
                       isOpen ? 'rotate-180 text-red-500' : 'text-slate-500'
@@ -261,7 +255,7 @@ function SidebarInner({ onNavItemClick }: { onNavItemClick?: () => void }) {
                     const displayBadge = item.href === '/admin/orders'
                       ? (unreadNotificationsCount > 0 ? `${unreadNotificationsCount} Mới` : null)
                       : item.href === '/admin/products'
-                      ? (totalProductsCount > 0 ? `${totalProductsCount} Kho` : null)
+                      ? (totalProductsCount > 0 ? `${totalProductsCount} SP` : null)
                       : item.badge;
 
                     return (

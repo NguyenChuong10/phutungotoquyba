@@ -216,39 +216,31 @@ export class AdminApiService {
   }
 
   /**
-   * Fetch Partner Brands from Database
+   * Fetch Partner Brands from Database (Unified with Brands table)
    */
   static async getPartnerBrands() {
-    return await fetchApi("/partner-brands");
+    return await this.getBrands();
   }
 
   /**
-   * Create Partner Brand in Database
+   * Create Partner Brand in Database (Unified with Brands table)
    */
   static async createPartnerBrand(data: { name: string; logoUrl: string }) {
-    return await fetchApi("/partner-brands/admin", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+    return await this.createBrand(data);
   }
 
   /**
-   * Update Partner Brand in Database
+   * Update Partner Brand in Database (Unified with Brands table)
    */
   static async updatePartnerBrand(id: number, data: { name?: string; logoUrl?: string }) {
-    return await fetchApi(`/partner-brands/admin/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
+    return await this.updateBrand(id, data);
   }
 
   /**
-   * Delete Partner Brand from Database
+   * Delete Partner Brand from Database (Unified with Brands table)
    */
   static async deletePartnerBrand(id: number) {
-    return await fetchApi(`/partner-brands/admin/${id}`, {
-      method: "DELETE",
-    });
+    return await this.deleteBrand(id);
   }
 
   /**

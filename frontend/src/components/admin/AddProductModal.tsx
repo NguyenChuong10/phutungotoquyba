@@ -65,7 +65,14 @@ export default function AddProductModal({
     editingProduct?.rawProduct?.categoryId || activeSubModal?.id || 0
   );
 
-  const [stock, setStock] = useState(editingProduct?.stock || 10);
+  const [stock, setStock] = useState<number>(
+    editingProduct?.stock ?? editingProduct?.rawProduct?.stockQuantity ?? 0
+  );
+  const [qualityStandard, setQualityStandard] = useState(
+    editingProduct?.rawProduct?.qualityStandard ??
+      editingProduct?.qualityStandard ??
+      ''
+  );
   const [material, setMaterial] = useState(
     editingProduct?.material ||
       editingProduct?.specifications?.['Chất liệu'] ||
@@ -234,7 +241,7 @@ export default function AddProductModal({
       costPrice: 0,
       stockQuantity: Number(stock) || 0,
       inStock: Number(stock) > 0,
-      qualityStandard: 'Loại 1 Cao Cấp',
+      qualityStandard: qualityStandard.trim(),
       specifications: specsObject,
       description: description.trim() || undefined,
       images: formattedImagesPayload,
@@ -395,15 +402,29 @@ export default function AddProductModal({
             </div>
           </div>
 
-          <div>
-            <label className="font-bold text-slate-700 block mb-1">Chất Liệu Phụ Tùng (Không bắt buộc)</label>
-            <input
-              type="text"
-              value={material}
-              onChange={(e) => setMaterial(e.target.value)}
-              placeholder="Thép rèn đúc AC16, Viton chịu nhiệt, Gang đúc xám, Nhôm đúc..."
-              className="w-full p-2.5 border border-slate-200 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-red-500/20"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Chất Liệu Phụ Tùng (Không bắt buộc)</label>
+              <input
+                type="text"
+                value={material}
+                onChange={(e) => setMaterial(e.target.value)}
+                placeholder="Thép rèn đúc AC16, Viton chịu nhiệt, Gang đúc xám..."
+                className="w-full p-2.5 border border-slate-200 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-red-500/20"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">
+                Tiêu Chuẩn Chất Lượng (Badge góc ảnh)
+              </label>
+              <input
+                type="text"
+                value={qualityStandard}
+                onChange={(e) => setQualityStandard(e.target.value)}
+                placeholder="Ví dụ: Chính Hãng Nhà Máy, Loại 1 Cao Cấp, Hàng OEM..."
+                className="w-full p-2.5 border border-slate-200 rounded-xl text-slate-900 font-bold focus:ring-2 focus:ring-red-500/20"
+              />
+            </div>
           </div>
 
           <div>

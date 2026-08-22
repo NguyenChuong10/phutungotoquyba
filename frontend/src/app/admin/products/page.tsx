@@ -37,6 +37,7 @@ interface ProductItem {
   internalCode: string;
   partNumber: string;
   mainCategory: string;
+  mainCategorySlug?: string;
   subCategory: string;
   subCategorySlug: string;
   subCategoryId: number;
@@ -53,6 +54,7 @@ interface ProductItem {
 interface CategoryOptionGroup {
   id: number;
   main: string;
+  mainSlug?: string;
   subs: { id: number; name: string; slug: string }[];
 }
 
@@ -97,7 +99,7 @@ export default function AdminProductsPage() {
       const [prodRes, catTree, brandsData] = await Promise.all([
         AdminApiService.getAdminProducts({ limit: 200 }),
         AdminApiService.getCategoriesTree(),
-        AdminApiService.getPartnerBrands(),
+        AdminApiService.getBrands(),
       ]);
 
       // 1. Process Products
@@ -117,13 +119,14 @@ export default function AdminProductsPage() {
             internalName: p.internalName || p.name,
             internalCode: p.internalCode || `QB-INT-${p.id}`,
             partNumber: p.partNumber || `QB-SKU-${p.id}`,
-            mainCategory: p.category?.parent?.name || p.category?.name || 'Phụ Tùng Q.BA',
-            subCategory: p.category?.name || 'Linh Kiện Khác',
+            mainCategory: p.category?.parent?.name || (p.category?.parentId ? '' : p.category?.name) || 'Phụ Tùng Q.BA',
+            mainCategorySlug: p.category?.parent?.slug || (p.category?.parentId ? '' : p.category?.slug) || '',
+            subCategory: p.category?.parent ? p.category?.name : (p.category?.name || 'Linh Kiện Khác'),
             subCategorySlug: p.category?.slug || 'linh-kien-khac',
             subCategoryId: p.categoryId,
-            brand: p.brand?.name || 'HOWO Sinotruk',
+            brand: p.brand?.name || 'Chưa Phân Loại',
             brandId: p.brandId,
-            stock: p.stockQuantity ?? 10,
+            stock: p.stockQuantity ?? 0,
             price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString('vi-VN')} ₫` : 'Liên hệ Báo Giá',
             costPrice: p.costPrice && Number(p.costPrice) > 0 ? `${Number(p.costPrice).toLocaleString('vi-VN')} ₫` : '0 ₫',
             status: statusStr,
@@ -140,6 +143,7 @@ export default function AdminProductsPage() {
         const groups: CategoryOptionGroup[] = catTree.map((parent) => ({
           id: parent.id,
           main: parent.name,
+          mainSlug: parent.slug,
           subs: (parent.children || []).map((child) => ({
             id: child.id,
             name: child.name,
@@ -158,10 +162,9 @@ export default function AdminProductsPage() {
         }
       }
 
-      // 3. Process Brands List for Dropdown
-      const partnerBrandsRes = await AdminApiService.getPartnerBrands();
-      if (partnerBrandsRes && partnerBrandsRes.data && Array.isArray(partnerBrandsRes.data)) {
-        setBrandsList(partnerBrandsRes.data.map((b: any) => ({ id: b.id, name: b.name })));
+      // 3. Process Product Brands List for Dropdown
+      if (brandsData && brandsData.data && Array.isArray(brandsData.data)) {
+        setBrandsList(brandsData.data.map((b: any) => ({ id: b.id, name: b.name })));
       }
     } catch {
       // Keep fallback
@@ -258,7 +261,9 @@ export default function AdminProductsPage() {
       const matchesCategory =
         selectedSubCategory === 'ALL' ||
         p.subCategorySlug === selectedSubCategory ||
-        p.subCategory === selectedSubCategory;
+        p.subCategory === selectedSubCategory ||
+        p.mainCategorySlug === selectedSubCategory ||
+        p.mainCategory === selectedSubCategory;
 
       const matchesBrand = selectedBrand === 'ALL' || p.brand === selectedBrand;
 
@@ -516,6 +521,9 @@ export default function AdminProductsPage() {
                 <option value="ALL">Tất cả danh mục sản phẩm</option>
                 {categoryGroups.map((group) => (
                   <optgroup key={`cat-grp-${group.id}`} label={`📂 ${group.main}`}>
+                    <option value={group.mainSlug || group.main}>
+                      📁 [Tất cả mã thuộc: {group.main}]
+                    </option>
                     {group.subs.map((sub) => (
                       <option key={`sub-opt-${sub.id}`} value={sub.slug}>
                         -- {sub.name}
