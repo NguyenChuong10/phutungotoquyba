@@ -34,7 +34,11 @@ export const quotationRateLimiter = rateLimit({
 // 3. Giới hạn chung toàn bộ API công khai (Chống tấn công từ chối dịch vụ DDoS / Scraping)
 export const apiRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 phút
-  max: 2000, // Tối đa 2000 requests / 15 phút / IP (Đảm bảo polling Admin không bị nhầm lẫn)
+  max: 2000, // Tối đa 2000 requests / 15 phút / IP
+  skip: (req) => {
+    const ip = req.ip || req.socket.remoteAddress || "";
+    return ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1" || req.hostname === "localhost";
+  },
   standardHeaders: true,
   legacyHeaders: false,
   message: {

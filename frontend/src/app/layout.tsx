@@ -71,58 +71,22 @@ export const metadata: Metadata = {
 };
 
 import { AntdRegistry } from "@ant-design/nextjs-registry";
+import LocalBusinessJsonLd from "@/components/seo/LocalBusinessJsonLd";
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Schema.org Structured Data (JSON-LD) for LocalBusiness & AutoPartsStore
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "AutoPartsStore",
-    "name": "Phụ Tùng Ô Tô Q.BA Đà Nẵng",
-    "image": "http://localhost:3000/images/news-section/quyba.png",
-    "@id": "http://localhost:3000/#store",
-    "url": "http://localhost:3000",
-    "telephone": "0903.588.167",
-    "email": "phutungotoqbadanang@gmail.com",
-    "priceRange": "$$",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "351 Điện Biên Phủ, Phường Hòa Khê, Quận Thanh Khê",
-      "addressLocality": "Đà Nẵng",
-      "postalCode": "550000",
-      "addressCountry": "VN",
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": 16.0645,
-      "longitude": 108.1965,
-    },
-    "openingHoursSpecification": {
-      "@type": "OpeningHoursSpecification",
-      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-      "opens": "07:30",
-      "closes": "18:00",
-    },
-  };
-
   return (
     <html
       lang="vi"
       className={`${inter.variable} ${montserrat.variable} h-full antialiased`}
       suppressHydrationWarning={true}
     >
-      <head>
-        <Script
-          id="root-localbusiness-jsonld"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning={true}>
         <AntdRegistry>
+          <LocalBusinessJsonLd />
           <MainLayout>{children}</MainLayout>
         </AntdRegistry>
       </body>

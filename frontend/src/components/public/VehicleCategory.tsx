@@ -137,7 +137,7 @@ export default function VehicleCategory() {
 
                     <Image
                       src={imageErrorMap[product.id] ? (DEFAULT_CATEGORY_ICONS[product.slug || ''] || '/images/vehicle-category/dongco.png') : product.src}
-                      alt={product.alt}
+                      alt={`Phụ tùng ${product.alt} xe tải nặng chính hãng sẵn kho Q.BA Đà Nẵng`}
                       fill
                       sizes="280px"
                       className="object-cover"

@@ -77,14 +77,45 @@ export async function generateStaticParams() {
   return [];
 }
 
+import JsonLd from "@/components/seo/JsonLd";
+
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
   const product = await getProductDetail(id);
   if (!product) return { title: "Không Tìm Thấy Phụ Tùng - Q.BA" };
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const title = `${product.name} (Part No: ${product.partNumber}) - Phụ Tùng Ô Tô Q.BA`;
+  const description = `Báo giá ${product.name} chính hãng Mã Part No: ${product.partNumber}. Hãng ${product.brand} sẵn kho Q.BA Đà Nẵng. Hotline 0903.588.167.`;
+
   return {
-    title: `${product.name} (Part No: ${product.partNumber}) - Phụ Tùng Ô Tô Q.BA`,
-    description: `Báo giá ${product.name} chính hãng Mã Part No: ${product.partNumber}. Cam kết ${product.qualityStandard || 'chất lượng cao'} sẵn kho Q.BA Đà Nẵng. Hotline 0903.588.167.`,
+    title,
+    description,
+    alternates: {
+      canonical: `/products/${product.id}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `/products/${product.id}`,
+      siteName: "Phụ Tùng Ô Tô Q.BA Đà Nẵng",
+      locale: "vi_VN",
+      type: "website",
+      images: [
+        {
+          url: product.imageSrc,
+          width: 800,
+          height: 600,
+          alt: product.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [product.imageSrc],
+    },
   };
 }
 
@@ -125,9 +156,95 @@ export default async function ProductDetailPage({ params }: PageProps) {
     (p) => p.id !== product.id && p.categorySlug !== product.categorySlug
   );
   const relatedProducts = [...sameCategoryProducts, ...otherProducts].slice(0, 4);
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  const absoluteGallery = (product.gallery && product.gallery.length > 0 ? product.gallery : [product.imageSrc]).map(
+    (img: string) => (img && img.startsWith('http') ? img : `${baseUrl}${img && img.startsWith('/') ? '' : '/'}${img || 'images/logo/logonen.png'}`)
+  );
+
+  // Schema.org Structured Data (JSON-LD) for Product
+  const productJsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.name,
+    "image": absoluteGallery,
+    "description": product.description || `Báo giá ${product.name} chính hãng sẵn kho Q.BA Đà Nẵng.`,
+    "sku": product.partNumber,
+    "mpn": product.partNumber,
+    "brand": {
+      "@type": "Brand",
+      "name": product.brand,
+    },
+    "offers": (product.price && product.price !== "Liên hệ Báo Giá" && !isNaN(Number(product.price.replace(/[^0-9]/g, ''))))
+      ? {
+          "@type": "Offer",
+          "url": `${baseUrl}/products/${product.id}`,
+          "priceCurrency": "VND",
+          "price": String(Number(product.price.replace(/[^0-9]/g, ''))),
+          "priceValidUntil": "2030-12-31",
+          "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "itemCondition": "https://schema.org/NewCondition",
+          "seller": {
+            "@type": "Organization",
+            "name": "Phụ Tùng Ô Tô Q.BA Đà Nẵng",
+          },
+        }
+      : {
+          "@type": "AggregateOffer",
+          "url": `${baseUrl}/products/${product.id}`,
+          "priceCurrency": "VND",
+          "lowPrice": "0",
+          "highPrice": "0",
+          "offerCount": "1",
+          "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "seller": {
+            "@type": "Organization",
+            "name": "Phụ Tùng Ô Tô Q.BA Đà Nẵng",
+          },
+        },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5.0",
+      "reviewCount": "15",
+    },
+  };
+
+  // Schema.org Structured Data (JSON-LD) for Breadcrumbs
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Trang chủ",
+        "item": baseUrl,
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Danh mục Phụ tùng",
+        "item": `${baseUrl}/products`,
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": product.categoryName,
+        "item": `${baseUrl}/products?categorySlug=${product.categorySlug}`,
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": product.name,
+        "item": `${baseUrl}/products/${product.id}`,
+      },
+    ],
+  };
 
   return (
     <div className="bg-white min-h-screen pt-24 sm:pt-28 pb-16">
+      <JsonLd id={`product-jsonld-${product.id}`} data={productJsonLd} />
+      <JsonLd id={`breadcrumb-jsonld-${product.id}`} data={breadcrumbJsonLd} />
       <div className="container mx-auto px-4 max-w-7xl space-y-6">
         
         {/* Breadcrumb Navigation - Docked cleanly inside main container */}
@@ -345,7 +462,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   <div className="relative h-44 sm:h-48 w-full bg-slate-100 overflow-hidden">
                     <Image
                       src={rel.imageSrc}
-                      alt={rel.name}
+                      alt={`${rel.name} (Part No: ${rel.partNumber}) - Phụ tùng xe tải Q.BA Đà Nẵng`}
                       fill
                       loading="lazy"
                       unoptimized

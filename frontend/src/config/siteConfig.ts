@@ -13,6 +13,8 @@ export const siteConfig = {
     "Tổng Kho 1: 43-45-47 Nguyễn Văn Tạo, Q. Thanh Khê, TP. Đà Nẵng",
     "Kho Phụ Tùng Động Cơ: QL1A, H. Hòa Vang, TP. Đà Nẵng"
   ],
+  logo: "/images/logo/logonen.png",
+  icon: "/images/logo/icon-square.png",
   workingHours: "07:30 - 18:00 (Thứ 2 - Chủ Nhật)",
   socialLinks: {
     facebook: "https://www.facebook.com/p/Ph%E1%BB%A5-t%C3%B9ng-%C3%B4-t%C3%B4-QBa-61574470388648/",

@@ -437,7 +437,7 @@ function ProductsContent() {
                         <div className="relative h-52 sm:h-56 w-full bg-slate-100 overflow-hidden">
                           <Image
                             src={formatImageUrl(p.imageSrc || (p as any).image)}
-                            alt={p.name}
+                            alt={`${p.name} (Part No: ${p.partNumber}) - Phụ tùng xe tải Q.BA Đà Nẵng`}
                             fill
                             loading="lazy"
                             unoptimized

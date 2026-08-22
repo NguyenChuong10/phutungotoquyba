@@ -21,19 +21,26 @@ const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, uploadDir);
   },
-  filename: (_req, file, cb) => {
+  filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    const cleanName = path
-      .basename(file.originalname, ext)
+    const rawTitle = req.body?.title || req.body?.name || path.basename(file.originalname, ext);
+    
+    let cleanName = rawTitle
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[đĐ]/g, "d")
       .replace(/[^a-z0-9]/g, "-")
       .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "")
       .trim();
 
-    const seoFilename = `${cleanName}-${Date.now()}${ext}`;
+    if (!cleanName || cleanName.length < 3) {
+      cleanName = "linh-kien";
+    }
+
+    const timestamp = Date.now().toString().slice(-6);
+    const seoFilename = `phutung-quyba-${cleanName}-${timestamp}${ext}`;
     cb(null, seoFilename);
   },
 });
