@@ -38,7 +38,6 @@ async function getProductDetail(id: string) {
           id: String(p.id),
           name: p.name,
           partNumber: p.partNumber || `PN-${p.id}`,
-          internalCode: p.internalCode || `QB-INT-${p.id}`,
           categorySlug: p.category?.parent?.slug || p.category?.slug || "dong-co-may-phat",
           categoryName: p.category?.parent?.name || p.category?.name || "Động Cơ & Máy Phát",
           brand: p.brand?.name || "HOWO Sinotruk",
@@ -168,7 +167,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
             <div className="flex flex-wrap items-center justify-between gap-2">
               {product.inStock ? (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-extrabold text-xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" /> Sẵn Kho Đà Nẵng
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" /> Kiểm tra kho Đà Nẵng
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-700 font-extrabold text-xs">
@@ -187,13 +186,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
               {product.name}
             </h1>
 
-            {/* Part Number & Internal Code Badges */}
+            {/* Part Number Badge */}
             <div className="flex flex-wrap items-center gap-2">
               <span className="px-3 py-1 rounded-md bg-slate-900 text-white font-mono font-extrabold text-xs">
                 Part No: <span className="text-amber-400">{product.partNumber}</span>
-              </span>
-              <span className="px-3 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-mono font-bold text-xs">
-                Mã Nội Bộ: {product.internalCode}
               </span>
             </div>
 
@@ -341,43 +337,45 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {relatedProducts.map((rel: any) => (
-                <div 
+                <Link 
                   key={`rel-prod-${rel.id}`}
-                  className="p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-brand/40 shadow-xs hover:shadow-md transition-all duration-300 group flex flex-col justify-between"
+                  href={`/products/${rel.id}`}
+                  className="group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xl hover:border-brand/40 transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer"
                 >
-                  <div>
-                    <div className="relative aspect-square bg-slate-50 rounded-xl overflow-hidden mb-2.5 border border-slate-100 flex items-center justify-center p-2">
-                      <Image
-                        src={rel.imageSrc}
-                        alt={rel.name}
-                        fill
-                        className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
-                        unoptimized
-                        sizes="(max-width: 768px) 50vw, 25vw"
-                      />
-                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-slate-900/90 text-amber-400 font-mono font-bold text-[10px] uppercase shadow-2xs">
-                        {rel.partNumber}
+                  <div className="relative h-44 sm:h-48 w-full bg-slate-100 overflow-hidden">
+                    <Image
+                      src={rel.imageSrc}
+                      alt={rel.name}
+                      fill
+                      loading="lazy"
+                      unoptimized
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    {rel.brand && (
+                      <div className="absolute top-2.5 left-2.5 bg-slate-900/90 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-md shadow-md z-10">
+                        {rel.brand}
                       </div>
-                    </div>
-                    <span className="text-[10px] font-extrabold text-slate-400 uppercase block mb-0.5">
-                      {rel.brand}
-                    </span>
-                    <h4 className="font-bold text-slate-900 text-xs sm:text-sm line-clamp-2 group-hover:text-brand transition-colors mb-1.5 leading-snug">
-                      {rel.name}
-                    </h4>
+                    )}
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between mt-2">
-                    <span className="text-xs font-black text-brand">{rel.price}</span>
-                    <Link 
-                      href={`/products/${rel.id}`}
-                      className="px-2.5 py-1 rounded-lg bg-slate-100 group-hover:bg-brand group-hover:text-white text-slate-700 font-extrabold text-[11px] uppercase transition-all duration-300 inline-flex items-center gap-1"
-                    >
-                      <span>Chi tiết</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
+                  <div className="p-3.5 space-y-3 flex-1 flex flex-col justify-between bg-white">
+                    <div>
+                      <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-brand transition-colors">
+                        {rel.name}
+                      </h4>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Kiểm tra kho Đà Nẵng
+                      </span>
+                      <span className="text-xs font-black text-brand group-hover:translate-x-1 transition-transform flex items-center gap-0.5">
+                        Xem Chi Tiết <ChevronRight size={14} />
+                      </span>
+                    </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
