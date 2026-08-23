@@ -168,17 +168,17 @@ export default function QuotationPage() {
                       <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
                         <div className="flex items-center border border-slate-700 rounded-lg overflow-hidden bg-slate-950">
                           <button
-                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.product.id, (Number(item.quantity) || 1) - 1)}
                             className="p-2 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
                             aria-label="Giảm số lượng"
                           >
                             <Minus className="w-3.5 h-3.5" />
                           </button>
                           <span className="px-3 text-sm font-bold font-mono text-white">
-                            {item.quantity}
+                            {Number(item.quantity) || 1}
                           </span>
                           <button
-                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.product.id, (Number(item.quantity) || 1) + 1)}
                             className="p-2 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
                             aria-label="Tăng số lượng"
                           >

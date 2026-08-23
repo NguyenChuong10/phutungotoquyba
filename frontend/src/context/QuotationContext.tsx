@@ -28,7 +28,15 @@ export const QuotationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       const saved = localStorage.getItem("qba_quotation_cart");
       if (saved) {
-        setItems(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setItems(
+            parsed.map((item: any) => ({
+              ...item,
+              quantity: Number(item.quantity) || 1,
+            }))
+          );
+        }
       }
     } catch {
       // Ignore error
@@ -45,30 +53,36 @@ export const QuotationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [items]);
 
   const addItem = (product: Product, quantity = 1, note = "") => {
+    const numQty = Number(quantity) || 1;
     setItems((prev) => {
-      const existingIndex = prev.findIndex((item) => item.product.id === product.id);
+      const existingIndex = prev.findIndex((item) => String(item.product.id) === String(product.id));
       if (existingIndex > -1) {
         const updated = [...prev];
-        updated[existingIndex].quantity += quantity;
-        if (note) updated[existingIndex].note = note;
+        const currentQty = Number(updated[existingIndex].quantity) || 0;
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          quantity: currentQty + numQty,
+          note: note || updated[existingIndex].note,
+        };
         return updated;
       }
-      return [...prev, { product, quantity, note }];
+      return [...prev, { product, quantity: numQty, note }];
     });
   };
 
   const removeItem = (productId: string) => {
-    setItems((prev) => prev.filter((item) => item.product.id !== productId));
+    setItems((prev) => prev.filter((item) => String(item.product.id) !== String(productId)));
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
-    if (quantity <= 0) {
+    const numQty = Number(quantity);
+    if (numQty <= 0) {
       removeItem(productId);
       return;
     }
     setItems((prev) =>
       prev.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
+        String(item.product.id) === String(productId) ? { ...item, quantity: numQty } : item
       )
     );
   };
@@ -77,7 +91,7 @@ export const QuotationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setItems([]);
   };
 
-  const totalItems = items.reduce((acc, curr) => acc + curr.quantity, 0);
+  const totalItems = items.reduce((acc, curr) => acc + (Number(curr.quantity) || 0), 0);
 
   return (
     <QuotationContext.Provider

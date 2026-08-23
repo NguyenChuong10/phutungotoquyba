@@ -19,6 +19,7 @@ import {
   Sparkles,
   CheckCircle2,
 } from 'lucide-react';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import { AdminApiService } from '@/services/adminApiService';
 
 interface PartnerBrand {
@@ -99,9 +100,20 @@ export default function AdminSettingsPage() {
           message: 'Đã lưu toàn bộ cấu hình hệ thống kho Q.BA thành công!',
         });
       } else {
-        alert(res.message || 'Lỗi khi lưu cấu hình');
+        setToastState({
+          id: String(Date.now()),
+          type: 'error',
+          title: 'Lưu Thất Bại',
+          message: res.message || 'Lỗi khi lưu cấu hình hệ thống',
+        });
       }
     } catch (err) {
+      setToastState({
+        id: String(Date.now()),
+        type: 'error',
+        title: 'Lỗi Kết Nối',
+        message: 'Không thể kết nối máy chủ khi lưu cấu hình',
+      });
       console.error('Failed to save settings:', err);
     } finally {
       setSaving(false);
@@ -140,24 +152,48 @@ export default function AdminSettingsPage() {
           message: `Đã tải ảnh ${file.name} lên máy chủ Q.BA thành công!`,
         });
       } else {
-        alert(res.message || 'Lỗi tải ảnh lên máy chủ.');
+        setToastState({
+          id: String(Date.now()),
+          type: 'error',
+          title: 'Upload Thất Bại',
+          message: res.message || 'Lỗi tải ảnh lên máy chủ.',
+        });
       }
     } catch {
-      alert('Không thể tải ảnh lên.');
+      setToastState({
+        id: String(Date.now()),
+        type: 'error',
+        title: 'Lỗi Tải Ảnh',
+        message: 'Không thể tải ảnh lên máy chủ.',
+      });
     } finally {
       setUploadingImage(false);
     }
   };
 
+  // Delete Brand Confirm Modal State
+  const [deletingBrand, setDeletingBrand] = useState<PartnerBrand | null>(null);
+  const [isDeletingBrand, setIsDeletingBrand] = useState(false);
+
   // Save Brand Partner to PostgreSQL Database
   const handleSaveBrand = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!brandName.trim()) {
-      alert('Vui lòng nhập tên thương hiệu đối tác.');
+      setToastState({
+        id: String(Date.now()),
+        type: 'error',
+        title: 'Thiếu Tên Thương Hiệu',
+        message: 'Vui lòng nhập tên thương hiệu đối tác.',
+      });
       return;
     }
     if (!brandBg.trim()) {
-      alert('Vui lòng tải ảnh logo thương hiệu.');
+      setToastState({
+        id: String(Date.now()),
+        type: 'error',
+        title: 'Thiếu Logo',
+        message: 'Vui lòng tải ảnh logo thương hiệu.',
+      });
       return;
     }
 
@@ -175,10 +211,15 @@ export default function AdminSettingsPage() {
             id: String(Date.now()),
             type: 'success',
             title: 'Cập Nhật Thành Công',
-            message: `Đã cập nhật thương hiệu [${res.data.name}] thành công!`,
+            message: `Đã cập nhật thương hiệu "${res.data.name}" thành công!`,
           });
         } else {
-          alert(res.message || 'Không thể cập nhật thương hiệu.');
+          setToastState({
+            id: String(Date.now()),
+            type: 'error',
+            title: 'Cập Nhật Thất Bại',
+            message: res.message || 'Không thể cập nhật thương hiệu.',
+          });
         }
       } else {
         const res = await AdminApiService.createPartnerBrand({
@@ -191,37 +232,60 @@ export default function AdminSettingsPage() {
             id: String(Date.now()),
             type: 'success',
             title: 'Thêm Mới Thành Công',
-            message: `Đã thêm thương hiệu [${res.data.name}] thành công!`,
+            message: `Đã thêm thương hiệu "${res.data.name}" thành công!`,
           });
         } else {
-          alert(res.message || 'Không thể tạo thương hiệu mới.');
+          setToastState({
+            id: String(Date.now()),
+            type: 'error',
+            title: 'Thêm Mới Thất Bại',
+            message: res.message || 'Không thể tạo thương hiệu mới.',
+          });
         }
       }
       setIsBrandModalOpen(false);
     } catch {
-      alert('Lỗi khi lưu dữ liệu thương hiệu.');
+      setToastState({
+        id: String(Date.now()),
+        type: 'error',
+        title: 'Lỗi Kết Nối',
+        message: 'Lỗi khi lưu dữ liệu thương hiệu.',
+      });
     }
   };
 
   // Delete Brand Partner permanently from PostgreSQL Database
-  const handleDeleteBrand = async (id: number) => {
-    if (confirm('Bạn có chắc chắn muốn XÓA VĨNH VIỄN thương hiệu đối tác này?')) {
-      try {
-        const res = await AdminApiService.deletePartnerBrand(id);
-        if (res.ok) {
-          setPartnerBrands((prev) => prev.filter((b) => b.id !== id));
-          setToastState({
-            id: String(Date.now()),
-            type: 'success',
-            title: 'Đã Xóa Thành Công',
-            message: 'Thương hiệu đối tác đã được xóa vĩnh viễn khỏi hệ thống!',
-          });
-        } else {
-          alert(res.message || 'Không thể xóa thương hiệu.');
-        }
-      } catch {
-        alert('Lỗi kết nối máy chủ khi xóa thương hiệu.');
+  const handleConfirmDeleteBrand = async () => {
+    if (!deletingBrand) return;
+    setIsDeletingBrand(true);
+    try {
+      const res = await AdminApiService.deletePartnerBrand(deletingBrand.id);
+      if (res.ok) {
+        setPartnerBrands((prev) => prev.filter((b) => b.id !== deletingBrand.id));
+        setToastState({
+          id: String(Date.now()),
+          type: 'success',
+          title: 'Đã Xóa Thành Công',
+          message: `Thương hiệu "${deletingBrand.name}" đã được xóa vĩnh viễn khỏi hệ thống!`,
+        });
+        setDeletingBrand(null);
+      } else {
+        setToastState({
+          id: String(Date.now()),
+          type: 'error',
+          title: 'Xóa Thất Bại',
+          message: res.message || 'Không thể xóa thương hiệu.',
+        });
       }
+    } catch {
+      setToastState({
+        id: String(Date.now()),
+        type: 'error',
+        title: 'Lỗi Kết Nối',
+        message: 'Lỗi kết nối máy chủ khi xóa thương hiệu.',
+      });
+    } finally {
+      setIsDeletingBrand(false);
     }
   };
 
@@ -501,7 +565,7 @@ export default function AdminSettingsPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDeleteBrand(brand.id)}
+                        onClick={() => setDeletingBrand(brand)}
                         className="py-1.5 px-2 bg-slate-200 hover:bg-red-600 hover:text-white text-slate-700 text-[11px] font-bold rounded-lg transition-colors flex items-center justify-center cursor-pointer"
                         title="Xóa thương hiệu vĩnh viễn"
                       >
@@ -537,10 +601,10 @@ export default function AdminSettingsPage() {
               </button>
             </div>
 
-            {/* Modal Form */}
-            <form onSubmit={handleSaveBrand} className="p-6 space-y-5 text-xs">
+            {/* Modal Form Content */}
+            <form onSubmit={handleSaveBrand} className="p-6 space-y-4">
               <div>
-                <label className="font-bold text-slate-800 block mb-1.5">
+                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
                   Tên Thương Hiệu Đối Tác (*)
                 </label>
                 <input
@@ -548,8 +612,8 @@ export default function AdminSettingsPage() {
                   required
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
-                  placeholder="VD: WEICHAI, HOWO, YUCHAI..."
-                  className="w-full p-3 border border-slate-200 rounded-xl font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                  placeholder="Nhập tên thương hiệu (Ví dụ: WEICHAI, HOWO, BOSCH...)"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
                 />
               </div>
 
@@ -641,6 +705,20 @@ export default function AdminSettingsPage() {
           </div>
         </div>
       )}
+
+      {/* CONFIRM DELETE BRAND MODAL */}
+      <ConfirmModal
+        isOpen={Boolean(deletingBrand)}
+        title="Xác Nhận Xóa Thương Hiệu"
+        message="Bạn có chắc chắn muốn xóa vĩnh viễn thương hiệu"
+        itemName={deletingBrand?.name}
+        confirmText="Xóa Vĩnh Viễn"
+        cancelText="Hủy Bỏ"
+        type="danger"
+        isLoading={isDeletingBrand}
+        onConfirm={handleConfirmDeleteBrand}
+        onCancel={() => setDeletingBrand(null)}
+      />
 
       {/* TOAST NOTIFICATION */}
       <ToastNotification toast={toastState} onClose={() => setToastState(null)} />

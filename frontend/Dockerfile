@@ -51,13 +51,13 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
-# Copy script entrypoint và phân quyền thực thi
+# Copy script entrypoint, chuẩn hóa LF line endings và phân quyền thực thi
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 3000
 
 # Chạy thông qua entrypoint để replace ENV runtime trước khi server khởi động
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "/app/docker-entrypoint.sh"]
 
 CMD ["npm", "run", "start"]

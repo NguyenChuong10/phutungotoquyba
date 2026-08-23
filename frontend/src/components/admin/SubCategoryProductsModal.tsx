@@ -64,7 +64,7 @@ export default function SubCategoryProductsModal({
 }: SubCategoryProductsModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
-  const itemsPerPage = 4;
+  const itemsPerPage = 7;
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
 
   const [deleteProdConfirm, setDeleteProdConfirm] = useState<{
@@ -124,7 +124,11 @@ export default function SubCategoryProductsModal({
   const filteredProducts = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     const rawList = productsMock.filter(
-      (p) => p.subCategorySlug === activeSubModal.slug || p.subCategoryName === activeSubModal.name
+      (p) =>
+        p.subCategorySlug === activeSubModal.slug ||
+        p.subCategoryName === activeSubModal.name ||
+        (p as any).mainCategorySlug === activeSubModal.slug ||
+        (p as any).mainCategory === activeSubModal.name
     );
     if (!q) return rawList;
     return rawList.filter(

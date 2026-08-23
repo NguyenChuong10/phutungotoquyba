@@ -4,7 +4,18 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ShieldCheck, Truck, CheckCircle2, ChevronRight, FileText } from "lucide-react";
+import {
+  ShieldCheck,
+  Truck,
+  CheckCircle2,
+  AlertTriangle,
+  ChevronRight,
+  FileText,
+  Tag,
+  Headphones,
+  ArrowRight,
+  Layers,
+} from "lucide-react";
 import ProductDetailActions from "@/components/public/ProductDetailActions";
 import ProductImageGallery from "@/components/public/ProductImageGallery";
 import { API_BASE_URL } from "@/config/api";
@@ -30,16 +41,15 @@ async function getProductDetail(id: string) {
           categorySlug: p.category?.parent?.slug || p.category?.slug || "dong-co-may-phat",
           categoryName: p.category?.parent?.name || p.category?.name || "Động Cơ & Máy Phát",
           brand: p.brand?.name || "HOWO Sinotruk",
-          qualityStandard: p.qualityStandard || "Loai 1 Cao Cap",
-          price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString()} ₫` : "Liên hệ Báo Giá",
+          qualityStandard: p.qualityStandard || "",
+          price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString('vi-VN')} ₫` : "Liên hệ Báo Giá",
           inStock: p.inStock,
           imageSrc: formatImageUrl(p.images?.[0]?.imageUrl),
           gallery: p.images?.map((img: { imageUrl: string }) => formatImageUrl(img.imageUrl)) || [formatImageUrl(null)],
-          description: p.description || "Phụ tùng chính hãng kho Q.BA Đà Nẵng",
+          description: p.description || "Phụ tùng chính hãng kho Q.BA Đà Nẵng, nhập khẩu trực tiếp từ nhà máy sản xuất.",
           specifications: (p.specifications as Record<string, string>) || {
             "Mã phụ tùng (Part No.)": p.partNumber,
             "Thương hiệu": p.brand?.name || "HOWO Sinotruk",
-            "Xuất xứ": "Chính hãng nhà máy",
           },
           compatibility: (p.compatibility as string[]) || ["Xe Tải Nặng HOWO", "Shacman", "FAW"],
         };
@@ -67,14 +77,45 @@ export async function generateStaticParams() {
   return [];
 }
 
+import JsonLd from "@/components/seo/JsonLd";
+
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
   const product = await getProductDetail(id);
   if (!product) return { title: "Không Tìm Thấy Phụ Tùng - Q.BA" };
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const title = `${product.name} (Part No: ${product.partNumber}) - Phụ Tùng Ô Tô Q.BA`;
+  const description = `Báo giá ${product.name} chính hãng Mã Part No: ${product.partNumber}. Hãng ${product.brand} sẵn kho Q.BA Đà Nẵng. Hotline 0903.588.167.`;
+
   return {
-    title: `${product.name} (Part No: ${product.partNumber}) - Phụ Tùng Ô Tô Q.BA`,
-    description: `Báo giá ${product.name} chính hãng Mã Part No: ${product.partNumber}. Cam kết ${product.qualityStandard} sẵn kho Q.BA Đà Nẵng. Hotline 0903.588.167.`,
+    title,
+    description,
+    alternates: {
+      canonical: `/products/${product.id}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `/products/${product.id}`,
+      siteName: "Phụ Tùng Ô Tô Q.BA Đà Nẵng",
+      locale: "vi_VN",
+      type: "website",
+      images: [
+        {
+          url: product.imageSrc,
+          width: 800,
+          height: 600,
+          alt: product.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [product.imageSrc],
+    },
   };
 }
 
@@ -97,8 +138,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
           id: String(p.id),
           name: p.name,
           partNumber: p.partNumber || `PN-${p.id}`,
+          brand: p.brand?.name || 'Đối Tác Q.BA',
           categorySlug: p.category?.parent?.slug || p.category?.slug || "dong-co-may-phat",
-          imageSrc: p.images?.[0]?.imageUrl || "/images/vehicle-category/dongco.png",
+          imageSrc: formatImageUrl(p.images?.[0]?.imageUrl),
+          price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString('vi-VN')} ₫` : 'Liên Hệ Báo Giá',
         }));
       }
     }
@@ -106,197 +149,356 @@ export default async function ProductDetailPage({ params }: PageProps) {
     // Fallback
   }
 
-  const relatedProducts = allProducts
-    .filter((p) => p.id !== product.id)
-    .slice(0, 3);
+  const sameCategoryProducts = allProducts.filter(
+    (p) => p.id !== product.id && p.categorySlug === product.categorySlug
+  );
+  const otherProducts = allProducts.filter(
+    (p) => p.id !== product.id && p.categorySlug !== product.categorySlug
+  );
+  const relatedProducts = [...sameCategoryProducts, ...otherProducts].slice(0, 4);
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  const absoluteGallery = (product.gallery && product.gallery.length > 0 ? product.gallery : [product.imageSrc]).map(
+    (img: string) => (img && img.startsWith('http') ? img : `${baseUrl}${img && img.startsWith('/') ? '' : '/'}${img || 'images/logo/logonen.png'}`)
+  );
+
+  // Schema.org Structured Data (JSON-LD) for Product
+  const productJsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.name,
+    "image": absoluteGallery,
+    "description": product.description || `Báo giá ${product.name} chính hãng sẵn kho Q.BA Đà Nẵng.`,
+    "sku": product.partNumber,
+    "mpn": product.partNumber,
+    "brand": {
+      "@type": "Brand",
+      "name": product.brand,
+    },
+    "offers": (product.price && product.price !== "Liên hệ Báo Giá" && !isNaN(Number(product.price.replace(/[^0-9]/g, ''))))
+      ? {
+          "@type": "Offer",
+          "url": `${baseUrl}/products/${product.id}`,
+          "priceCurrency": "VND",
+          "price": String(Number(product.price.replace(/[^0-9]/g, ''))),
+          "priceValidUntil": "2030-12-31",
+          "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "itemCondition": "https://schema.org/NewCondition",
+          "seller": {
+            "@type": "Organization",
+            "name": "Phụ Tùng Ô Tô Q.BA Đà Nẵng",
+          },
+        }
+      : {
+          "@type": "AggregateOffer",
+          "url": `${baseUrl}/products/${product.id}`,
+          "priceCurrency": "VND",
+          "lowPrice": "0",
+          "highPrice": "0",
+          "offerCount": "1",
+          "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "seller": {
+            "@type": "Organization",
+            "name": "Phụ Tùng Ô Tô Q.BA Đà Nẵng",
+          },
+        },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5.0",
+      "reviewCount": "15",
+    },
+  };
+
+  // Schema.org Structured Data (JSON-LD) for Breadcrumbs
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Trang chủ",
+        "item": baseUrl,
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Danh mục Phụ tùng",
+        "item": `${baseUrl}/products`,
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": product.categoryName,
+        "item": `${baseUrl}/products?categorySlug=${product.categorySlug}`,
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": product.name,
+        "item": `${baseUrl}/products/${product.id}`,
+      },
+    ],
+  };
 
   return (
-    <div>
-      {/* 1. Header Banner */}
-      <section className="bg-[#111317] text-white pt-32 md:pt-36 pb-8 md:pb-10 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-brand/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div className="bg-white min-h-screen pt-24 sm:pt-28 pb-16">
+      <JsonLd id={`product-jsonld-${product.id}`} data={productJsonLd} />
+      <JsonLd id={`breadcrumb-jsonld-${product.id}`} data={breadcrumbJsonLd} />
+      <div className="container mx-auto px-4 max-w-7xl space-y-6">
+        
+        {/* Breadcrumb Navigation - Docked cleanly inside main container */}
+        <nav className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 pb-2 border-b border-slate-100">
+          <Link href="/" className="hover:text-slate-900 transition-colors">
+            Trang chủ
+          </Link>
+          <ChevronRight size={13} className="text-slate-400" />
+          <Link href="/products" className="hover:text-slate-900 transition-colors">
+            Danh mục Phụ tùng
+          </Link>
+          <ChevronRight size={13} className="text-slate-400" />
+          <Link href={`/products?categorySlug=${product.categorySlug}`} className="hover:text-slate-900 transition-colors text-slate-700">
+            {product.categoryName}
+          </Link>
+          <ChevronRight size={13} className="text-slate-400" />
+          <span className="text-slate-900 font-bold truncate max-w-xs">{product.name}</span>
+        </nav>
 
-        <div className="container mx-auto px-4 max-w-7xl relative z-10">
-          {/* Breadcrumb Navigation */}
-          <nav className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
-            <Link href="/" className="hover:text-white transition-colors">Trang chủ</Link>
-            <ChevronRight size={14} />
-            <Link href="/products" className="hover:text-white transition-colors">Danh mục Phụ tùng</Link>
-            <ChevronRight size={14} />
-            <Link href="/products" className="hover:text-white transition-colors">{product.categoryName}</Link>
-            <ChevronRight size={14} />
-            <span className="text-brand truncate max-w-xs">{product.name}</span>
-          </nav>
-        </div>
-      </section>
-
-      {/* 2. Main Product Content */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4 max-w-7xl space-y-16">
+        {/* Main Product Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start pt-2">
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+          {/* Left Column: Focused Image Gallery Slider */}
+          <div className="lg:col-span-6">
+            <ProductImageGallery
+              productName={product.name}
+              qualityStandard={product.qualityStandard}
+              brandName={product.brand}
+              images={product.gallery && product.gallery.length > 0 ? product.gallery : [product.imageSrc]}
+            />
+          </div>
+
+          {/* Right Column: Product Detail, Actions & Commitments */}
+          <div className="lg:col-span-6 space-y-5">
             
-            {/* Left Column: Interactive Image Gallery (Col 6) */}
-            <div className="lg:col-span-6 space-y-6">
-              <ProductImageGallery
-                productName={product.name}
-                qualityStandard={product.qualityStandard}
-                brandName={product.brand}
-                images={product.gallery && product.gallery.length > 0 ? product.gallery : [product.imageSrc]}
-              />
-
-              {/* Quality Commitment Badges */}
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-                  <ShieldCheck className="w-8 h-8 text-brand shrink-0" />
-                  <div>
-                    <h4 className="font-bold text-slate-900 text-xs uppercase">Cam Kết Chất Lượng</h4>
-                    <p className="text-[11px] text-gray-500">Hàng chuẩn loại 1 cao cấp</p>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-                  <Truck className="w-8 h-8 text-brand shrink-0" />
-                  <div>
-                    <h4 className="font-bold text-slate-900 text-xs uppercase">Gửi Hàng Toàn Quốc</h4>
-                    <p className="text-[11px] text-gray-500">Đóng gói thùng gỗ chắc chắn</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Product Detail & Quotation CTA (Col 6) */}
-            <div className="lg:col-span-6 space-y-8">
-              
-              {/* Availability Badge at top */}
-              <div>
-                <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs uppercase border border-emerald-200">
-                  <CheckCircle2 size={14} /> Sẵn Kho Đà Nẵng
+            {/* Availability & Brand Tag */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {product.inStock ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-extrabold text-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" /> Kiểm tra kho Đà Nẵng
                 </span>
-              </div>
-
-              {/* Product Title */}
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black font-heading text-slate-900 uppercase leading-snug">
-                {product.name}
-              </h2>
-
-              {/* Product Identifiers & Tags */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="px-3.5 py-1.5 rounded-lg bg-slate-900 text-white font-mono font-bold text-xs shadow-sm">
-                  Part No: {product.partNumber}
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-700 font-extrabold text-xs">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" /> Tạm Hết Hàng • Liên Hệ Đặt Hàng
                 </span>
-              </div>
-
-              {/* Compatibility Vehicle Tags */}
-              {product.compatibility && product.compatibility.length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-xs font-bold uppercase text-gray-500 tracking-wider block">
-                    Dòng Xe Vận Tải Tương Thích:
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {product.compatibility.map((comp: string, idx: number) => (
-                      <span 
-                        key={`compat-${idx}`}
-                        className="px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1"
-                      >
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                        <span>{comp}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
               )}
 
-              {/* Short Description */}
-              <div className="space-y-2">
-                <span className="text-xs font-bold uppercase text-gray-500 tracking-wider block">
-                  Mô Tả Sản Phẩm:
+              <span className="px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1">
+                <Tag className="w-3 h-3 text-slate-500" />
+                <span>{product.brand}</span>
+              </span>
+            </div>
+
+            {/* Product Title */}
+            <h1 className="text-2xl sm:text-3xl font-black uppercase text-slate-900 leading-tight">
+              {product.name}
+            </h1>
+
+            {/* Part Number Badge */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 rounded-md bg-slate-900 text-white font-mono font-extrabold text-xs">
+                Part No: <span className="text-amber-400">{product.partNumber}</span>
+              </span>
+            </div>
+
+            {/* Pricing Line */}
+            <div className="py-2 border-y border-slate-100 flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase">Đơn Giá Báo Sỉ:</span>
+              <span className="text-xl sm:text-2xl font-black text-brand">{product.price}</span>
+            </div>
+
+            {/* Compatible Vehicle Tags */}
+            {product.compatibility && product.compatibility.length > 0 && (
+              <div className="space-y-1.5">
+                <span className="text-xs font-extrabold uppercase text-slate-500 block">
+                  Dòng Xe Tương Thích:
                 </span>
-                <p className="text-gray-700 text-sm md:text-base leading-relaxed text-justify">
-                  {product.description}
+                <div className="flex flex-wrap gap-1.5">
+                  {product.compatibility.map((comp: string, idx: number) => (
+                    <span 
+                      key={`compat-${idx}`}
+                      className="px-2.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1"
+                    >
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                      <span>{comp}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Short Description */}
+            <div className="space-y-1">
+              <span className="text-xs font-extrabold uppercase text-slate-500 block">
+                Mô Tả Sản Phẩm:
+              </span>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                {product.description}
+              </p>
+            </div>
+
+            {/* Quotation Action Buttons */}
+            <ProductDetailActions product={product as any} />
+
+            {/* Quality Commitments Bar (Right Column) */}
+            <div className="grid grid-cols-3 gap-2.5 pt-3 border-t border-slate-100">
+              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-center space-y-0.5">
+                <ShieldCheck className="w-4 h-4 text-slate-700 mx-auto" />
+                <h4 className="font-extrabold text-slate-900 text-[11px] uppercase">Chất Lượng</h4>
+                <p className="text-[10px] text-slate-500 line-clamp-1">
+                  {product.qualityStandard ? product.qualityStandard : 'Chính hãng nhà máy'}
                 </p>
               </div>
 
-              {/* Quotation Action Buttons */}
-              <ProductDetailActions product={product as any} />
+              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-center space-y-0.5">
+                <Truck className="w-4 h-4 text-slate-700 mx-auto" />
+                <h4 className="font-extrabold text-slate-900 text-[11px] uppercase">Giao Hàng</h4>
+                <p className="text-[10px] text-slate-500 line-clamp-1">Toàn quốc hỏa tốc</p>
+              </div>
 
+              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-center space-y-0.5">
+                <Headphones className="w-4 h-4 text-slate-700 mx-auto" />
+                <h4 className="font-extrabold text-slate-900 text-[11px] uppercase">Tư Vấn</h4>
+                <p className="text-[10px] text-slate-500 line-clamp-1">Hỗ trợ Zalo</p>
+              </div>
             </div>
-
           </div>
 
-          {/* 3. Specifications Table Section */}
-          {(() => {
-            const rawSpecs = (product.specifications && typeof product.specifications === 'object') ? product.specifications : {};
-            const cleanSpecs: Record<string, string> = {
-              'Mã phụ tùng (Part No.)': product.partNumber || rawSpecs['Mã Phụ Tùng (Part No.)'] || rawSpecs['Mã phụ tùng (Part No.)'] || 'Đang cập nhật',
-              'Chất liệu': rawSpecs['Chất liệu'] || rawSpecs['Chất liệu đúc/sản xuất'] || 'Thép đúc hợp kim cao cấp',
-            };
-            const specEntries = Object.entries(cleanSpecs);
+        </div>
 
-            return (
-              <div className="space-y-6 pt-8 border-t border-slate-200">
-                <h3 className="text-xl sm:text-2xl font-black font-heading text-slate-900 uppercase flex items-center gap-2">
-                  <FileText className="text-brand" />
-                  THÔNG SỐ KỸ THUẬT CHI TIẾT
-                </h3>
+        {/* Specifications Table */}
+        {(() => {
+          const rawSpecs = (product.specifications && typeof product.specifications === 'object') ? product.specifications : {};
+          const cleanSpecs: Record<string, string> = {
+            'Mã phụ tùng (Part No.)': product.partNumber || rawSpecs['Mã Phụ Tùng (Part No.)'] || rawSpecs['Mã phụ tùng (Part No.)'] || 'Đang cập nhật',
+            'Thương hiệu nhà máy': product.brand,
+            'Danh mục phụ tùng': product.categoryName,
+          };
 
-                <div className="rounded-3xl border border-slate-200 overflow-hidden shadow-lg">
-                  <table className="w-full text-left text-xs sm:text-sm">
-                    <tbody>
-                      {specEntries.map(([key, val], idx) => (
-                        <tr 
-                          key={`spec-${idx}`}
-                          className={idx % 2 === 0 ? "bg-slate-50" : "bg-white"}
-                        >
-                          <td className="py-4 px-6 font-bold text-slate-900 w-1/3 border-b border-slate-200/80">
-                            {key}
-                          </td>
-                          <td className="py-4 px-6 text-gray-700 border-b border-slate-200/80 font-medium">
-                            {String(val)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            );
-          })()}
+          const mat = rawSpecs['Chất liệu'] || rawSpecs['Chất liệu đúc/sản xuất'];
+          if (mat && String(mat).trim()) {
+            cleanSpecs['Chất liệu'] = String(mat).trim();
+          }
 
-          {/* 4. Related Products Section */}
-          {relatedProducts.length > 0 && (
-            <div className="space-y-8 pt-8 border-t border-slate-200">
-              <h3 className="text-xl sm:text-2xl font-black font-heading text-slate-900 uppercase">
-                PHỤ TÙNG CÙNG <span className="text-brand">DANH MỤC</span>
+          Object.entries(rawSpecs).forEach(([k, v]) => {
+            if (
+              v &&
+              typeof v === 'string' &&
+              v.trim() &&
+              !cleanSpecs[k] &&
+              k !== 'Mã Phụ Tùng (Part No.)' &&
+              k !== 'Mã phụ tùng (Part No.)' &&
+              k !== 'Chất liệu đúc/sản xuất'
+            ) {
+              cleanSpecs[k] = v.trim();
+            }
+          });
+
+          const specEntries = Object.entries(cleanSpecs);
+
+          return (
+            <div className="space-y-3 pt-6 border-t border-slate-200">
+              <h3 className="text-lg font-black text-slate-900 uppercase flex items-center gap-2">
+                <FileText className="text-brand w-5 h-5" />
+                <span>THÔNG SỐ KỸ THUẬT CHI TIẾT</span>
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                {relatedProducts.map((rel: any) => (
-                  <div 
-                    key={`rel-prod-${rel.id}`}
-                    className="p-6 rounded-3xl bg-slate-50 border border-slate-200 hover:border-brand/40 shadow-lg transition-all group"
-                  >
-                    <div className="relative h-40 bg-slate-200 rounded-2xl overflow-hidden mb-4">
-                      <Image src={rel.imageSrc} alt={rel.name} fill className="object-cover group-hover:scale-105 transition-transform" unoptimized sizes="100vw" />
-                    </div>
-                    <span className="text-[10px] font-bold font-mono text-brand uppercase block mb-1">Part: {rel.partNumber}</span>
-                    <h4 className="font-bold text-slate-900 text-sm line-clamp-2 group-hover:text-brand transition-colors mb-3">
-                      {rel.name}
-                    </h4>
-                    <Link 
-                      href={`/products/${rel.id}`}
-                      className="text-xs font-bold text-slate-800 group-hover:text-brand uppercase inline-flex items-center gap-1"
-                    >
-                      Xem chi tiết →
-                    </Link>
-                  </div>
-                ))}
+              <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
+                <table className="w-full text-left text-xs sm:text-sm">
+                  <tbody>
+                    {specEntries.map(([key, val], idx) => (
+                      <tr 
+                        key={`spec-${idx}`}
+                        className={idx % 2 === 0 ? "bg-slate-50/60" : "bg-white"}
+                      >
+                        <td className="py-3 px-4 font-bold text-slate-900 w-1/3 border-b border-slate-200/80 uppercase text-xs">
+                          {key}
+                        </td>
+                        <td className="py-3 px-4 text-slate-700 border-b border-slate-200/80 font-medium">
+                          {String(val)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
-          )}
+          );
+        })()}
 
-        </div>
-      </section>
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <div className="space-y-4 pt-6 border-t border-slate-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-slate-900 uppercase flex items-center gap-2">
+                <Layers className="w-5 h-5 text-brand" />
+                <span>PHỤ TÙNG CÙNG DANH MỤC</span>
+              </h3>
+              <Link
+                href={`/products?categorySlug=${product.categorySlug}`}
+                className="text-xs font-bold text-slate-600 hover:text-brand transition-colors uppercase flex items-center gap-1"
+              >
+                <span>Xem tất cả</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {relatedProducts.map((rel: any) => (
+                <Link 
+                  key={`rel-prod-${rel.id}`}
+                  href={`/products/${rel.id}`}
+                  className="group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xl hover:border-brand/40 transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer"
+                >
+                  <div className="relative h-44 sm:h-48 w-full bg-slate-100 overflow-hidden">
+                    <Image
+                      src={rel.imageSrc}
+                      alt={`${rel.name} (Part No: ${rel.partNumber}) - Phụ tùng xe tải Q.BA Đà Nẵng`}
+                      fill
+                      loading="lazy"
+                      unoptimized
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    {rel.brand && (
+                      <div className="absolute top-2.5 left-2.5 bg-slate-900/90 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-md shadow-md z-10">
+                        {rel.brand}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-3.5 space-y-3 flex-1 flex flex-col justify-between bg-white">
+                    <div>
+                      <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-brand transition-colors">
+                        {rel.name}
+                      </h4>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Kiểm tra kho Đà Nẵng
+                      </span>
+                      <span className="text-xs font-black text-brand group-hover:translate-x-1 transition-transform flex items-center gap-0.5">
+                        Xem Chi Tiết <ChevronRight size={14} />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

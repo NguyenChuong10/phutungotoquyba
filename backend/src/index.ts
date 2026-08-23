@@ -72,10 +72,8 @@ if (process.env.NODE_ENV !== "test") {
 
     // Ensure database tables exist automatically
     try {
-      const { ensurePartnerBrandsTable } = require("./services/partnerBrandService");
       const { ensureSystemSettingsTable } = require("./services/settingService");
       const { ensureJobPostingsTable } = require("./services/jobPostingService");
-      await ensurePartnerBrandsTable();
       await ensureSystemSettingsTable();
       await ensureJobPostingsTable();
     } catch {

@@ -123,13 +123,38 @@ export async function generateMetadata({ params }: PageProps) {
   const article = await getArticleDetail(slug);
   if (!article) return { title: "Bài Viết Không Tồn Tại - Q.BA" };
 
+  const title = `${article.title} - Cẩm Nang Phụ Tùng Ô Tô Q.BA`;
+  const description = article.summary;
+
   return {
-    title: `${article.title} - Cẩm Nang Phụ Tùng Ô Tô Q.BA`,
-    description: article.summary,
+    title,
+    description,
+    alternates: {
+      canonical: `/news/${article.slug}`,
+    },
     openGraph: {
       title: `${article.title} - Phụ Tùng Ô Tô Q.BA Đà Nẵng`,
-      description: article.summary,
-      images: [{ url: article.imageSrc }],
+      description,
+      url: `/news/${article.slug}`,
+      siteName: "Phụ Tùng Ô Tô Q.BA Đà Nẵng",
+      locale: "vi_VN",
+      type: "article",
+      publishedTime: article.publishedAt,
+      authors: [article.author],
+      images: [
+        {
+          url: article.imageSrc,
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [article.imageSrc],
     },
   };
 }
