@@ -136,11 +136,19 @@ export default function HeroSlidesPage() {
         if (res.ok && uploadedUrl) {
           setImageUrl(uploadedUrl);
         } else {
-          setErrorMsg(res.message || 'Upload ảnh slide thất bại');
+          const rawMsg = res.message || 'Upload ảnh slide thất bại';
+          const cleanMsg = (rawMsg.includes('is not valid JSON') || rawMsg.includes('Unexpected token'))
+            ? 'Dung lượng tệp ảnh quá lớn (vượt quá 10MB) hoặc không đúng định dạng. Vui lòng chọn tệp ảnh nhẹ hơn!'
+            : rawMsg;
+          setErrorMsg(cleanMsg);
         }
       } catch (err: any) {
         console.error('Upload error:', err);
-        setErrorMsg(err?.message || 'Lỗi kết nối khi tải ảnh lên máy chủ.');
+        const rawMsg = err?.message || '';
+        const cleanMsg = (rawMsg.includes('is not valid JSON') || rawMsg.includes('Unexpected token'))
+          ? 'Dung lượng tệp ảnh quá lớn (vượt quá 10MB) hoặc không đúng định dạng. Vui lòng chọn tệp ảnh nhẹ hơn!'
+          : 'Lỗi kết nối khi tải ảnh lên máy chủ.';
+        setErrorMsg(cleanMsg);
       } finally {
         setUploading(false);
       }

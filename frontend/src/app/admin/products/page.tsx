@@ -69,6 +69,11 @@ export default function AdminProductsPage() {
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>(initialSubCategorySlug);
   const [selectedBrand, setSelectedBrand] = useState<string>('ALL');
 
+  // Dynamic Server-Side Pagination States
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(7); // Default 7 products per page
+  const [totalProducts, setTotalProducts] = useState<number>(0);
+
   // Real-Time Data States from Backend Database
   const [productsList, setProductsList] = useState<ProductItem[]>([]);
   const [categoryGroups, setCategoryGroups] = useState<CategoryOptionGroup[]>([]);
@@ -90,19 +95,74 @@ export default function AdminProductsPage() {
 
   const [toastState, setToastState] = useState<ToastMessage | null>(null);
 
-  // Fetch Real-Time Products, Categories Tree & Brands from Backend
-  const fetchRealtimeData = useCallback(async () => {
+  // Load Metadata (Category Tree & Brands) on Mount
+  useEffect(() => {
+    async function loadMetadata() {
+      try {
+        const [catTree, partnerBrandsRes] = await Promise.all([
+          AdminApiService.getCategoriesTree(),
+          AdminApiService.getPartnerBrands(),
+        ]);
+
+        if (catTree && catTree.length > 0) {
+          const groups: CategoryOptionGroup[] = catTree.map((parent) => ({
+            id: parent.id,
+            main: parent.name,
+            subs: (parent.children || []).map((child) => ({
+              id: child.id,
+              name: child.name,
+              slug: child.slug,
+            })),
+          }));
+          setCategoryGroups(groups);
+
+          const firstSub = catTree[0]?.children?.[0] || catTree[0];
+          if (firstSub) {
+            setActiveSubModal({
+              id: firstSub.id,
+              name: firstSub.name,
+              slug: firstSub.slug,
+            });
+          }
+        }
+
+        if (partnerBrandsRes && partnerBrandsRes.data && Array.isArray(partnerBrandsRes.data)) {
+          setBrandsList(partnerBrandsRes.data.map((b: any) => ({ id: b.id, name: b.name })));
+        }
+      } catch {}
+    }
+    loadMetadata();
+  }, []);
+
+  // Fetch Real-Time Paginated Products from Server
+  const fetchRealtimeProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const [prodRes, catTree, brandsData] = await Promise.all([
-        AdminApiService.getAdminProducts({ limit: 200 }),
-        AdminApiService.getCategoriesTree(),
-        AdminApiService.getPartnerBrands(),
-      ]);
+      let categoryIdParam: number | undefined = undefined;
+      if (selectedSubCategory !== 'ALL') {
+        const matchedSub = categoryGroups
+          .flatMap((g) => g.subs)
+          .find((s) => s.slug === selectedSubCategory || String(s.id) === selectedSubCategory);
+        if (matchedSub) categoryIdParam = matchedSub.id;
+      }
 
-      // 1. Process Products
+      let brandIdParam: number | undefined = undefined;
+      if (selectedBrand !== 'ALL') {
+        const matchedBrand = brandsList.find((b) => b.name === selectedBrand || String(b.id) === selectedBrand);
+        if (matchedBrand) brandIdParam = matchedBrand.id;
+      }
+
+      const prodRes = await AdminApiService.getAdminProducts({
+        page,
+        limit,
+        search: searchQuery.trim() || undefined,
+        categoryId: categoryIdParam,
+        brandId: brandIdParam,
+      });
+
       if (prodRes.ok && prodRes.data) {
-        const rawProds = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data.products || [];
+        const rawProds = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data.products || prodRes.data || [];
+        const totalCount = prodRes.pagination?.total ?? prodRes.total ?? rawProds.length;
 
         const mappedProducts: ProductItem[] = rawProds.map((p: any) => {
           let statusStr: 'CÒN HÀNG' | 'SẮP HẾT HÀNG' | 'HẾT HÀNG' = 'CÒN HÀNG';
@@ -133,46 +193,18 @@ export default function AdminProductsPage() {
         });
 
         setProductsList(mappedProducts);
-      }
-
-      // 2. Process Categories Tree for Dropdown
-      if (catTree && catTree.length > 0) {
-        const groups: CategoryOptionGroup[] = catTree.map((parent) => ({
-          id: parent.id,
-          main: parent.name,
-          subs: (parent.children || []).map((child) => ({
-            id: child.id,
-            name: child.name,
-            slug: child.slug,
-          })),
-        }));
-        setCategoryGroups(groups);
-
-        const firstSub = catTree[0]?.children?.[0] || catTree[0];
-        if (firstSub) {
-          setActiveSubModal({
-            id: firstSub.id,
-            name: firstSub.name,
-            slug: firstSub.slug,
-          });
-        }
-      }
-
-      // 3. Process Brands List for Dropdown
-      const partnerBrandsRes = await AdminApiService.getPartnerBrands();
-      if (partnerBrandsRes && partnerBrandsRes.data && Array.isArray(partnerBrandsRes.data)) {
-        setBrandsList(partnerBrandsRes.data.map((b: any) => ({ id: b.id, name: b.name })));
+        setTotalProducts(totalCount);
       }
     } catch {
-      // Keep fallback
+      // Fallback
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, limit, searchQuery, selectedSubCategory, selectedBrand, categoryGroups, brandsList]);
 
   useEffect(() => {
-    fetchRealtimeData();
-  }, [fetchRealtimeData]);
+    fetchRealtimeProducts();
+  }, [fetchRealtimeProducts]);
 
   // Open Edit Modal for Product
   const handleOpenEditProduct = (prod: ProductItem) => {
@@ -224,7 +256,7 @@ export default function AdminProductsPage() {
           title: 'Xóa Sản Phẩm Thành Công',
           message: `Đã xóa mã sản phẩm "${productSku} - ${productName}" khỏi kho hệ thống!`,
         });
-        fetchRealtimeData();
+        fetchRealtimeProducts();
       } else {
         setToastState({
           id: String(Date.now()),
@@ -453,7 +485,7 @@ export default function AdminProductsPage() {
                 <span>Quản Lý Sản Phẩm Q.BA</span>
               </h1>
               <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 font-extrabold text-xs">
-                {productsList.length} Sản Phẩm Kho
+                {totalProducts} Sản Phẩm Kho
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
@@ -468,7 +500,7 @@ export default function AdminProductsPage() {
                   id: String(Date.now()),
                   type: 'success',
                   title: 'Xuất File Excel Thành Công',
-                  message: `Đã xuất danh sách ${productsList.length} sản phẩm kho ra file Excel!`,
+                  message: `Đã xuất danh sách ${totalProducts} sản phẩm kho ra file Excel!`,
                 });
               }}
               className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer"
@@ -495,7 +527,10 @@ export default function AdminProductsPage() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
               placeholder="Tìm theo Mã Part No, Mã Nội Bộ, Tên công khai hoặc tên nội bộ..."
               className="w-full pl-10 pr-4 py-2 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 font-medium"
             />
@@ -510,6 +545,7 @@ export default function AdminProductsPage() {
                 value={selectedSubCategory}
                 onChange={(e) => {
                   setSelectedSubCategory(e.target.value);
+                  setPage(1);
                 }}
                 className="px-3 py-2 text-xs font-semibold border border-slate-200 rounded-xl bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500/20 max-w-xs"
               >
@@ -533,6 +569,7 @@ export default function AdminProductsPage() {
                 value={selectedBrand}
                 onChange={(e) => {
                   setSelectedBrand(e.target.value);
+                  setPage(1);
                 }}
                 className="px-3 py-2 text-xs font-semibold border border-slate-200 rounded-xl bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500/20"
               >
@@ -547,17 +584,26 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        {/* ENTERPRISE ANT DESIGN DATA TABLE */}
+        {/* ENTERPRISE ANT DESIGN DATA TABLE (Server-Side Paginated) */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden p-2 w-full max-w-full">
           <Table
             columns={columns}
-            dataSource={filteredProducts}
+            dataSource={productsList}
             rowKey="id"
             loading={loading}
             pagination={{
-              pageSize: 10,
+              current: page,
+              pageSize: limit,
+              total: totalProducts,
+              pageSizeOptions: ['7', '14', '21', '50'],
               showSizeChanger: true,
-              pageSizeOptions: ['10', '20', '50'],
+              onChange: (newPage, newPageSize) => {
+                setPage(newPage);
+                if (newPageSize && newPageSize !== limit) {
+                  setLimit(newPageSize);
+                  setPage(1);
+                }
+              },
               showTotal: (total, range) => `${range[0]}-${range[1]} / Tổng ${total} sản phẩm kho Q.BA`,
             }}
             scroll={{ x: 'max-content' }}
@@ -578,7 +624,7 @@ export default function AdminProductsPage() {
                 title: 'Cập Nhật Tồn Kho Thành Công',
                 message: updatedMsg,
               });
-              fetchRealtimeData();
+              fetchRealtimeProducts();
             }}
           />
         )}
@@ -597,7 +643,7 @@ export default function AdminProductsPage() {
                 title: 'Lưu Sản Phẩm Thành Công',
                 message: 'Đã cập nhật dữ liệu sản phẩm trong hệ thống!',
               });
-              fetchRealtimeData();
+              fetchRealtimeProducts();
             }}
           />
         )}

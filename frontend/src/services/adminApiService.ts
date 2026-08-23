@@ -350,14 +350,48 @@ export class AdminApiService {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${API_BASE_URL}/admin/upload`, {
-      method: "POST",
-      headers,
-      body: formData,
-    });
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/upload`, {
+        method: "POST",
+        headers,
+        body: formData,
+      });
 
-    const data = await res.json();
-    return { ok: res.ok, status: res.status, ...data };
+      if (!res.ok) {
+        if (res.status === 413) {
+          return {
+            ok: false,
+            status: 413,
+            message: "Dung lượng tệp ảnh quá lớn (vượt quá giới hạn cho phép của máy chủ). Vui lòng chọn tệp ảnh có dung lượng nhỏ hơn (dưới 10MB hoặc nén lại ảnh).",
+          };
+        }
+        try {
+          const errJson = await res.json();
+          return { ok: false, status: res.status, message: errJson.message || errJson.error || `Lỗi tải ảnh (HTTP ${res.status})` };
+        } catch {
+          return { ok: false, status: res.status, message: `Máy chủ phản hồi lỗi (HTTP ${res.status}). Dung lượng file có thể vượt quá 10MB.` };
+        }
+      }
+
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        return { ok: false, status: 500, message: "Dung lượng tệp ảnh quá lớn hoặc máy chủ phản hồi không đúng định dạng. Vui lòng nén ảnh và thử lại!" };
+      }
+
+      return { ok: res.ok, status: res.status, ...data };
+    } catch (err: any) {
+      const rawMsg = err?.message || "";
+      const isJsonError = rawMsg.includes("is not valid JSON") || rawMsg.includes("Unexpected token");
+      return {
+        ok: false,
+        status: 500,
+        message: isJsonError
+          ? "Dung lượng tệp ảnh quá lớn (vượt quá 10MB) hoặc không đúng định dạng. Vui lòng chọn tệp ảnh nhỏ hơn!"
+          : rawMsg || "Lỗi kết nối khi tải ảnh lên máy chủ.",
+      };
+    }
   }
 
   /**
@@ -382,14 +416,48 @@ export class AdminApiService {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${API_BASE_URL}/admin/upload/multiple`, {
-      method: "POST",
-      headers,
-      body: formData,
-    });
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/upload/multiple`, {
+        method: "POST",
+        headers,
+        body: formData,
+      });
 
-    const data = await res.json();
-    return { ok: res.ok, status: res.status, ...data };
+      if (!res.ok) {
+        if (res.status === 413) {
+          return {
+            ok: false,
+            status: 413,
+            message: "Dung lượng các tệp ảnh quá lớn (vượt quá giới hạn của máy chủ). Vui lòng nén bớt dung lượng ảnh hoặc chọn ít ảnh hơn.",
+          };
+        }
+        try {
+          const errJson = await res.json();
+          return { ok: false, status: res.status, message: errJson.message || errJson.error || `Lỗi tải ảnh (HTTP ${res.status})` };
+        } catch {
+          return { ok: false, status: res.status, message: `Máy chủ phản hồi lỗi (HTTP ${res.status}). Dung lượng file có thể vượt quá 10MB.` };
+        }
+      }
+
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        return { ok: false, status: 500, message: "Dung lượng các tệp ảnh quá lớn hoặc máy chủ phản hồi không đúng định dạng. Vui lòng nén ảnh và thử lại!" };
+      }
+
+      return { ok: res.ok, status: res.status, ...data };
+    } catch (err: any) {
+      const rawMsg = err?.message || "";
+      const isJsonError = rawMsg.includes("is not valid JSON") || rawMsg.includes("Unexpected token");
+      return {
+        ok: false,
+        status: 500,
+        message: isJsonError
+          ? "Dung lượng các tệp ảnh quá lớn (vượt quá 10MB) hoặc không đúng định dạng. Vui lòng chọn tệp ảnh nhỏ hơn!"
+          : rawMsg || "Lỗi kết nối khi tải các tệp ảnh lên máy chủ.",
+      };
+    }
   }
 
   /**

@@ -168,10 +168,18 @@ export default function AddProductModal({
             return combined;
           });
         } else {
-          setErrorMsg(res.message || 'Upload ảnh thất bại. Vui lòng thử lại.');
+          const rawMsg = res.message || 'Upload ảnh thất bại. Vui lòng thử lại.';
+          const cleanMsg = (rawMsg.includes('is not valid JSON') || rawMsg.includes('Unexpected token'))
+            ? 'Dung lượng các tệp ảnh quá lớn (vượt quá 10MB) hoặc không đúng định dạng. Vui lòng chọn các tệp ảnh nhẹ hơn!'
+            : rawMsg;
+          setErrorMsg(cleanMsg);
         }
-      } catch {
-        setErrorMsg('Không thể tải ảnh lên máy chủ Express backend.');
+      } catch (err: any) {
+        const rawMsg = err?.message || '';
+        const cleanMsg = (rawMsg.includes('is not valid JSON') || rawMsg.includes('Unexpected token'))
+          ? 'Dung lượng các tệp ảnh quá lớn (vượt quá 10MB) hoặc không đúng định dạng. Vui lòng chọn các tệp ảnh nhẹ hơn!'
+          : 'Không thể tải ảnh lên máy chủ Express backend.';
+        setErrorMsg(cleanMsg);
       } finally {
         setUploading(false);
       }

@@ -49,8 +49,8 @@ app.options("*", cors(corsOptions)); // Xử lý Preflight request cho tất c�
 
 // 2. HELMET & PARSERS
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // 3. STATIC FILES
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
