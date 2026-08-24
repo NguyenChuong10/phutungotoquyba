@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "Phụ Tùng Ô Tô Q.BA",
   shortName: "Quy Ba Auto Parts",
   description: "Chuyên nhập khẩu và phân phối phụ tùng xe tải nặng Sinotruk HOWO, Shacman, Dongfeng, Faw, Weichai, Fast Gear tại Đà Nẵng, Miền Trung, Tây Nguyên & Toàn Quốc.",
-  url: "https://phutung.buiduchieu.id.vn",
+  url: "https://phutungqba.io.vn",
   hotline: "0903.588.167",
   hotlineRaw: "0903588167",
   zalo: "0903.588.167",
