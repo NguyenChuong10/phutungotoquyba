@@ -23,12 +23,17 @@ export class NewsService {
     search?: string;
     page?: number;
     limit?: number;
+    isPublicOnly?: boolean;
   }) {
     const page = params?.page ? Math.max(1, params.page) : 1;
     const limit = params?.limit ? Math.max(1, params.limit) : 20;
     const skip = (page - 1) * limit;
 
     const where: any = {};
+
+    if (params?.isPublicOnly) {
+      where.isPublished = true;
+    }
 
     if (params?.categorySlug && params.categorySlug !== "all") {
       where.categorySlug = params.categorySlug;
@@ -71,14 +76,20 @@ export class NewsService {
   /**
    * Public Get News Detail by Slug or ID (Increments Views Counter)
    */
-  static async getNewsBySlug(slugOrId: string) {
+  static async getNewsBySlug(slugOrId: string, isPublicOnly: boolean = false) {
     const cleanParam = slugOrId.trim();
     const isNumeric = /^\d+$/.test(cleanParam);
 
+    const where: any = isNumeric
+      ? { OR: [{ id: parseInt(cleanParam, 10) }, { slug: cleanParam }] }
+      : { slug: cleanParam };
+
+    if (isPublicOnly) {
+      where.isPublished = true;
+    }
+
     const article = await prisma.news.findFirst({
-      where: isNumeric
-        ? { OR: [{ id: parseInt(cleanParam, 10) }, { slug: cleanParam }] }
-        : { slug: cleanParam },
+      where,
       include: {
         author: {
           select: { id: true, fullName: true },
@@ -86,8 +97,8 @@ export class NewsService {
       },
     });
 
-    if (!article) {
-      throw new AppError("Không tìm thấy bài viết kỹ thuật yêu cầu", 404);
+    if (!article || (isPublicOnly && article.isPublished === false)) {
+      throw new AppError("Bài viết kỹ thuật này hiện đang tạm ẩn", 404);
     }
 
     // Increment views count asynchronously
@@ -109,9 +120,11 @@ export class NewsService {
     title: string;
     slug?: string;
     categorySlug?: string;
+    tags?: string[];
     content: string;
     thumbnailUrl?: string;
     isFeatured?: boolean;
+    isPublished?: boolean;
     authorId?: number;
   }) {
     if (!data.title || data.title.trim() === "") {
@@ -132,9 +145,11 @@ export class NewsService {
         title: data.title.trim(),
         slug: finalSlug,
         categorySlug: data.categorySlug || "cam-nang-ky-thuat",
+        tags: Array.isArray(data.tags) ? data.tags.map((t) => t.trim()).filter(Boolean) : [],
         content: data.content.trim(),
         thumbnailUrl: data.thumbnailUrl || "/images/logo/logonen.png",
         isFeatured: data.isFeatured ?? false,
+        isPublished: data.isPublished ?? true,
         authorId: data.authorId || null,
       },
     });
@@ -151,9 +166,11 @@ export class NewsService {
       title?: string;
       slug?: string;
       categorySlug?: string;
+      tags?: string[];
       content?: string;
       thumbnailUrl?: string;
       isFeatured?: boolean;
+      isPublished?: boolean;
     }
   ) {
     const existing = await prisma.news.findUnique({ where: { id } });
@@ -182,9 +199,11 @@ export class NewsService {
         title: data.title !== undefined ? data.title.trim() : undefined,
         slug,
         categorySlug: data.categorySlug !== undefined ? data.categorySlug : undefined,
+        tags: Array.isArray(data.tags) ? data.tags.map((t) => t.trim()).filter(Boolean) : undefined,
         content: data.content !== undefined ? data.content.trim() : undefined,
         thumbnailUrl: data.thumbnailUrl !== undefined ? data.thumbnailUrl : undefined,
         isFeatured: data.isFeatured !== undefined ? data.isFeatured : undefined,
+        isPublished: data.isPublished !== undefined ? data.isPublished : undefined,
       },
     });
 

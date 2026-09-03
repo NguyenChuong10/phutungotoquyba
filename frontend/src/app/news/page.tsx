@@ -64,12 +64,49 @@ const HOT_TAGS = [
   "Tra Mã VIN",
 ];
 
+interface CategoryItem {
+  id: number;
+  name: string;
+  slug: string;
+}
+
 export default function NewsIndexPage() {
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [articlesList, setArticlesList] = useState<ArticleUIItem[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Fetch dynamic categories from DB / API
+  useEffect(() => {
+    async function fetchDynamicCategories() {
+      try {
+        const res = await AdminApiService.getNewsCategories();
+        if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
+          setCategories(res.data);
+        } else {
+          setCategories([
+            { id: 1, name: 'Cẩm Nang Kỹ Thuật', slug: 'cam-nang-ky-thuat' },
+            { id: 2, name: 'Bảo Dưỡng Xe Tải', slug: 'bao-duong-xe-tai' },
+            { id: 3, name: 'Mẹo Tra Mã VIN', slug: 'tra-ma-vin' },
+            { id: 4, name: 'Tin Tức Q.BA', slug: 'tin-tuc-quy-ba' },
+          ]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      }
+    }
+    fetchDynamicCategories();
+  }, []);
+
+  const categoryLabelMap = useMemo(() => {
+    const map: Record<string, string> = { ...CATEGORY_LABEL_MAP };
+    categories.forEach((cat) => {
+      map[cat.slug] = cat.name;
+    });
+    return map;
+  }, [categories]);
 
   useEffect(() => {
     async function loadNews() {
@@ -77,12 +114,13 @@ export default function NewsIndexPage() {
       try {
         const res = await AdminApiService.getNewsList();
         if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
-          const mapped: ArticleUIItem[] = res.data.map((art: any) => ({
+          const publishedArticles = res.data.filter((art: any) => art.isPublished !== false);
+          const mapped: ArticleUIItem[] = publishedArticles.map((art: any) => ({
             id: art.id,
             title: art.title,
             slug: art.slug,
             categorySlug: art.categorySlug || 'cam-nang-ky-thuat',
-            category: CATEGORY_LABEL_MAP[art.categorySlug] || art.categorySlug || 'Cẩm Nang Kỹ Thuật',
+            category: categoryLabelMap[art.categorySlug] || art.categorySlug || 'Cẩm Nang Kỹ Thuật',
             summary: art.content ? art.content.replace(/<[^>]*>?/gm, '').slice(0, 160) + '...' : 'Cẩm nang hướng dẫn kỹ thuật phụ tùng xe tải Q.BA Đà Nẵng.',
             content: art.content || '',
             imageSrc: (art.thumbnailUrl && art.thumbnailUrl !== '/images/news-section/news-1.png') ? art.thumbnailUrl : '/images/logo/logonen.png',
@@ -104,7 +142,7 @@ export default function NewsIndexPage() {
       }
     }
     loadNews();
-  }, []);
+  }, [categoryLabelMap]);
 
   const featuredArticle = useMemo(() => {
     return articlesList.find((a) => a.isFeatured) || articlesList[0];
@@ -222,12 +260,12 @@ export default function NewsIndexPage() {
               TẤT CẢ BÀI VIẾT
             </button>
 
-            {CATEGORIES_PILLS.map((item, idx) => {
-              const isSelected = selectedCategorySlug === item.slug;
+            {categories.map((cat) => {
+              const isSelected = selectedCategorySlug === cat.slug;
               return (
                 <button
-                  key={`pill-cat-${idx}`}
-                  onClick={() => setSelectedCategorySlug(isSelected ? null : item.slug)}
+                  key={`pill-cat-${cat.id}-${cat.slug}`}
+                  onClick={() => setSelectedCategorySlug(isSelected ? null : cat.slug)}
                   className={`px-4 py-2 rounded-full text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border ${
                     isSelected
                       ? "bg-[#D90429] border-[#D90429] text-white shadow-lg shadow-[#D90429]/30 scale-105"
@@ -235,7 +273,7 @@ export default function NewsIndexPage() {
                   }`}
                 >
                   <Plus size={13} className="stroke-[3]" />
-                  <span>{item.label}</span>
+                  <span>{cat.name}</span>
                 </button>
               );
             })}

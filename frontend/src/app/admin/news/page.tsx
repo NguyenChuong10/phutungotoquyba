@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import ToastNotification, { ToastMessage } from '@/components/ui/ToastNotification';
-import { Table, Tag as AntTag, ConfigProvider, Tooltip, Input, Select } from 'antd';
+import { Table, Tag as AntTag, ConfigProvider, Tooltip, Input, Select, Switch } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
   Plus,
@@ -24,6 +24,7 @@ import {
   Tag,
   Layers,
   ExternalLink,
+  EyeOff,
 } from 'lucide-react';
 import { AdminApiService } from '@/services/adminApiService';
 
@@ -36,6 +37,7 @@ interface NewsArticleItem {
   thumbnailUrl: string | null;
   views: number;
   isFeatured: boolean;
+  isPublished?: boolean;
   publishedAt: string;
   createdAt: string;
   author?: {
@@ -155,6 +157,64 @@ export default function AdminNewsPage() {
   useEffect(() => {
     fetchNewsList();
   }, [fetchNewsList]);
+
+  // Quick Toggle Published Status (Bật/Tắt Hiển Thị)
+  const handleQuickTogglePublished = async (record: NewsArticleItem, checked: boolean) => {
+    setArticles((prev) =>
+      prev.map((art) => (art.id === record.id ? { ...art, isPublished: checked } : art))
+    );
+
+    try {
+      const res = await AdminApiService.updateNews(record.id, { isPublished: checked });
+      if (res.ok) {
+        setToastState({
+          id: String(Date.now()),
+          type: 'success',
+          title: checked ? 'Đã Bật Hiển Thị' : 'Đã Ẩn Bài Viết',
+          message: `Bài viết "${record.title}" hiện đã ${checked ? 'hiển thị công khai' : 'bị ẩn khỏi website'}.`,
+        });
+      } else {
+        setArticles((prev) =>
+          prev.map((art) => (art.id === record.id ? { ...art, isPublished: !checked } : art))
+        );
+        alert(res.message || 'Lỗi khi thay đổi trạng thái hiển thị');
+      }
+    } catch (err) {
+      console.error(err);
+      setArticles((prev) =>
+        prev.map((art) => (art.id === record.id ? { ...art, isPublished: !checked } : art))
+      );
+    }
+  };
+
+  // Quick Toggle Featured Status (Bật/Tắt Nổi Bật)
+  const handleQuickToggleFeatured = async (record: NewsArticleItem, checked: boolean) => {
+    setArticles((prev) =>
+      prev.map((art) => (art.id === record.id ? { ...art, isFeatured: checked } : art))
+    );
+
+    try {
+      const res = await AdminApiService.updateNews(record.id, { isFeatured: checked });
+      if (res.ok) {
+        setToastState({
+          id: String(Date.now()),
+          type: 'success',
+          title: checked ? 'Đã Đặt Nổi Bật' : 'Bỏ Nổi Bật',
+          message: `Bài viết "${record.title}" hiện đã ${checked ? 'được chọn làm bài viết nổi bật' : 'trở về trạng thái bình thường'}.`,
+        });
+      } else {
+        setArticles((prev) =>
+          prev.map((art) => (art.id === record.id ? { ...art, isFeatured: !checked } : art))
+        );
+        alert(res.message || 'Lỗi khi thay đổi trạng thái nổi bật');
+      }
+    } catch (err) {
+      console.error(err);
+      setArticles((prev) =>
+        prev.map((art) => (art.id === record.id ? { ...art, isFeatured: !checked } : art))
+      );
+    }
+  };
 
   // Create Category
   const handleCreateCategory = async (e: React.FormEvent) => {
@@ -568,22 +628,44 @@ export default function AdminNewsPage() {
       ),
     },
     {
+      title: 'Hiển Thị',
+      dataIndex: 'isPublished',
+      key: 'isPublished',
+      width: 130,
+      className: '!px-4',
+      render: (isPublished: boolean = true, record: NewsArticleItem) => (
+        <div className="flex items-center gap-2">
+          <Switch
+            size="small"
+            checked={isPublished !== false}
+            onChange={(checked) => handleQuickTogglePublished(record, checked)}
+            className={isPublished !== false ? '!bg-emerald-600' : '!bg-slate-300'}
+          />
+          <span className={`text-[11px] font-extrabold whitespace-nowrap ${isPublished !== false ? 'text-emerald-700' : 'text-slate-400'}`}>
+            {isPublished !== false ? 'Đang Hiện' : 'Đã Ẩn'}
+          </span>
+        </div>
+      ),
+    },
+    {
       title: 'Nổi Bật',
       dataIndex: 'isFeatured',
       key: 'isFeatured',
-      width: 100,
+      width: 120,
       className: '!px-4',
-      render: (featured: boolean) => (
-        featured ? (
-          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold border border-amber-300 shadow-2xs whitespace-nowrap">
-            <Sparkles className="w-3 h-3 text-amber-600 fill-amber-500" />
-            Nổi Bật
+      render: (featured: boolean, record: NewsArticleItem) => (
+        <div className="flex items-center gap-2">
+          <Switch
+            size="small"
+            checked={featured}
+            onChange={(checked) => handleQuickToggleFeatured(record, checked)}
+            className={featured ? '!bg-amber-500' : '!bg-slate-300'}
+          />
+          <span className={`text-[11px] font-extrabold flex items-center gap-1 whitespace-nowrap ${featured ? 'text-amber-700' : 'text-slate-400'}`}>
+            {featured && <Sparkles className="w-3 h-3 text-amber-500 fill-amber-500" />}
+            {featured ? 'Nổi Bật' : 'Thường'}
           </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-medium whitespace-nowrap">
-            Bình thường
-          </span>
-        )
+        </div>
       ),
     },
     {
@@ -817,22 +899,36 @@ export default function AdminNewsPage() {
                       />
                     </div>
 
-                    <div className="flex-1">
-                      <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer transition-all border border-slate-200">
-                        {uploadingImage ? (
-                          <Loader2 className="w-4 h-4 animate-spin text-red-600" />
-                        ) : (
-                          <Upload className="w-4 h-4 text-red-600" />
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer transition-all border border-slate-200">
+                          {uploadingImage ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-red-600" />
+                          ) : (
+                            <Upload className="w-4 h-4 text-red-600" />
+                          )}
+                          <span>{uploadingImage ? 'Đang upload...' : 'Tải Ảnh Bìa Từ Máy'}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                          />
+                        </label>
+
+                        {thumbnailUrl && thumbnailUrl !== '/images/logo/logonen.png' && (
+                          <button
+                            type="button"
+                            onClick={() => setThumbnailUrl('/images/logo/logonen.png')}
+                            className="px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-[#D90429] font-bold text-xs border border-red-200/80 transition-all flex items-center gap-1.5"
+                            title="Đặt lại ảnh về mặc định (Logo website)"
+                          >
+                            <Trash2 className="w-4 h-4 text-[#D90429]" />
+                            <span>Xóa Ảnh</span>
+                          </button>
                         )}
-                        <span>{uploadingImage ? 'Đang upload ảnh...' : 'Tải Ảnh Bìa Từ Máy'}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                        />
-                      </label>
-                      <p className="text-[10px] text-slate-400 mt-1">Khuyến nghị tỉ lệ 16:9, kích thước dưới 2MB</p>
+                      </div>
+                      <p className="text-[10px] text-slate-400">Khuyến nghị tỉ lệ 16:9, kích thước dưới 2MB</p>
                     </div>
                   </div>
                 </div>

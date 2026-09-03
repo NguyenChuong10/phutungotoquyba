@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import ToastNotification, { ToastMessage } from '@/components/ui/ToastNotification';
-import { ConfigProvider, Select, Switch, Tabs, Progress } from 'antd';
+import { ConfigProvider, Select, Switch, Tabs, Progress, Modal } from 'antd';
 import {
   ArrowLeft,
   Plus,
@@ -31,8 +31,22 @@ import {
   Check,
   AlertCircle,
   Copy,
+  X,
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  List,
+  ListOrdered,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Table,
+  Link as LinkIcon,
+  AlertTriangle,
 } from 'lucide-react';
 import { AdminApiService } from '@/services/adminApiService';
+import { formatImageUrl } from '@/utils/imageHelper';
 
 interface ArticleSectionItem {
   id: string;
@@ -79,7 +93,7 @@ function NewsEditorContent() {
   const [content, setContent] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('/images/news-section/news-1.png');
   const [isFeatured, setIsFeatured] = useState(false);
-  const [metaKeywords, setMetaKeywords] = useState('');
+  const [articleTags, setArticleTags] = useState<string[]>([]);
 
   // Mode: 'freeform' | 'sections'
   const [editorMode, setEditorMode] = useState<'freeform' | 'sections'>('freeform');
@@ -92,10 +106,20 @@ function NewsEditorContent() {
   const [activeTab, setActiveTab] = useState('content');
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingSectionId, setUploadingSectionId] = useState<string | null>(null);
+  const [uploadingInlineImage, setUploadingInlineImage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkText, setLinkText] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkNewTab, setLinkNewTab] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [toastState, setToastState] = useState<ToastMessage | null>(null);
   const [currentDomain, setCurrentDomain] = useState('phutungotoquyba.vn');
+  const editorRef = useRef<HTMLDivElement>(null);
+  const savedSelectionRangeRef = useRef<Range | null>(null);
+  const initialFormStateRef = useRef<string>('');
+  const isUserEditedRef = useRef<boolean>(false);
+  const isInitializedRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -103,29 +127,376 @@ function NewsEditorContent() {
     }
   }, []);
 
-  // Handle Rich HTML Paste from External Websites (Word, Google Docs, Báo chí)
-  const handleRichPaste = (e: React.ClipboardEvent) => {
-    const htmlData = e.clipboardData.getData('text/html');
-    if (htmlData) {
-      e.preventDefault();
-      let clean = htmlData
-        .replace(/<script[\s\S]*?<\/script>/gi, '')
-        .replace(/<style[\s\S]*?<\/style>/gi, '')
-        .replace(/<!--[\s\S]*?-->/g, '')
-        .replace(/font-family:[^;"']*;?/gi, '')
-        .replace(/font-family="[^"]*"/gi, '');
+  // Sync content state to editorRef without destroying active DOM nodes
+  useEffect(() => {
+    if (editorRef.current && visualHtmlMode === 'visual') {
+      if (editorRef.current.innerHTML !== content) {
+        editorRef.current.innerHTML = content;
+      }
+    }
+  }, [content, visualHtmlMode]);
 
-      const bodyMatch = clean.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-      if (bodyMatch) {
-        clean = bodyMatch[1];
+  // Compute form snapshot for unsaved changes detection
+  const getFormSnapshot = useCallback(() => {
+    const liveBody = editorRef.current ? editorRef.current.innerHTML : content;
+    return JSON.stringify({
+      title: title.trim(),
+      leadSummary: leadSummary.trim(),
+      content: liveBody.trim(),
+      categorySlug,
+      thumbnailUrl,
+      isFeatured,
+      articleTags: Array.from(new Set(articleTags.map((t) => t.trim()))).sort(),
+      customSlug: customSlug.trim(),
+    });
+  }, [title, leadSummary, content, categorySlug, thumbnailUrl, isFeatured, articleTags, customSlug]);
+
+  const isFormDirty = useCallback(() => {
+    if (submitting || loadingArticle) return false;
+    if (isUserEditedRef.current) return true;
+    if (!initialFormStateRef.current) return false;
+    return getFormSnapshot() !== initialFormStateRef.current;
+  }, [submitting, loadingArticle, getFormSnapshot]);
+
+  // Reset baseline initialization when switching editing article ID
+  useEffect(() => {
+    isInitializedRef.current = false;
+    isUserEditedRef.current = false;
+    initialFormStateRef.current = '';
+  }, [editingArticleId]);
+
+  // Save initial baseline snapshot ONLY ONCE after article finishes loading
+  useEffect(() => {
+    if (!loadingArticle && !isInitializedRef.current) {
+      const timer = setTimeout(() => {
+        const liveBody = editorRef.current ? editorRef.current.innerHTML : content;
+        initialFormStateRef.current = JSON.stringify({
+          title: title.trim(),
+          leadSummary: leadSummary.trim(),
+          content: liveBody.trim(),
+          categorySlug,
+          thumbnailUrl,
+          isFeatured,
+          articleTags: Array.from(new Set(articleTags.map((t) => t.trim()))).sort(),
+          customSlug: customSlug.trim(),
+        });
+        isInitializedRef.current = true;
+        isUserEditedRef.current = false;
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [loadingArticle, content, title, leadSummary, categorySlug, thumbnailUrl, isFeatured, articleTags, customSlug]);
+
+  // Warn on browser tab close / refresh if form has unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isFormDirty()) {
+        e.preventDefault();
+        e.returnValue = 'Bài viết chưa được lưu. Bạn có chắc chắn muốn rời khỏi trang không?';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isFormDirty]);
+
+  // Intercept Browser Native Back Button (popstate in Chrome/Edge navigation bar)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    window.history.pushState({ isEditor: true }, '', window.location.href);
+
+    const handlePopState = () => {
+      if (isFormDirty()) {
+        window.history.pushState({ isEditor: true }, '', window.location.href);
+
+        Modal.confirm({
+          title: 'Cảnh Báo: Bài Viết Chưa Được Lưu',
+          content: 'Bạn đã thực hiện chỉnh sửa bài viết nhưng chưa lưu. Nếu rời khỏi đây, các thay đổi chưa lưu sẽ bị mất!',
+          okText: 'Rời Khỏi Trang',
+          cancelText: 'Ở Lại Tiếp Tục Sửa',
+          okButtonProps: { className: 'bg-[#D90429] hover:bg-red-700 font-bold rounded-xl' },
+          cancelButtonProps: { className: 'rounded-xl font-bold' },
+          onOk() {
+            isUserEditedRef.current = false;
+            router.push('/admin/news');
+          },
+        });
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isFormDirty, router]);
+
+  // In-app Back Button Confirmation Modal
+  const handleBackWithConfirm = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isFormDirty()) {
+      Modal.confirm({
+        title: 'Cảnh Báo: Bài Viết Chưa Được Lưu',
+        content: 'Bạn đã thực hiện chỉnh sửa bài viết nhưng chưa lưu. Nếu rời khỏi đây, các thay đổi chưa lưu sẽ bị mất!',
+        okText: 'Rời Khỏi Trang',
+        cancelText: 'Ở Lại Tiếp Tục Sửa',
+        okButtonProps: { className: 'bg-[#D90429] hover:bg-red-700 font-bold rounded-xl' },
+        cancelButtonProps: { className: 'rounded-xl font-bold' },
+        onOk() {
+          isUserEditedRef.current = false;
+          router.push('/admin/news');
+        },
+      });
+    } else {
+      isUserEditedRef.current = false;
+      router.push('/admin/news');
+    }
+  };
+
+  // Save active cursor selection range before focus is lost (e.g. when opening file dialog)
+  const saveCurrentSelection = () => {
+    if (typeof window === 'undefined') return;
+    const sel = window.getSelection();
+    const visualDiv = editorRef.current || document.querySelector('.article-rich-body[contenteditable="true"]');
+    if (sel && sel.rangeCount > 0 && visualDiv && visualDiv.contains(sel.anchorNode)) {
+      savedSelectionRangeRef.current = sel.getRangeAt(0).cloneRange();
+    }
+  };
+
+  // Insert HTML content at saved/active DOM selection cursor (Replaces highlighted selection!)
+  const insertHtmlAtCursor = (html: string) => {
+    if (typeof window === 'undefined') return;
+    isUserEditedRef.current = true;
+
+    const visualDiv = editorRef.current || document.querySelector('.article-rich-body[contenteditable="true"]');
+    if (!visualDiv) return;
+
+    let range: Range | null = null;
+    const sel = window.getSelection();
+
+    if (sel && sel.rangeCount > 0 && visualDiv.contains(sel.anchorNode)) {
+      range = sel.getRangeAt(0);
+    } else if (savedSelectionRangeRef.current) {
+      range = savedSelectionRangeRef.current;
+    }
+
+    if (range) {
+      range.deleteContents(); // Replaces bôi đen / highlighted selection!
+
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      const frag = document.createDocumentFragment();
+      let node;
+      let lastNode;
+      while ((node = tempDiv.firstChild)) {
+        lastNode = frag.appendChild(node);
+      }
+      range.insertNode(frag);
+
+      if (lastNode) {
+        range.setStartAfter(lastNode);
+        range.collapse(true);
+        if (sel) {
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
       }
 
-      setContent((prev) => (prev ? prev + '\n\n' + clean.trim() : clean.trim()));
+      setContent(visualDiv.innerHTML);
+      savedSelectionRangeRef.current = null;
+    } else {
+      if (editorRef.current) {
+        editorRef.current.innerHTML += '\n\n' + html;
+        setContent(editorRef.current.innerHTML);
+      } else {
+        setContent((prev) => (prev ? prev + '\n\n' + html : html));
+      }
+    }
+  };
+
+  // Execute standard formatting commands (Bold, Italic, Lists, Alignments)
+  const execCmd = (command: string, value: string = '') => {
+    if (typeof document !== 'undefined') {
+      isUserEditedRef.current = true;
+      saveCurrentSelection();
+      document.execCommand(command, false, value);
+      if (editorRef.current) {
+        setContent(editorRef.current.innerHTML);
+      }
+      saveCurrentSelection();
+    }
+  };
+
+  // Helper to insert Technical Specification Table into Editor Body
+  const insertSpecTable = () => {
+    insertHtmlAtCursor(`
+      <div class="my-6 overflow-x-auto rounded-2xl border border-slate-200 shadow-2xs">
+        <table class="w-full text-xs text-left border-collapse">
+          <thead class="bg-slate-100 text-slate-900 font-bold uppercase tracking-wider">
+            <tr>
+              <th class="p-3 border-b border-slate-200">Thông Số Kỹ Thuật</th>
+              <th class="p-3 border-b border-slate-200">Chi Tiết / Mã Phụ Tùng</th>
+              <th class="p-3 border-b border-slate-200">Ghi Chú Vận Hành</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 font-medium text-slate-700">
+            <tr>
+              <td class="p-3 font-bold text-slate-900">Dòng Xe Tương Thích</td>
+              <td class="p-3">HOWO 371HP, 380HP, 420HP</td>
+              <td class="p-3">Động cơ Weichai WP10 / WP12</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-slate-900">Mã Catalog Chính Hãng</td>
+              <td class="p-3 font-mono text-red-600 font-bold">WG9725530010</td>
+              <td class="p-3">Hàng nhập khẩu chính hãng Sinotruk</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p><br/></p>
+    `);
+  };
+
+  // Helper to insert Technical Warning Box
+  const insertWarningCallout = () => {
+    insertHtmlAtCursor(`
+      <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-2xl my-4 text-slate-900 font-medium space-y-1">
+        <div class="font-bold text-xs uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
+          CẢNH BÁO AN TOÀN / LƯU Ý KỸ THUẬT:
+        </div>
+        <div class="text-xs leading-relaxed text-amber-950">Lưu ý kiểm tra áp suất, xiết lực bu-lông đúng tiêu chuẩn trước khi cho xe vận hành...</div>
+      </div>
+      <p><br/></p>
+    `);
+  };
+
+  // Open Hyperlink Modal
+  const handleOpenLinkModal = () => {
+    saveCurrentSelection();
+    const selected = typeof window !== 'undefined' ? window.getSelection()?.toString().trim() : '';
+    setLinkText(selected || '');
+    setLinkUrl('');
+    setLinkNewTab(true);
+    setShowLinkModal(true);
+  };
+
+  // Insert Hyperlink from Modal Form
+  const handleConfirmInsertLink = () => {
+    if (!linkUrl.trim()) return;
+    const targetAttr = linkNewTab ? ' target="_blank" rel="noopener noreferrer"' : '';
+    const textToUse = linkText.trim() || linkUrl.trim();
+    insertHtmlAtCursor(`<a href="${linkUrl.trim()}"${targetAttr} class="text-[#D90429] font-bold underline hover:text-red-700">${textToUse}</a> `);
+    setShowLinkModal(false);
+    setLinkUrl('');
+    setLinkText('');
+  };
+
+  // Upload and Insert Image into Freeform Rich Text Body at Cursor
+  const handleInlineImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingInlineImage(true);
+    try {
+      const res = await AdminApiService.uploadImage(file);
+      const uploadedUrl = res.data?.imageUrl || res.url || res.data?.url;
+      if (res.ok && uploadedUrl) {
+        const fullUrl = formatImageUrl(uploadedUrl);
+        insertHtmlAtCursor(`
+          <figure class="my-6 text-center group">
+            <img src="${fullUrl}" alt="Hình ảnh bài viết" class="rounded-2xl w-full max-h-[550px] object-cover shadow-sm border border-slate-200/90 my-2 mx-auto" />
+            <figcaption class="text-xs text-slate-500 italic mt-1 font-medium">Nhập chú thích hình ảnh tại đây...</figcaption>
+          </figure>
+          <p><br/></p>
+        `);
+        setToastState({
+          id: String(Date.now()),
+          type: 'success',
+          title: 'Đã Chèn Ảnh',
+          message: 'Đã chèn hình ảnh mới vào đúng vị trí con trỏ!',
+        });
+      } else {
+        alert(res.message || 'Lỗi khi upload hình ảnh');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUploadingInlineImage(false);
+      e.target.value = '';
+    }
+  };
+
+  // Handle Rich HTML & Clipboard Image Paste (Properly replaces highlighted text selection!)
+  const handleRichPaste = (e: React.ClipboardEvent) => {
+    // 1. Direct Clipboard Image File Paste
+    const files = e.clipboardData.files;
+    if (files && files.length > 0 && files[0].type.startsWith('image/')) {
+      e.preventDefault();
+      const file = files[0];
+      setToastState({
+        id: String(Date.now()),
+        type: 'info',
+        title: 'Đang Upload Ảnh...',
+        message: 'Đang tải ảnh từ Clipboard lên máy chủ...',
+      });
+      AdminApiService.uploadImage(file)
+        .then((res) => {
+          const uploadedUrl = res.data?.imageUrl || res.url || res.data?.url;
+          if (uploadedUrl) {
+            const fullUrl = formatImageUrl(uploadedUrl);
+            insertHtmlAtCursor(`
+              <figure class="my-6 text-center group">
+                <img src="${fullUrl}" alt="Hình ảnh bài viết" class="rounded-2xl w-full max-h-[550px] object-cover shadow-sm border border-slate-200/90 my-2 mx-auto" />
+                <figcaption class="text-xs text-slate-500 italic mt-1 font-medium">Chú thích hình ảnh...</figcaption>
+              </figure>
+              <p><br/></p>
+            `);
+            setToastState({
+              id: String(Date.now()),
+              type: 'success',
+              title: 'Đã Chèn Ảnh',
+              message: 'Đã tự động tải và chèn ảnh vào đúng vị trí con trỏ!',
+            });
+          }
+        })
+        .catch(console.error);
+      return;
+    }
+
+    // 2. Text & HTML Paste
+    const htmlData = e.clipboardData.getData('text/html');
+    const textData = e.clipboardData.getData('text/plain');
+
+    if (htmlData || textData) {
+      e.preventDefault();
+      let insertContent = '';
+
+      if (htmlData) {
+        let clean = htmlData
+          .replace(/<script[\s\S]*?<\/script>/gi, '')
+          .replace(/<style[\s\S]*?<\/style>/gi, '')
+          .replace(/<!--[\s\S]*?-->/g, '')
+          .replace(/font-family:[^;"']*;?/gi, '')
+          .replace(/font-family="[^"]*"/gi, '');
+
+        const bodyMatch = clean.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        if (bodyMatch) {
+          clean = bodyMatch[1];
+        }
+        insertContent = clean.trim();
+      } else {
+        const escaped = textData
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/\n/g, '<br/>');
+        insertContent = escaped;
+      }
+
+      insertHtmlAtCursor(insertContent);
       setToastState({
         id: String(Date.now()),
         type: 'success',
-        title: 'Đã Nhận Định Dạng HTML',
-        message: 'Đã tự động dán và ép chuẩn font chữ Inter hệ thống!',
+        title: 'Đã Thay Thế / Dán Nội Dung',
+        message: 'Đã dán nội dung và giữ nguyên định dạng!',
       });
     }
   };
@@ -253,6 +624,21 @@ function NewsEditorContent() {
         setCategorySlug(art.categorySlug || 'cam-nang-ky-thuat');
         setThumbnailUrl(art.thumbnailUrl || '/images/news-section/news-1.png');
         setIsFeatured(Boolean(art.isFeatured));
+        if (Array.isArray(art.tags) && art.tags.length > 0) {
+          const parsed = art.tags
+            .flatMap((t: string) => (typeof t === 'string' ? t.split(',') : [t]))
+            .map((t: string) => String(t).trim().replace(/^#+/, ''))
+            .filter(Boolean);
+          setArticleTags(Array.from(new Set(parsed)));
+        } else if (typeof art.tags === 'string' && (art.tags as string).trim()) {
+          const parsed = (art.tags as string)
+            .split(',')
+            .map((t: string) => t.trim().replace(/^#+/, ''))
+            .filter(Boolean);
+          setArticleTags(Array.from(new Set(parsed)));
+        } else {
+          setArticleTags([]);
+        }
 
         let { mainContent, parsedSections } = parseContentAndSections(art.content || '');
 
@@ -291,6 +677,7 @@ function NewsEditorContent() {
 
   // Quick Insert Helpers into Rich Text Box
   const insertFormatting = (syntaxBefore: string, syntaxAfter: string = '') => {
+    isUserEditedRef.current = true;
     setContent((prev) => prev + '\n' + syntaxBefore + syntaxAfter);
   };
 
@@ -437,6 +824,7 @@ function NewsEditorContent() {
         title: title.trim(),
         slug: computedSlug,
         categorySlug,
+        tags: Array.from(new Set(articleTags.map((t) => t.trim()).filter(Boolean))),
         content: finalContent,
         thumbnailUrl: thumbnailUrl || '/images/news-section/news-1.png',
         isFeatured,
@@ -445,6 +833,7 @@ function NewsEditorContent() {
       if (editingArticleId) {
         const res = await AdminApiService.updateNews(editingArticleId, payload);
         if (res.ok) {
+          initialFormStateRef.current = getFormSnapshot();
           setToastState({
             id: String(Date.now()),
             type: 'success',
@@ -458,6 +847,7 @@ function NewsEditorContent() {
       } else {
         const res = await AdminApiService.createNews(payload);
         if (res.ok) {
+          initialFormStateRef.current = getFormSnapshot();
           setToastState({
             id: String(Date.now()),
             type: 'success',
@@ -490,13 +880,14 @@ function NewsEditorContent() {
         {/* Top Navigation & Action Header */}
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Link
-              href="/admin/news"
-              className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all"
+            <button
+              type="button"
+              onClick={handleBackWithConfirm}
+              className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all cursor-pointer"
               title="Quay lại danh sách bài viết"
             >
               <ArrowLeft className="w-5 h-5" />
-            </Link>
+            </button>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
@@ -519,8 +910,8 @@ function NewsEditorContent() {
               type="button"
               onClick={() => setShowPreview((prev) => !prev)}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${showPreview
-                  ? 'bg-red-50 text-red-600 border border-red-200'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                ? 'bg-red-50 text-red-600 border border-red-200'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                 }`}
             >
               <Eye className="w-4 h-4" />
@@ -600,8 +991,8 @@ function NewsEditorContent() {
                     type="button"
                     onClick={() => setActiveTab('content')}
                     className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer ${activeTab === 'content'
-                        ? 'bg-red-600 text-white shadow-sm'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-red-600 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                   >
                     <FileText className="w-4 h-4" />
@@ -612,8 +1003,8 @@ function NewsEditorContent() {
                     type="button"
                     onClick={() => setActiveTab('seo')}
                     className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer ${activeTab === 'seo'
-                        ? 'bg-red-600 text-white shadow-sm'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-red-600 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                   >
                     <Search className="w-4 h-4" />
@@ -628,8 +1019,8 @@ function NewsEditorContent() {
                       type="button"
                       onClick={() => setEditorMode('freeform')}
                       className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${editorMode === 'freeform'
-                          ? 'bg-white text-slate-900 shadow-2xs'
-                          : 'text-slate-500 hover:text-slate-900'
+                        ? 'bg-white text-slate-900 shadow-2xs'
+                        : 'text-slate-500 hover:text-slate-900'
                         }`}
                     >
                       Soạn Thảo Tự Do
@@ -638,8 +1029,8 @@ function NewsEditorContent() {
                       type="button"
                       onClick={() => setEditorMode('sections')}
                       className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${editorMode === 'sections'
-                          ? 'bg-white text-slate-900 shadow-2xs'
-                          : 'text-slate-500 hover:text-slate-900'
+                        ? 'bg-white text-slate-900 shadow-2xs'
+                        : 'text-slate-500 hover:text-slate-900'
                         }`}
                     >
                       Xây Dựng Theo Bước (Section Builder)
@@ -696,14 +1087,125 @@ function NewsEditorContent() {
                   {/* Mode A: Freeform Rich Text Canvas */}
                   {editorMode === 'freeform' && (
                     <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-                      {/* Rich Formatting Helper Toolbar & View Switcher */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200/80">
+                      {/* Rich Formatting Toolbar Suite */}
+                      <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/90 space-y-2.5">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5">
+                          {/* Formatting Toolbar Group 1: Text Style & Alignment */}
+                          <div className="flex flex-wrap items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => execCmd('bold')}
+                              className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300 font-bold transition-all cursor-pointer"
+                              title="In Đậm (Ctrl+B)"
+                            >
+                              <Bold className="w-4 h-4 text-slate-800" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => execCmd('italic')}
+                              className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300 italic transition-all cursor-pointer"
+                              title="In Nghiêng (Ctrl+I)"
+                            >
+                              <Italic className="w-4 h-4 text-slate-800" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => execCmd('underline')}
+                              className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300 underline transition-all cursor-pointer"
+                              title="Gạch Chân (Ctrl+U)"
+                            >
+                              <Underline className="w-4 h-4 text-slate-800" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => execCmd('strikeThrough')}
+                              className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300 line-through transition-all cursor-pointer"
+                              title="Gạch Ngang"
+                            >
+                              <Strikethrough className="w-4 h-4 text-slate-800" />
+                            </button>
+
+                            <div className="h-4 w-px bg-slate-300 mx-1" />
+
+                            {/* Lists & Alignment */}
+                            <button
+                              type="button"
+                              onClick={() => execCmd('insertUnorderedList')}
+                              className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer"
+                              title="Danh sách dấu chấm (Bullets)"
+                            >
+                              <List className="w-4 h-4 text-slate-800" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => execCmd('insertOrderedList')}
+                              className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer"
+                              title="Danh sách số thứ tự (Numbered)"
+                            >
+                              <ListOrdered className="w-4 h-4 text-slate-800" />
+                            </button>
+
+                            <div className="h-4 w-px bg-slate-300 mx-1" />
+
+                            <button
+                              type="button"
+                              onClick={() => execCmd('justifyLeft')}
+                              className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer"
+                              title="Căn Trái"
+                            >
+                              <AlignLeft className="w-4 h-4 text-slate-800" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => execCmd('justifyCenter')}
+                              className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer"
+                              title="Căn Giữa"
+                            >
+                              <AlignCenter className="w-4 h-4 text-slate-800" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => execCmd('justifyRight')}
+                              className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer"
+                              title="Căn Phải"
+                            >
+                              <AlignRight className="w-4 h-4 text-slate-800" />
+                            </button>
+                          </div>
+
+                          {/* View Switcher Tabs */}
+                          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 text-[11px] font-bold">
+                            <button
+                              type="button"
+                              onClick={() => setVisualHtmlMode('visual')}
+                              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${visualHtmlMode === 'visual'
+                                ? 'bg-red-600 text-white shadow-2xs'
+                                : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                            >
+                              Soạn Thảo Trực Quan
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setVisualHtmlMode('code')}
+                              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${visualHtmlMode === 'code'
+                                ? 'bg-red-600 text-white shadow-2xs'
+                                : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                            >
+                              Mã HTML
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Formatting Group 2: Blocks, Headings, Callouts & Media */}
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mr-1">Chèn nhanh:</span>
+                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mr-0.5">Chèn Khối:</span>
+
                           <button
                             type="button"
                             onClick={() => insertFormatting('<h2>', '</h2>')}
-                            className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-bold hover:bg-slate-100 cursor-pointer flex items-center gap-1"
+                            className="px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs font-bold hover:bg-slate-100 cursor-pointer flex items-center gap-1 shadow-2xs"
                           >
                             <Heading2 className="w-3.5 h-3.5 text-red-600" />
                             <span>Tiêu đề H2</span>
@@ -712,7 +1214,7 @@ function NewsEditorContent() {
                           <button
                             type="button"
                             onClick={() => insertFormatting('<h3>', '</h3>')}
-                            className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-bold hover:bg-slate-100 cursor-pointer flex items-center gap-1"
+                            className="px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs font-bold hover:bg-slate-100 cursor-pointer flex items-center gap-1 shadow-2xs"
                           >
                             <Heading3 className="w-3.5 h-3.5 text-red-600" />
                             <span>Tiêu đề H3</span>
@@ -721,34 +1223,56 @@ function NewsEditorContent() {
                           <button
                             type="button"
                             onClick={() => insertFormatting('<blockquote class="p-4 bg-red-50 border-l-4 border-[#D90429] rounded-r-xl italic my-4 font-medium text-slate-900">', '</blockquote>')}
-                            className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-bold hover:bg-slate-100 cursor-pointer flex items-center gap-1"
+                            className="px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs font-bold hover:bg-slate-100 cursor-pointer flex items-center gap-1 shadow-2xs"
                           >
                             <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
                             <span>Khung Lời Khuyên</span>
                           </button>
-                        </div>
 
-                        <div className="flex items-center gap-1.5 bg-white p-1 rounded-lg border border-slate-200 text-[11px] font-bold">
                           <button
                             type="button"
-                            onClick={() => setVisualHtmlMode('visual')}
-                            className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${visualHtmlMode === 'visual'
-                                ? 'bg-red-600 text-white shadow-2xs'
-                                : 'text-slate-600 hover:text-slate-900'
-                              }`}
+                            onClick={insertWarningCallout}
+                            className="px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold hover:bg-amber-100 cursor-pointer flex items-center gap-1 shadow-2xs"
                           >
-                            Nhập Trực Quan (Tự Động Giữ Định Dạng HTML)
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                            <span>Khung Cảnh Báo</span>
                           </button>
+
                           <button
                             type="button"
-                            onClick={() => setVisualHtmlMode('code')}
-                            className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${visualHtmlMode === 'code'
-                                ? 'bg-red-600 text-white shadow-2xs'
-                                : 'text-slate-600 hover:text-slate-900'
-                              }`}
+                            onClick={insertSpecTable}
+                            className="px-2.5 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs font-bold hover:bg-blue-100 cursor-pointer flex items-center gap-1 shadow-2xs"
                           >
-                            Mã Mã HTML Code
+                            <Table className="w-3.5 h-3.5 text-blue-600" />
+                            <span>Bảng Thông Số</span>
                           </button>
+
+                          <button
+                            type="button"
+                            onClick={handleOpenLinkModal}
+                            className="px-2.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold hover:bg-slate-200 cursor-pointer flex items-center gap-1 shadow-2xs"
+                          >
+                            <LinkIcon className="w-3.5 h-3.5 text-slate-700" />
+                            <span>Chèn Link</span>
+                          </button>
+
+                          <label
+                            onClick={saveCurrentSelection}
+                            className="px-3 py-1.5 rounded-xl bg-red-600 text-white text-xs font-extrabold hover:bg-red-700 cursor-pointer flex items-center gap-1.5 shadow-2xs transition-all"
+                          >
+                            {uploadingInlineImage ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                            ) : (
+                              <Upload className="w-3.5 h-3.5 text-white" />
+                            )}
+                            <span>{uploadingInlineImage ? 'Đang Upload...' : 'Chèn Ảnh Vị Trí Con Trỏ'}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleInlineImageUpload}
+                              className="hidden"
+                            />
+                          </label>
                         </div>
                       </div>
 
@@ -765,17 +1289,28 @@ function NewsEditorContent() {
                               </span>
                             </div>
                             <div
+                              ref={editorRef}
                               contentEditable
                               suppressContentEditableWarning
-                              onBlur={(e) => setContent(e.currentTarget.innerHTML)}
+                              onInput={() => {
+                                isUserEditedRef.current = true;
+                                saveCurrentSelection();
+                              }}
+                              onKeyUp={saveCurrentSelection}
+                              onMouseUp={saveCurrentSelection}
+                              onFocus={saveCurrentSelection}
+                              onSelect={saveCurrentSelection}
+                              onBlur={(e) => {
+                                saveCurrentSelection();
+                                setContent(e.currentTarget.innerHTML);
+                              }}
                               onPaste={handleRichPaste}
-                              dangerouslySetInnerHTML={{ __html: content }}
                               style={{ fontFamily: 'var(--font-inter), sans-serif' }}
                               className="min-h-[360px] max-h-[600px] p-4 sm:p-5 rounded-2xl border border-slate-200 bg-white font-sans text-slate-800 text-sm md:text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-red-500/20 overflow-y-auto article-rich-body
                                 [&_*]:font-sans [&_p]:font-sans [&_h2]:font-sans [&_h3]:font-sans [&_span]:font-sans [&_div]:font-sans
-                                [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-slate-900 [&_h2]:mt-6 [&_h2]:mb-2 [&_h2]:pb-1 [&_h2]:border-b [&_h2]:border-slate-200
-                                [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-slate-900 [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:border-l-4 [&_h3]:border-[#D90429] [&_h3]:pl-2.5
-                                [&_p]:my-2 [&_p]:text-slate-700 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5
+                                [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-slate-900 [&_h2]:pt-5 [&_h2]:mt-1 [&_h2]:mb-2 [&_h2]:pb-1 [&_h2]:border-b [&_h2]:border-slate-200
+                                [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-slate-900 [&_h3]:pt-3.5 [&_h3]:mt-1 [&_h3]:mb-2 [&_h3]:border-l-4 [&_h3]:border-[#D90429] [&_h3]:pl-2.5
+                                [&_p]:py-1 [&_p]:my-1 [&_p]:text-slate-700 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5
                                 [&_img]:rounded-xl [&_img]:max-h-96 [&_img]:object-cover [&_img]:my-3 [&_img]:border [&_img]:border-slate-200"
                             />
                           </div>
@@ -1083,14 +1618,14 @@ function NewsEditorContent() {
                   />
                 </div>
 
-                <div className="space-y-2 pt-1">
-                  <label className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer transition-all border border-slate-200 flex items-center justify-center gap-2">
+                <div className="flex gap-2 pt-1">
+                  <label className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer transition-all border border-slate-200 flex items-center justify-center gap-2">
                     {uploadingCover ? (
                       <Loader2 className="w-4 h-4 animate-spin text-red-600" />
                     ) : (
                       <Upload className="w-4 h-4 text-red-600" />
                     )}
-                    <span>{uploadingCover ? 'Đang Upload Khung Ảnh...' : 'Tải Ảnh Bìa Từ Máy'}</span>
+                    <span>{uploadingCover ? 'Đang Upload...' : 'Tải Ảnh Bìa Từ Máy'}</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -1099,18 +1634,30 @@ function NewsEditorContent() {
                     />
                   </label>
 
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-500 block mb-1">
-                      Hoặc Nhập Trực Tiếp URL Ảnh Bìa:
-                    </label>
-                    <input
-                      type="text"
-                      value={thumbnailUrl}
-                      onChange={(e) => setThumbnailUrl(e.target.value)}
-                      placeholder="https://..."
-                      className="w-full p-2 border border-slate-200 rounded-lg text-xs font-mono text-slate-700"
-                    />
-                  </div>
+                  {thumbnailUrl && thumbnailUrl !== '/images/logo/logonen.png' && (
+                    <button
+                      type="button"
+                      onClick={() => setThumbnailUrl('/images/logo/logonen.png')}
+                      className="px-3 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-[#D90429] font-bold text-xs border border-red-200/80 transition-all flex items-center gap-1.5 shrink-0"
+                      title="Đặt lại ảnh về mặc định (Logo website)"
+                    >
+                      <Trash2 className="w-4 h-4 text-[#D90429]" />
+                      <span>Xóa Ảnh</span>
+                    </button>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 block mb-1">
+                    Hoặc Nhập Trực Tiếp URL Ảnh Bìa:
+                  </label>
+                  <input
+                    type="text"
+                    value={thumbnailUrl}
+                    onChange={(e) => setThumbnailUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-mono text-slate-700"
+                  />
                 </div>
               </div>
 
@@ -1138,6 +1685,56 @@ function NewsEditorContent() {
                 </div>
 
                 <div className="pt-2">
+                  <label className="font-bold text-slate-700 text-xs block mb-1.5 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Tag className="w-3.5 h-3.5 text-red-600" />
+                      <span>Hashtags Thẻ Bài Viết (Tùy chọn)</span>
+                    </span>
+                    {articleTags.length > 0 && (
+                      <span className="text-[10px] font-mono text-red-600 font-bold bg-red-50 border border-red-200/60 px-2 py-0.5 rounded-full">
+                        {articleTags.length} thẻ
+                      </span>
+                    )}
+                  </label>
+                  <Select
+                    mode="tags"
+                    tokenSeparators={[',']}
+                    value={articleTags}
+                    onChange={(newTags) => {
+                      const cleaned = (newTags as string[])
+                        .flatMap((t) => t.split(','))
+                        .map((t) => t.trim().replace(/^#+/, ''))
+                        .filter(Boolean);
+                      setArticleTags(Array.from(new Set(cleaned)));
+                    }}
+                    placeholder="Gõ từ khóa rồi nhấn Enter (hoặc dấu phẩy)..."
+                    className="w-full text-xs font-bold"
+                    size="large"
+                    open={false}
+                    tagRender={(props) => {
+                      const { label, closable, onClose } = props;
+                      return (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-red-50 border border-red-200/80 text-[#D90429] text-xs font-bold mr-1.5 my-1 shadow-2xs">
+                          <span>#{label}</span>
+                          {closable && (
+                            <span
+                              onClick={onClose}
+                              className="inline-flex items-center justify-center cursor-pointer text-red-500 hover:text-red-800 transition-colors ml-0.5"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </span>
+                          )}
+                        </span>
+                      );
+                    }}
+                    options={[]}
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1.5 italic">
+                    Gõ cụm từ rồi nhấn <strong>Enter</strong> để tạo thẻ hashtag badge. Để xóa thẻ, bấm biểu tượng (×).
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100">
                   <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
                     <span className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500" />
@@ -1153,6 +1750,59 @@ function NewsEditorContent() {
             </div>
           </form>
         )}
+
+        {/* Insert Hyperlink Modal */}
+        <Modal
+          open={showLinkModal}
+          onCancel={() => setShowLinkModal(false)}
+          onOk={handleConfirmInsertLink}
+          title={
+            <div className="flex items-center gap-2 text-slate-900 font-extrabold text-sm border-b border-slate-100 pb-3">
+              <LinkIcon className="w-4 h-4 text-[#D90429]" />
+              <span>Chèn Đường Dẫn Liên Kết (Hyperlink)</span>
+            </div>
+          }
+          okText="Chèn Liên Kết"
+          cancelText="Hủy Bỏ"
+          okButtonProps={{ className: 'bg-[#D90429] hover:bg-red-700 font-bold rounded-xl' }}
+          cancelButtonProps={{ className: 'rounded-xl font-bold' }}
+        >
+          <div className="space-y-4 py-2 font-sans">
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">
+                Văn Bản Hiển Thị (Anchor Text):
+              </label>
+              <input
+                type="text"
+                value={linkText}
+                onChange={(e) => setLinkText(e.target.value)}
+                placeholder="Ví dụ: Xem chi tiết phụ tùng xe HOWO 371HP"
+                className="w-full p-2.5 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">
+                Đường Dẫn URL Liên Kết (*):
+              </label>
+              <input
+                type="text"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://phutungotoquyba.vn/san-pham/... hoặc /products/..."
+                className="w-full p-2.5 border border-slate-200 rounded-xl text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              />
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-700">Mở liên kết trong thẻ tab mới (_blank):</span>
+              <Switch
+                checked={linkNewTab}
+                onChange={(checked) => setLinkNewTab(checked)}
+              />
+            </div>
+          </div>
+        </Modal>
 
         {/* Global Toast Notification */}
         {toastState && (

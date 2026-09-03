@@ -7,12 +7,13 @@ export class NewsController {
    */
   static async getNewsList(req: Request, res: Response, next: NextFunction) {
     try {
-      const { categorySlug, search, page, limit } = req.query;
+      const { categorySlug, search, page, limit, isPublicOnly } = req.query;
       const result = await NewsService.getNewsList({
         categorySlug: categorySlug as string,
         search: search as string,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
+        isPublicOnly: isPublicOnly === "true",
       });
 
       return res.status(200).json({
@@ -31,7 +32,8 @@ export class NewsController {
   static async getNewsBySlug(req: Request, res: Response, next: NextFunction) {
     try {
       const slug = req.params.slug;
-      const article = await NewsService.getNewsBySlug(slug);
+      const isAdmin = req.query.isAdmin === "true";
+      const article = await NewsService.getNewsBySlug(slug, !isAdmin);
 
       return res.status(200).json({
         success: true,
@@ -47,16 +49,18 @@ export class NewsController {
    */
   static async createNews(req: Request, res: Response, next: NextFunction) {
     try {
-      const { title, slug, categorySlug, content, thumbnailUrl, isFeatured } = req.body;
+      const { title, slug, categorySlug, tags, content, thumbnailUrl, isFeatured, isPublished } = req.body;
       const user = (req as any).user;
 
       const newArticle = await NewsService.createNews({
         title,
         slug,
         categorySlug,
+        tags: Array.isArray(tags) ? tags : typeof tags === "string" ? tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
         content,
         thumbnailUrl,
         isFeatured,
+        isPublished,
         authorId: user?.userId,
       });
 
@@ -76,15 +80,17 @@ export class NewsController {
   static async updateNews(req: Request, res: Response, next: NextFunction) {
     try {
       const id = parseInt(req.params.id);
-      const { title, slug, categorySlug, content, thumbnailUrl, isFeatured } = req.body;
+      const { title, slug, categorySlug, tags, content, thumbnailUrl, isFeatured, isPublished } = req.body;
 
       const updated = await NewsService.updateNews(id, {
         title,
         slug,
         categorySlug,
+        tags: Array.isArray(tags) ? tags : typeof tags === "string" ? tags.split(",").map((t: string) => t.trim()).filter(Boolean) : undefined,
         content,
         thumbnailUrl,
         isFeatured,
+        isPublished,
       });
 
       return res.status(200).json({

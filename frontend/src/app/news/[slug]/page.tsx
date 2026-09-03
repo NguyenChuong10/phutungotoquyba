@@ -4,17 +4,17 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { 
-  Calendar, 
-  Clock, 
-  User, 
-  ChevronRight, 
-  Tag, 
-  BookOpen, 
-  ArrowLeft, 
-  ArrowRight, 
-  Share2, 
-  Flame, 
+import {
+  Calendar,
+  Clock,
+  User,
+  ChevronRight,
+  Tag,
+  BookOpen,
+  ArrowLeft,
+  ArrowRight,
+  Share2,
+  Flame,
   TrendingUp,
   MessageSquare,
   Sparkles,
@@ -45,8 +45,14 @@ async function getArticleDetail(slug: string) {
       const data = await res.json();
       if (data.success && data.data) {
         const art = data.data;
+
+        // Block access to hidden/unpublished articles (Return null to trigger Next.js 404 Not Found)
+        if (art.isPublished === false) {
+          return null;
+        }
+
         const catName = CATEGORY_NAMES[art.categorySlug] || art.categoryName || art.categorySlug || 'Cẩm Nang Kỹ Thuật';
-        
+
         // Calculate dynamic reading time based on word count of real content
         const wordCount = art.content ? art.content.replace(/<[^>]*>?/gm, '').split(/\s+/).length : 0;
         const calcReadTime = Math.max(1, Math.ceil(wordCount / 200));
@@ -57,11 +63,10 @@ async function getArticleDetail(slug: string) {
         const formattedPubDate = pubDateStr ? new Date(pubDateStr).toLocaleDateString('vi-VN') : 'Đang cập nhật';
         const formattedUpDate = upDateStr ? new Date(upDateStr).toLocaleDateString('vi-VN') : 'Đang cập nhật';
 
-        // Extract keywords from title for dynamic tags
-        const titleKeywords = art.title
-          ? art.title.split(' ').filter((w: string) => w.length > 3).slice(0, 4)
+        // Use real tags defined in DB/Admin (empty array if no tags defined)
+        const realTags = Array.isArray(art.tags) && art.tags.length > 0
+          ? art.tags.map((t: string) => t.trim()).filter(Boolean)
           : [];
-        const dynamicTags = Array.from(new Set([catName, ...titleKeywords]));
 
         return {
           id: art.id,
@@ -76,7 +81,7 @@ async function getArticleDetail(slug: string) {
           readTime: `${calcReadTime} phút đọc`,
           views: typeof art.views === 'number' ? art.views : 0,
           author: art.author?.fullName || 'Quản Trị Viên Q.BA',
-          tags: dynamicTags,
+          tags: realTags,
         };
       }
     }
@@ -96,20 +101,23 @@ async function getAllArticlesList() {
       const data = await res.json();
       const list = data?.data?.news || data?.data || [];
       if (Array.isArray(list)) {
-        return list.map((art: any) => {
-          const dateStr = art.publishedAt || art.createdAt;
-          return {
-            id: art.id,
-            title: art.title,
-            slug: art.slug,
-            category: CATEGORY_NAMES[art.categorySlug] || art.categorySlug || 'Cẩm Nang Kỹ Thuật',
-            summary: art.summary || (art.content ? art.content.replace(/<[^>]*>?/gm, '').slice(0, 160) + '...' : ''),
-            imageSrc: (art.thumbnailUrl && art.thumbnailUrl !== '/images/news-section/news-1.png') ? art.thumbnailUrl : '/images/logo/logonen.png',
-            publishedAt: dateStr ? new Date(dateStr).toLocaleDateString('vi-VN') : 'Đang cập nhật',
-            author: art.author?.fullName || 'Quản Trị Viên Q.BA',
-            views: typeof art.views === 'number' ? art.views : 0,
-          };
-        });
+        return list
+          .filter((art: any) => art.isPublished !== false)
+          .map((art: any) => {
+            const dateStr = art.publishedAt || art.createdAt;
+            return {
+              id: art.id,
+              title: art.title,
+              slug: art.slug,
+              category: CATEGORY_NAMES[art.categorySlug] || art.categorySlug || 'Cẩm Nang Kỹ Thuật',
+              summary: art.summary || (art.content ? art.content.replace(/<[^>]*>?/gm, '').slice(0, 160) + '...' : ''),
+              imageSrc: (art.thumbnailUrl && art.thumbnailUrl !== '/images/news-section/news-1.png') ? art.thumbnailUrl : '/images/logo/logonen.png',
+              publishedAt: dateStr ? new Date(dateStr).toLocaleDateString('vi-VN') : 'Đang cập nhật',
+              author: art.author?.fullName || 'Quản Trị Viên Q.BA',
+              views: typeof art.views === 'number' ? art.views : 0,
+              tags: Array.isArray(art.tags) ? art.tags : [],
+            };
+          });
       }
     }
   } catch (err) {
@@ -171,19 +179,30 @@ export default async function NewsDetailPage({ params }: PageProps) {
   }
 
   // Related & Next/Prev Articles dynamically calculated from DB
-  const currentIndex = allNews.findIndex((a) => a.slug === article.slug);
-  const prevArticle = currentIndex > 0 ? allNews[currentIndex - 1] : null;
-  const nextArticle = currentIndex >= 0 && currentIndex < allNews.length - 1 ? allNews[currentIndex + 1] : null;
-  
+  // Strictly filter articles in the SAME category only (No fallback to unrelated categories)
+  const sameCategoryNews = allNews.filter((a) => a.category === article.category);
+
+  // Calculate Next/Prev in correct chronological order:
+  // Since DB list is sorted Newest -> Oldest (Index 0 is newest):
+  // - Older article (published before) -> Index + 1 -> Left box ("<- BÀI VIẾT TRƯỚC")
+  // - Newer article (published after)  -> Index - 1 -> Right box ("BÀI VIẾT TIẾP THEO ->")
+  const currentIndex = sameCategoryNews.findIndex((a) => a.slug === article.slug);
+  const prevArticle = (currentIndex >= 0 && currentIndex < sameCategoryNews.length - 1)
+    ? sameCategoryNews[currentIndex + 1]
+    : null;
+  const nextArticle = (currentIndex > 0)
+    ? sameCategoryNews[currentIndex - 1]
+    : null;
+
   // Sort most popular articles by real view count from DB
   const popularArticles = [...allNews]
     .filter((a) => a.slug !== article.slug)
     .sort((a, b) => b.views - a.views)
     .slice(0, 5);
 
-  // Dynamic Tag Cloud derived from real news list categories & topics
+  // Dynamic Tag Cloud derived from real tags saved in DB
   const dynamicHotTags = Array.from(
-    new Set(allNews.map((n) => n.category).filter(Boolean))
+    new Set(allNews.flatMap((n) => (Array.isArray(n.tags) ? n.tags : [])).filter(Boolean))
   );
 
   return (
@@ -203,7 +222,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
 
       {/* Main Container - Editorial Layout */}
       <div className="container mx-auto px-4 max-w-7xl py-4">
-        
+
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center gap-2 text-xs font-medium text-slate-600 mb-5 flex-wrap pb-3 border-b border-slate-200/80">
           <Link href="/" className="hover:text-[#D90429] transition-colors">Trang chủ</Link>
@@ -217,7 +236,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
 
           {/* Left Main Article Content Column (Col 8) */}
           <article className="lg:col-span-8 bg-white p-5 md:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-6 relative">
-            
+
             {/* Article Header Info (SEO Title & Meta Header) */}
             <div className="space-y-3 pb-5 border-b border-slate-200/80">
               {/* Category Pill Tag */}
@@ -273,7 +292,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
 
             {/* Main Article Featured Cover Image */}
             <div className="relative aspect-[16/9] sm:aspect-[16/10] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-xs">
-              <Image 
+              <Image
                 src={article.imageSrc}
                 alt={article.title}
                 fill
@@ -293,8 +312,8 @@ export default async function NewsDetailPage({ params }: PageProps) {
                   <Tag size={14} className="text-[#D90429]" /> THẺ BÀI VIẾT:
                 </span>
                 <div className="flex flex-wrap gap-2">
-                  {article.tags.map((tag, idx) => (
-                    <span 
+                  {article.tags.map((tag: string, idx: number) => (
+                    <span
                       key={`tag-${idx}`}
                       className="px-3.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold hover:border-[#D90429] hover:text-[#D90429] transition-colors"
                     >
@@ -305,38 +324,40 @@ export default async function NewsDetailPage({ params }: PageProps) {
               </div>
             )}
 
-            {/* Next / Previous Article Navigation */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-5 border-t border-slate-200">
-              {prevArticle ? (
-                <Link
-                  href={`/news/${prevArticle.slug}`}
-                  className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-[#D90429] hover:bg-slate-100/80 transition-all flex flex-col group"
-                >
-                  <span className="text-[11px] font-mono font-bold uppercase text-[#D90429] flex items-center gap-1">
-                    <ArrowLeft size={13} /> BÀI VIẾT TRƯỚC
-                  </span>
-                  <span className="text-xs font-bold text-slate-900 line-clamp-1 group-hover:text-[#D90429] mt-1">
-                    {prevArticle.title}
-                  </span>
-                </Link>
-              ) : (
-                <div></div>
-              )}
+            {/* Next / Previous Article Navigation - Only shown if there are other articles in the SAME category */}
+            {(prevArticle || nextArticle) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-5 border-t border-slate-200">
+                {prevArticle ? (
+                  <Link
+                    href={`/news/${prevArticle.slug}`}
+                    className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-[#D90429] hover:bg-slate-100/80 transition-all flex flex-col group"
+                  >
+                    <span className="text-[11px] font-mono font-bold uppercase text-[#D90429] flex items-center gap-1">
+                      <ArrowLeft size={13} /> BÀI VIẾT TRƯỚC
+                    </span>
+                    <span className="text-xs font-bold text-slate-900 line-clamp-1 group-hover:text-[#D90429] mt-1">
+                      {prevArticle.title}
+                    </span>
+                  </Link>
+                ) : (
+                  <div></div>
+                )}
 
-              {nextArticle ? (
-                <Link
-                  href={`/news/${nextArticle.slug}`}
-                  className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-[#D90429] hover:bg-slate-100/80 transition-all flex flex-col text-right group sm:col-start-2"
-                >
-                  <span className="text-[11px] font-mono font-bold uppercase text-[#D90429] flex items-center justify-end gap-1">
-                    BÀI VIẾT TIẾP THEO <ArrowRight size={13} />
-                  </span>
-                  <span className="text-xs font-bold text-slate-900 line-clamp-1 group-hover:text-[#D90429] mt-1">
-                    {nextArticle.title}
-                  </span>
-                </Link>
-              ) : null}
-            </div>
+                {nextArticle ? (
+                  <Link
+                    href={`/news/${nextArticle.slug}`}
+                    className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-[#D90429] hover:bg-slate-100/80 transition-all flex flex-col text-right group sm:col-start-2"
+                  >
+                    <span className="text-[11px] font-mono font-bold uppercase text-[#D90429] flex items-center justify-end gap-1">
+                      BÀI VIẾT TIẾP THEO <ArrowRight size={13} />
+                    </span>
+                    <span className="text-xs font-bold text-slate-900 line-clamp-1 group-hover:text-[#D90429] mt-1">
+                      {nextArticle.title}
+                    </span>
+                  </Link>
+                ) : null}
+              </div>
+            )}
 
             {/* Author Bio Card */}
             <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row items-center sm:items-start gap-4">
@@ -355,7 +376,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
 
           {/* Right Sidebar Column (Col 4) */}
           <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-28 lg:self-start">
-            
+
             {/* Numbered MOST POPULAR Widget (Real views from DB) */}
             <div className="p-6 rounded-3xl bg-white border border-slate-200/90 space-y-5 shadow-xs relative overflow-hidden">
               {/* Submerged Slanted Background Watermark Text */}
@@ -396,14 +417,14 @@ export default async function NewsDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Hot Topics Tag Cloud Widget (Real DB Categories) */}
-            <div className="p-6 rounded-3xl bg-white border border-slate-200/90 space-y-4 shadow-xs">
-              <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 font-mono flex items-center gap-2 border-b border-slate-200 pb-3">
-                <Tag size={16} className="text-[#D90429]" /> CHỦ ĐỀ QUAN TÂM
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {dynamicHotTags.length > 0 ? (
-                  dynamicHotTags.map((tag, idx) => (
+            {/* Hot Topics Tag Cloud Widget (Rendered only if real DB tags exist) */}
+            {dynamicHotTags.length > 0 && (
+              <div className="p-6 rounded-3xl bg-white border border-slate-200/90 space-y-4 shadow-xs">
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 font-mono flex items-center gap-2 border-b border-slate-200 pb-3">
+                  <Tag size={16} className="text-[#D90429]" /> CHỦ ĐỀ QUAN TÂM
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {dynamicHotTags.map((tag: string, idx: number) => (
                     <Link
                       key={`tag-cloud-detail-${idx}`}
                       href={`/news?search=${encodeURIComponent(tag)}`}
@@ -411,12 +432,10 @@ export default async function NewsDetailPage({ params }: PageProps) {
                     >
                       #{tag}
                     </Link>
-                  ))
-                ) : (
-                  <span className="text-xs text-slate-500 italic">Đang cập nhật...</span>
-                )}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Direct Zalo Contact Box */}
             <div className="p-6 rounded-3xl bg-gradient-to-br from-[#D90429] to-[#99021C] text-white shadow-xl space-y-4">
@@ -429,9 +448,9 @@ export default async function NewsDetailPage({ params }: PageProps) {
               <p className="text-xs text-red-100 leading-relaxed">
                 Gửi số khung (VIN) hoặc hình ảnh phụ tùng cần tư vấn qua Zalo để nhận báo giá trong 5 phút.
               </p>
-              <a 
-                href="https://zalo.me/0903588167" 
-                target="_blank" 
+              <a
+                href="https://zalo.me/0903588167"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-3 bg-white text-[#D90429] font-black rounded-xl text-xs uppercase tracking-wider block text-center shadow-md hover:bg-slate-100 transition-colors"
               >

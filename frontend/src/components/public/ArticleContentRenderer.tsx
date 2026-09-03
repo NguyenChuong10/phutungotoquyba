@@ -11,6 +11,7 @@ interface TocItem {
   id: string;
   text: string;
   level: number;
+  displayLabel: string;
 }
 
 export default function ArticleContentRenderer({ content }: ArticleContentRendererProps) {
@@ -34,6 +35,7 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
 
     const items: TocItem[] = [];
     let headingIndex = 0;
+    let h2Counter = 0;
 
     // A. Add IDs & SEO styling to H2 & H3 tags
     htmlStr = htmlStr.replace(/<(h[23])([^>]*)>([\s\S]*?)<\/\1>/gi, (match, tag, attrs, innerText) => {
@@ -41,14 +43,21 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
       
       const textWithoutBadge = innerText.replace(/<span[^>]*w-[0-9]+[^>]*>[\s\S]*?<\/span>/gi, "").trim();
       let cleanText = textWithoutBadge.replace(/<[^>]*>?/gm, "").trim();
-      cleanText = cleanText.replace(/^[0-9]+(?=[A-ZÀ-Ỹa-zà-ỹ\s])/, "").trim();
+      // Strip leading numeric prefix e.g. "1. ", "2. ", "10. ", "1 - ", "1.1 "
+      cleanText = cleanText.replace(/^[\d\.]+\s*[-.:)]?\s*/, "").trim();
 
       const id = `heading-sec-${headingIndex}`;
       const isH2 = tag.toLowerCase() === "h2";
       const level = isH2 ? 2 : 3;
 
+      let displayLabel = "•";
+      if (isH2) {
+        h2Counter++;
+        displayLabel = `${h2Counter}.`;
+      }
+
       if (cleanText) {
-        items.push({ id, text: cleanText, level });
+        items.push({ id, text: cleanText, level, displayLabel });
       }
 
       if (attrs.includes("class=")) {
@@ -144,8 +153,15 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
 
   const activeItemText = useMemo(() => {
     const found = tocItems.find((item) => item.id === activeTocId);
-    return found ? found.text : "Nội dung bài viết";
+    if (!found) return "Nội dung bài viết";
+    return found.level === 2 ? `${found.displayLabel} ${found.text}` : found.text;
   }, [tocItems, activeTocId]);
+
+  const h2Count = useMemo(() => tocItems.filter((item) => item.level === 2).length, [tocItems]);
+  const sectionsBadgeText = useMemo(() => {
+    if (h2Count > 0) return `${h2Count} phần chính`;
+    return `${tocItems.length} mục`;
+  }, [h2Count, tocItems.length]);
 
   return (
     <div className="space-y-4 relative">
@@ -161,7 +177,7 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
             </div>
 
             <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700 font-mono text-[10px] font-bold">
-              {tocItems.length} mục
+              {sectionsBadgeText}
             </span>
           </div>
 
@@ -185,7 +201,7 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
                   <span className={`font-mono shrink-0 transition-colors ${
                     isActive ? "text-[#D90429] font-bold" : "text-slate-400 group-hover:text-[#D90429]"
                   }`}>
-                    {isH2 ? `${idx + 1}.` : "•"}
+                    {item.displayLabel}
                   </span>
 
                   <span className="leading-snug flex-1">
@@ -208,7 +224,7 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
               </div>
               <div className="truncate">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#D90429] block">
-                  Đang đọc phần:
+                  ĐANG ĐỌC PHẦN:
                 </span>
                 <span className="text-xs font-bold text-slate-900 truncate block">
                   {activeItemText}
@@ -220,7 +236,7 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
               onClick={() => setIsStickyTocDropdownOpen((prev) => !prev)}
               className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer shadow-sm"
             >
-              <span>Xem Tất Cả Mục ({tocItems.length})</span>
+              <span>Xem Tất Cả ({sectionsBadgeText})</span>
               {isStickyTocDropdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
           </div>
@@ -261,7 +277,7 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
                       <span className={`font-mono shrink-0 ${
                         isActive ? "text-[#D90429] font-bold" : "text-slate-400"
                       }`}>
-                        {isH2 ? `${idx + 1}.` : "•"}
+                        {item.displayLabel}
                       </span>
                       <span className="leading-snug">
                         {item.text}

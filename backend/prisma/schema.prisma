@@ -168,10 +168,12 @@ model News {
   title        String
   slug         String   @unique
   categorySlug String   @default("cam-nang-ky-thuat") @map("category_slug")
+  tags         String[] @default([])
   content      String   @db.Text
   thumbnailUrl String?  @map("thumbnail_url")
   views        Int      @default(0)
   isFeatured   Boolean  @default(false) @map("is_featured")
+  isPublished  Boolean  @default(true) @map("is_published")
   publishedAt  DateTime @default(now()) @map("published_at")
   createdAt    DateTime @default(now()) @map("created_at")
 
