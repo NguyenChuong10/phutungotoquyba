@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { API_BASE_URL } from '@/config/api';
+import { getProductUrl } from '@/utils/productHelper';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,7 +86,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         products.forEach((prod: any) => {
           if (prod.id) {
             routes.push({
-              url: `${baseUrl}/products/${prod.id}`,
+              url: `${baseUrl}${getProductUrl(prod)}`,
               lastModified: prod.updatedAt ? new Date(prod.updatedAt) : new Date(),
               changeFrequency: 'weekly',
               priority: 0.8,

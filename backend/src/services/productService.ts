@@ -104,10 +104,19 @@ export class ProductService {
    * Public Get Product Detail by ID or Slug (Data Privacy Masking)
    */
   static async getPublicProductByIdOrSlug(identifier: string) {
-    const isId = !isNaN(Number(identifier));
+    let numericId: number | null = !isNaN(Number(identifier)) ? Number(identifier) : null;
+    if (numericId === null) {
+      const match = String(identifier).trim().match(/(?:^|-)(\d+)$/);
+      if (match && match[1]) {
+        const parsed = parseInt(match[1], 10);
+        if (!isNaN(parsed) && parsed > 0) {
+          numericId = parsed;
+        }
+      }
+    }
 
     const product = await prisma.product.findUnique({
-      where: isId ? { id: Number(identifier) } : { slug: identifier },
+      where: numericId !== null ? { id: numericId } : { slug: identifier },
       select: {
         id: true,
         name: true,

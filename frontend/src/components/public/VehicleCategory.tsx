@@ -15,29 +15,8 @@ interface VehicleCategoryItem {
   slug?: string;
 }
 
-const DEFAULT_CATEGORY_ICONS: Record<string, string> = {
-  'dong-co-may-phat': '/images/vehicle-category/dongco.png',
-  'ben-thuy-luc': '/images/vehicle-category/ben.png',
-  'cabin-than-vo': '/images/vehicle-category/cabin.png',
-  'gam-cau-phanh': '/images/vehicle-category/gam.png',
-  'hop-so-bo-dong-toc': '/images/vehicle-category/hopso.png',
-  'linh-kien-ro-mooc': '/images/vehicle-category/romooc.png',
-  'gioang-seal-phot': '/images/vehicle-category/sealphot.png',
-  'vong-bi-bac-dan': '/images/vehicle-category/vongbi.png',
-};
-
-const FALLBACK_BANNERS: VehicleCategoryItem[] = [
-  { id: 1, src: '/images/vehicle-category/dongco.png', alt: 'ĐỘNG CƠ & MÁY PHÁT', desc: 'Chủng loại phụ tùng động cơ Weichai, Yuchai, Cummins chính hãng xe tải nặng Q.BA Đà Nẵng.', slug: '/products' },
-  { id: 2, src: '/images/vehicle-category/gam.png', alt: 'GẦM & SEAL PHỐT', desc: 'Phụ tùng cầu xe, gầm phanh, gioăng phớt chịu nhiệt xe tải nặng.', slug: '/products' },
-  { id: 3, src: '/images/vehicle-category/romooc.png', alt: 'LINH KIỆN RƠ-MOÓC', desc: 'Cụm chân chống Fuwa, mâm moóc 50/90, bát nhíp, đinh kéo moóc.', slug: '/products' },
-  { id: 4, src: '/images/vehicle-category/hopso.png', alt: 'HỘP SỐ & BỘ ĐỒNG TỐC', desc: 'Hộp số Fast Gear, bánh răng đồng tốc 9JS, 10JSD, 12JSD.', slug: '/products' },
-  { id: 5, src: '/images/vehicle-category/cabin.png', alt: 'CABIN & THÂN VỎ', desc: 'Phụ tùng thân vỏ, mặt ca lăng, kính chắn gió, đèn pha xe HOWO, Shacman.', slug: '/products' },
-  { id: 6, src: '/images/vehicle-category/ben.png', alt: 'BEN THỦY LỰC', desc: 'Tháp nâng ben Hyva, bơm thủy lực, van nâng hạ thùng xe ben.', slug: '/products' },
-  { id: 7, src: '/images/vehicle-category/vongbi.png', alt: 'VÒNG BI BẠC ĐẠN', desc: 'Vòng bi moay ơ, bạc đạn tỳ, bạc đạn kim hộp số chịu tải nặng.', slug: '/products' },
-];
-
 export default function VehicleCategory() {
-  const [categoriesList, setCategoriesList] = useState<VehicleCategoryItem[]>(FALLBACK_BANNERS);
+  const [categoriesList, setCategoriesList] = useState<VehicleCategoryItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<VehicleCategoryItem | null>(null);
   const [isModalImageLoading, setIsModalImageLoading] = useState(true);
   const [imageErrorMap, setImageErrorMap] = useState<Record<string | number, boolean>>({});
@@ -49,7 +28,7 @@ export default function VehicleCategory() {
         if (bannersRes && (bannersRes.ok || bannersRes.success) && Array.isArray(bannersRes.data) && bannersRes.data.length > 0) {
           const items: VehicleCategoryItem[] = bannersRes.data.map((b: any) => ({
             id: b.id,
-            src: formatImageUrl(b.imageUrl) || '/images/vehicle-category/dongco.png',
+            src: formatImageUrl(b.imageUrl),
             alt: b.title,
             desc: b.description || `Danh mục phụ tùng ${b.title} chính hãng xe tải nặng Q.BA Đà Nẵng.`,
             slug: b.linkUrl || '/products',
@@ -64,7 +43,7 @@ export default function VehicleCategory() {
             const dbIcon = cat.iconUrl || cat.imageUrl;
             return {
               id: cat.id || cat.slug,
-              src: formatImageUrl(dbIcon) || DEFAULT_CATEGORY_ICONS[cat.slug] || '/images/vehicle-category/dongco.png',
+              src: formatImageUrl(dbIcon),
               alt: cat.name,
               desc: cat.description || `Danh mục phụ tùng ${cat.name} chính hãng xe tải nặng Q.BA Đà Nẵng.`,
               slug: cat.slug,
@@ -136,7 +115,7 @@ export default function VehicleCategory() {
                   >
 
                     <Image
-                      src={imageErrorMap[product.id] ? (DEFAULT_CATEGORY_ICONS[product.slug || ''] || '/images/vehicle-category/dongco.png') : product.src}
+                      src={product.src}
                       alt={`Phụ tùng ${product.alt} xe tải nặng chính hãng sẵn kho Q.BA Đà Nẵng`}
                       fill
                       sizes="280px"

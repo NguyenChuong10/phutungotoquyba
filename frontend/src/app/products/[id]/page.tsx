@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   ShieldCheck,
   Truck,
@@ -20,14 +20,16 @@ import ProductDetailActions from "@/components/public/ProductDetailActions";
 import ProductImageGallery from "@/components/public/ProductImageGallery";
 import { API_BASE_URL } from "@/config/api";
 import { formatImageUrl } from "@/utils/imageHelper";
+import { parseNumericProductId, slugify, getProductUrl } from "@/utils/productHelper";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 async function getProductDetail(id: string) {
+  const numericId = parseNumericProductId(id);
   try {
-    const res = await fetch(`${API_BASE_URL}/products/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/products/${numericId}`, {
       cache: "no-store",
     });
     if (res.ok) {
@@ -68,7 +70,7 @@ export async function generateStaticParams() {
     if (res.ok) {
       const json = await res.json();
       if (json.data && json.data.length > 0) {
-        return json.data.map((p: { id: number }) => ({ id: String(p.id) }));
+        return json.data.map((p: { id: number; name?: string }) => ({ id: `${slugify(p.name || '')}-${p.id}` }));
       }
     }
   } catch {
@@ -80,11 +82,12 @@ export async function generateStaticParams() {
 import JsonLd from "@/components/seo/JsonLd";
 
 export async function generateMetadata({ params }: PageProps) {
-  const { id } = await params;
-  const product = await getProductDetail(id);
+  const { id: rawParam } = await params;
+  const numericId = parseNumericProductId(rawParam);
+  const product = await getProductDetail(String(numericId));
   if (!product) return { title: "Không Tìm Thấy Phụ Tùng - Q.BA" };
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const canonicalPath = getProductUrl(product);
   const title = `${product.name} (Part No: ${product.partNumber}) - Phụ Tùng Ô Tô Q.BA`;
   const description = `Báo giá ${product.name} chính hãng Mã Part No: ${product.partNumber}. Hãng ${product.brand} sẵn kho Q.BA Đà Nẵng. Hotline 0903.588.167.`;
 
@@ -92,12 +95,12 @@ export async function generateMetadata({ params }: PageProps) {
     title,
     description,
     alternates: {
-      canonical: `/products/${product.id}`,
+      canonical: canonicalPath,
     },
     openGraph: {
       title,
       description,
-      url: `/products/${product.id}`,
+      url: canonicalPath,
       siteName: "Phụ Tùng Ô Tô Q.BA Đà Nẵng",
       locale: "vi_VN",
       type: "website",
@@ -120,11 +123,17 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
-  const { id } = await params;
-  const product = await getProductDetail(id);
+  const { id: rawParam } = await params;
+  const numericId = parseNumericProductId(rawParam);
+  const product = await getProductDetail(String(numericId));
 
   if (!product) {
     notFound();
+  }
+
+  const expectedSlugParam = `${slugify(product.name)}-${product.id}`;
+  if (rawParam !== expectedSlugParam) {
+    redirect(getProductUrl(product));
   }
 
   // Fetch all products to get related items dynamically
@@ -178,7 +187,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     "offers": (product.price && product.price !== "Liên hệ Báo Giá" && !isNaN(Number(product.price.replace(/[^0-9]/g, ''))))
       ? {
           "@type": "Offer",
-          "url": `${baseUrl}/products/${product.id}`,
+          "url": `${baseUrl}${getProductUrl(product)}`,
           "priceCurrency": "VND",
           "price": String(Number(product.price.replace(/[^0-9]/g, ''))),
           "priceValidUntil": "2030-12-31",
@@ -191,7 +200,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
         }
       : {
           "@type": "AggregateOffer",
-          "url": `${baseUrl}/products/${product.id}`,
+          "url": `${baseUrl}${getProductUrl(product)}`,
           "priceCurrency": "VND",
           "lowPrice": "0",
           "highPrice": "0",
@@ -236,7 +245,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
         "@type": "ListItem",
         "position": 4,
         "name": product.name,
-        "item": `${baseUrl}/products/${product.id}`,
+        "item": `${baseUrl}${getProductUrl(product)}`,
       },
     ],
   };
@@ -456,7 +465,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
               {relatedProducts.map((rel: any) => (
                 <Link 
                   key={`rel-prod-${rel.id}`}
-                  href={`/products/${rel.id}`}
+                  href={getProductUrl(rel)}
                   className="group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xl hover:border-brand/40 transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer"
                 >
                   <div className="relative h-44 sm:h-48 w-full bg-slate-100 overflow-hidden">

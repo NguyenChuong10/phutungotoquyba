@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { formatImageUrl } from '@/utils/imageHelper';
+import { getProductUrl } from '@/utils/productHelper';
 import ToastNotification, { ToastMessage } from '@/components/ui/ToastNotification';
 import AddProductModal from '@/components/admin/AddProductModal';
 import StockAdjustmentModal from '@/components/admin/StockAdjustmentModal';
@@ -435,7 +436,7 @@ export default function AdminProductsPage() {
           </button>
 
           <Link
-            href={`/products/${record.id}`}
+            href={getProductUrl(record)}
             target="_blank"
             className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all"
             title="Xem công khai trên website"

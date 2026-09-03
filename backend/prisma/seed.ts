@@ -319,6 +319,25 @@ async function main() {
   }
 
   console.log("✅ Seeded Initial Products & Images into PostgreSQL Database");
+
+  // Seed Initial Hero Banner Slides
+  const initialHeroSlides = [
+    { title: "XE ĐẦU KÉO", imageUrl: "/images/hero-section/phutungxedaukeo.png", altText: "Phụ tùng xe đầu kéo", sortOrder: 1, isActive: true },
+    { title: "XE BEN", imageUrl: "/images/hero-section/phutungxeben.png", altText: "Phụ tùng xe ben", sortOrder: 2, isActive: true },
+    { title: "RƠ-MOÓC", imageUrl: "/images/hero-section/phutungromooc.png", altText: "Phụ tùng rơ moóc", sortOrder: 3, isActive: true },
+    { title: "HỘP SỐ", imageUrl: "/images/hero-section/phutunghopso.png", altText: "Phụ tùng hộp số", sortOrder: 4, isActive: true },
+    { title: "GẦM", imageUrl: "/images/hero-section/phutunggam.png", altText: "Phụ tùng gầm", sortOrder: 5, isActive: true },
+    { title: "ĐỘNG CƠ MÁY PHÁT", imageUrl: "/images/hero-section/phutungdongcomayphat.png", altText: "Phụ tùng động cơ máy phát", sortOrder: 6, isActive: true },
+    { title: "ĐỘNG CƠ MÁY CÔNG TRÌNH", imageUrl: "/images/hero-section/phutungdongcomaycongtrinh.png", altText: "Phụ tùng động cơ máy công trình", sortOrder: 7, isActive: true },
+  ];
+
+  for (const s of initialHeroSlides) {
+    const existing = await prisma.heroSlide.findFirst({ where: { title: s.title } });
+    if (!existing) {
+      await prisma.heroSlide.create({ data: s });
+    }
+  }
+  console.log("✅ Seeded Initial Hero Slides into Database");
   console.log("🎉 Seeding Completed Successfully!");
 }
 

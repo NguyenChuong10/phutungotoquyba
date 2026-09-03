@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Search, X, ArrowRight, Package, Tag, CheckCircle2 } from "lucide-react";
 import { formatImageUrl } from "@/utils/imageHelper";
+import { getProductUrl } from "@/utils/productHelper";
 import { AdminApiService } from "@/services/adminApiService";
 import { Product } from "@/types/product";
 
@@ -194,7 +195,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 {results.map((product) => (
                   <Link
                     key={product.id}
-                    href={`/products/${product.id}`}
+                    href={getProductUrl(product)}
                     onClick={onClose}
                     className="group flex items-center gap-4 p-3 rounded-xl bg-slate-900/40 hover:bg-slate-800/80 border border-transparent hover:border-[#FF0000]/40 transition-all"
                   >

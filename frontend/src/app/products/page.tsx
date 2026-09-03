@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { formatImageUrl } from "@/utils/imageHelper";
+import { getProductUrl } from "@/utils/productHelper";
 import { AdminApiService, CategoryTreeItem } from "@/services/adminApiService";
 import { Product, CategoryData } from "@/data/productsData";
 import QuotationModal from "@/components/public/QuotationModal";
@@ -430,7 +431,7 @@ function ProductsContent() {
                     {paginatedProducts.map((p) => (
                       <Link
                         key={p.id}
-                        href={`/products/${p.id}`}
+                        href={getProductUrl(p)}
                         className="group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xl hover:border-brand/40 transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer"
                       >
                         {/* Image Frame with object-cover - NO BLANK WHITE BARS */}
