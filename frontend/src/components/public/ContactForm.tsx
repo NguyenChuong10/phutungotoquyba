@@ -60,7 +60,7 @@ export default function ContactForm() {
           GỬI YÊU CẦU <span className="text-brand">BÁO GIÁ PHỤ TÙNG</span>
         </h2>
         <p className="text-gray-400 text-xs sm:text-sm mt-2">
-          Vui lòng để lại thông tin dòng xe và mã phụ tùng, đội ngũ kỹ thuật Q.BA sẽ liên hệ báo giá trong vòng 15 phút.
+          Vui lòng để lại thông tin dòng xe và tên phụ tùng, đội ngũ kỹ thuật Q.BA sẽ liên hệ báo giá trong vòng 15 phút.
         </p>
       </div>
 
@@ -122,10 +122,10 @@ export default function ContactForm() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase text-gray-300 mb-2">Mã phụ tùng (Part No.)</label>
+              <label className="block text-xs font-bold uppercase text-gray-300 mb-2">Tên phụ tùng cần hỏi</label>
               <input 
                 type="text" 
-                placeholder="Vd: VG1560080012, JS130T..." 
+                placeholder="Vd: Lọc nhớt WP10, Bộ lá côn, Bơm nước..." 
                 value={partNo}
                 onChange={(e) => setPartNo(sanitize(e.target.value))}
                 className="w-full bg-slate-800/90 border border-slate-700 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-brand text-sm transition-colors"

@@ -17,10 +17,10 @@ export default function NotFound() {
             LỖI 404 - KHÔNG TÌM THẤY TRANG
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Mã Phụ Tùng Hoặc Trang Bạn Tìm Không Tồn Tại
+            Sản Phẩm Hoặc Trang Bạn Tìm Không Tồn Tại
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
-            Đường dẫn có thể đã bị thay đổi hoặc phụ tùng này vừa được nạp vào kho Q.BA Đà Nẵng với mã Part No. mới.
+            Đường dẫn có thể đã bị thay đổi hoặc phụ tùng này vừa được cập nhật tại kho Q.BA Đà Nẵng.
           </p>
         </div>
 
@@ -43,7 +43,7 @@ export default function NotFound() {
         </div>
 
         <div className="pt-4 border-t border-slate-100 flex items-center justify-center gap-2 text-xs text-slate-500">
-          <span>Cần hỗ trợ tra mã VIN hỏa tốc?</span>
+          <span>Cần hỗ trợ tư vấn phụ tùng hỏa tốc?</span>
           <a
             href="tel:0903588167"
             className="font-bold text-red-600 hover:underline inline-flex items-center gap-1"

@@ -63,6 +63,7 @@ export default function SubCategoryProductsModal({
   onRefreshProducts,
 }: SubCategoryProductsModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortOption, setSortOption] = useState<string>('default');
   const [page, setPage] = useState(1);
   const itemsPerPage = 7;
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
@@ -130,16 +131,35 @@ export default function SubCategoryProductsModal({
         (p as any).mainCategorySlug === activeSubModal.slug ||
         (p as any).mainCategory === activeSubModal.name
     );
-    if (!q) return rawList;
-    return rawList.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.partNumber.toLowerCase().includes(q) ||
-        p.internalCode.toLowerCase().includes(q) ||
-        p.internalName.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q)
-    );
-  }, [activeSubModal, searchQuery, productsMock]);
+    let result = !q
+      ? rawList
+      : rawList.filter(
+          (p) =>
+            p.name.toLowerCase().includes(q) ||
+            p.partNumber.toLowerCase().includes(q) ||
+            p.internalCode.toLowerCase().includes(q) ||
+            p.internalName.toLowerCase().includes(q) ||
+            p.brand.toLowerCase().includes(q)
+        );
+
+    // Apply Sorting
+    result = [...result];
+    if (sortOption === 'name_asc') {
+      result.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+    } else if (sortOption === 'name_desc') {
+      result.sort((a, b) => b.name.localeCompare(a.name, 'vi'));
+    } else if (sortOption === 'part_asc') {
+      result.sort((a, b) => a.partNumber.localeCompare(b.partNumber, 'vi'));
+    } else if (sortOption === 'internal_asc') {
+      result.sort((a, b) => a.internalCode.localeCompare(b.internalCode, 'vi'));
+    } else if (sortOption === 'stock_desc') {
+      result.sort((a, b) => b.stock - a.stock);
+    } else if (sortOption === 'stock_asc') {
+      result.sort((a, b) => a.stock - b.stock);
+    }
+
+    return result;
+  }, [activeSubModal, searchQuery, sortOption, productsMock]);
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage) || 1;
   const paginatedProducts = useMemo(() => {
@@ -176,18 +196,40 @@ export default function SubCategoryProductsModal({
 
         {/* Modal Search Bar & Actions */}
         <div className="p-3.5 bg-slate-100/80 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
-          <div className="relative max-w-md w-full">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Tìm theo Mã Part No, Tên sản phẩm, Mã nội bộ Q.BA..."
-              className="w-full pl-10 pr-4 py-2 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-slate-900 font-semibold"
-            />
+          <div className="flex items-center gap-2 max-w-xl w-full">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Tìm theo Mã Phụ Tùng, Tên sản phẩm, Mã nội bộ Q.BA..."
+                className="w-full pl-10 pr-4 py-2 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-slate-900 font-semibold"
+              />
+            </div>
+
+            {/* Sort Select Dropdown */}
+            <div className="relative flex-shrink-0">
+              <select
+                value={sortOption}
+                onChange={(e) => {
+                  setSortOption(e.target.value);
+                  setPage(1);
+                }}
+                className="py-2 px-3 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 font-bold cursor-pointer"
+              >
+                <option value="default">Sắp xếp: Mặc định</option>
+                <option value="name_asc">Tên sản phẩm: A ➔ Z</option>
+                <option value="name_desc">Tên sản phẩm: Z ➔ A</option>
+                <option value="part_asc">Mã Phụ Tùng: A ➔ Z</option>
+                <option value="internal_asc">Mã Nội Bộ: A ➔ Z</option>
+                <option value="stock_desc">Tồn kho: Cao ➔ Thấp</option>
+                <option value="stock_asc">Tồn kho: Thấp ➔ Cao</option>
+              </select>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -224,7 +266,8 @@ export default function SubCategoryProductsModal({
               <thead className="sticky top-0 z-10 shadow-2xs">
                 <tr className="bg-slate-100/95 backdrop-blur-xs text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
                   <th className="p-3.5 pl-5">Ảnh SEO</th>
-                  <th className="p-3.5">Mã Part No / Mã Q.BA</th>
+                  <th className="p-3.5">Mã Phụ Tùng</th>
+                  <th className="p-3.5">Mã Nội Bộ (*)</th>
                   <th className="p-3.5">Tên Sản Phẩm & Tên Kho</th>
                   <th className="p-3.5">Mô Tả Chi Tiết Phụ Tùng</th>
                   <th className="p-3.5">Thương Hiệu</th>
@@ -238,7 +281,7 @@ export default function SubCategoryProductsModal({
                   <tr key={`prod-modal-${prod.id}`} className="hover:bg-slate-50/80 transition-colors">
                     <td className="p-3.5 pl-5">
                       <div
-                        onClick={() => setPreviewImage({ url: formatImageUrl(prod.image), title: `${prod.name} (Mã: ${prod.partNumber})` })}
+                        onClick={() => setPreviewImage({ url: formatImageUrl(prod.image), title: `${prod.name} (${prod.partNumber || prod.internalCode})` })}
                         className="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 relative overflow-hidden flex-shrink-0 shadow-2xs cursor-pointer hover:scale-105 hover:ring-2 hover:ring-red-500 transition-all group"
                         title="Bấm vào hình để phóng to ảnh sản phẩm"
                       >
@@ -249,18 +292,24 @@ export default function SubCategoryProductsModal({
                           loading="lazy"
                           unoptimized
                           sizes="100vw"
-                          className="object-cover group-hover:opacity-90"
+                          className="object-contain p-0.5 group-hover:opacity-90"
                         />
                         <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <ZoomIn className="w-4 h-4 text-white drop-shadow-md" />
                         </div>
                       </div>
                     </td>
-                    <td className="p-3.5">
-                      <div className="font-mono font-extrabold text-red-600 text-xs sm:text-sm">
-                        {prod.partNumber}
-                      </div>
-                      <div className="font-mono text-[10px] text-slate-400 mt-0.5">{prod.internalCode}</div>
+                    <td className="p-3.5 font-mono font-extrabold text-red-600 text-xs sm:text-sm">
+                      {prod.partNumber ? (
+                        prod.partNumber
+                      ) : (
+                        <span className="italic text-slate-400 font-normal font-sans text-[11px]">(Chưa có mã)</span>
+                      )}
+                    </td>
+                    <td className="p-3.5 font-mono text-xs font-bold text-slate-800">
+                      <span className="bg-slate-100 px-2 py-1 rounded border border-slate-200/80 inline-block">
+                        {prod.internalCode || '—'}
+                      </span>
                     </td>
                     <td className="p-3.5 max-w-xs">
                       <div className="font-extrabold text-slate-900 text-xs sm:text-sm line-clamp-1">

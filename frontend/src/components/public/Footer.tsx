@@ -2,12 +2,13 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Mail, Phone, ArrowUpRight } from "lucide-react";
-import { useSiteSettings } from "@/context/SiteSettingsContext";
+import { useSiteSettings, getGoogleMapSrc } from "@/context/SiteSettingsContext";
 import { siteConfig } from "@/config/siteConfig";
 import NoticeBar from "@/components/public/NoticeBar";
 
 export default function Footer() {
   const { settings } = useSiteSettings();
+  const mapSrc = getGoogleMapSrc(settings.warehouseAddress || siteConfig.address, settings.googleMapEmbedUrl);
 
   return (
     <footer id="contact" className="bg-[#0B0F19] text-gray-300 pt-16 pb-0 border-t-4 border-brand relative overflow-hidden">
@@ -144,7 +145,7 @@ export default function Footer() {
 
             <div className="w-full h-52 bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-xl relative group">
               <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3833.916945532585!2d108.17518457597148!3d16.069792688880625!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x314219069d2d8e41%3A0xc3c516f461e712a!2sC%E1%BB%ADa%20H%C3%A0ng%20Ph%E1%BB%A5%20T%C3%B9ng%20%C3%94%20T%C3%B4%20v%E1%BA%ADn%20t%E1%BA%A3i%20Q.Ba!5e0!3m2!1svi!2s!4v1713589999999!5m2!1svi!2s" 
+                src={mapSrc} 
                 width="100%" 
                 height="100%" 
                 style={{ border: 0 }} 

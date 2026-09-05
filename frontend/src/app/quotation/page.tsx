@@ -23,16 +23,16 @@ export default function QuotationPage() {
     setSubmitResult(null);
 
     const itemsSummary = items
-      .map((i) => `- ${i.product.name} (Part No: ${i.product.partNumber}) x${i.quantity}`)
+      .map((i) => `- ${i.product.name} x${i.quantity}`)
       .join("\n");
 
     const payload = {
       phoneNumber,
       customerName: fullName,
-      note: `Danh sách báo giá (${totalItems} mã):\n${itemsSummary}\n\nGhi chú thêm: ${generalNote}`,
+      note: `Danh sách báo giá (${totalItems} sản phẩm):\n${itemsSummary}\n\nGhi chú thêm: ${generalNote}`,
       items: items.map((i) => ({
         productId: parseNumericProductId(i.product.id),
-        partNumber: i.product.partNumber,
+        partNumber: i.product.partNumber || '',
         productName: i.product.name,
         quantity: i.quantity,
       })),
@@ -63,7 +63,7 @@ export default function QuotationPage() {
               Danh sách <span className="text-[#FF0000]">Yêu cầu Báo giá</span>
             </h1>
             <p className="text-slate-400 text-sm sm:text-base mt-2">
-              Xem lại các mã phụ tùng đã chọn và gửi yêu cầu tư vấn báo giá hỏa tốc trong 5 phút từ Chuyên viên Q.BA.
+              Xem lại các phụ tùng đã chọn và gửi yêu cầu tư vấn báo giá hỏa tốc trong 5 phút từ Chuyên viên Q.BA.
             </p>
           </div>
 
@@ -75,7 +75,7 @@ export default function QuotationPage() {
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">Danh sách báo giá đang trống</h2>
               <p className="text-slate-400 text-sm mb-8">
-                Bạn chưa thêm mã phụ tùng nào vào danh sách. Hãy truy cập E-Catalogue phụ tùng xe tải Q.BA để chọn các mã SKU cần báo giá.
+                Bạn chưa thêm phụ tùng nào vào danh sách. Hãy truy cập E-Catalogue phụ tùng xe tải Q.BA để chọn các sản phẩm cần báo giá.
               </p>
               <Link
                 href="/products"
@@ -149,12 +149,11 @@ export default function QuotationPage() {
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="px-2 py-0.5 bg-[#FF0000]/10 border border-[#FF0000]/30 text-[#FF0000] text-[10px] font-extrabold uppercase rounded">
-                            {item.product.brand}
-                          </span>
-                          <span className="text-slate-400 text-xs font-mono">
-                            Part No: <span className="text-white font-bold">{item.product.partNumber}</span>
-                          </span>
+                          {item.product.brand && (
+                            <span className="px-2 py-0.5 bg-[#FF0000]/10 border border-[#FF0000]/30 text-[#FF0000] text-[10px] font-extrabold uppercase rounded">
+                              {item.product.brand}
+                            </span>
+                          )}
                         </div>
                         <h3 className="text-white font-bold text-base truncate">
                           {item.product.name}

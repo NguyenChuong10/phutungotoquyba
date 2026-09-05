@@ -39,7 +39,8 @@ async function getProductDetail(id: string) {
         return {
           id: String(p.id),
           name: p.name,
-          partNumber: p.partNumber || `PN-${p.id}`,
+          internalCode: p.internalCode || '',
+          partNumber: p.partNumber || '',
           categorySlug: p.category?.parent?.slug || p.category?.slug || "dong-co-may-phat",
           categoryName: p.category?.parent?.name || p.category?.name || "Động Cơ & Máy Phát",
           brand: p.brand?.name || "HOWO Sinotruk",
@@ -50,7 +51,6 @@ async function getProductDetail(id: string) {
           gallery: p.images?.map((img: { imageUrl: string }) => formatImageUrl(img.imageUrl)) || [formatImageUrl(null)],
           description: p.description || "Phụ tùng chính hãng kho Q.BA Đà Nẵng, nhập khẩu trực tiếp từ nhà máy sản xuất.",
           specifications: (p.specifications as Record<string, string>) || {
-            "Mã phụ tùng (Part No.)": p.partNumber,
             "Thương hiệu": p.brand?.name || "HOWO Sinotruk",
           },
           compatibility: (p.compatibility as string[]) || ["Xe Tải Nặng HOWO", "Shacman", "FAW"],
@@ -88,8 +88,8 @@ export async function generateMetadata({ params }: PageProps) {
   if (!product) return { title: "Không Tìm Thấy Phụ Tùng - Q.BA" };
 
   const canonicalPath = getProductUrl(product);
-  const title = `${product.name} (Part No: ${product.partNumber}) - Phụ Tùng Ô Tô Q.BA`;
-  const description = `Báo giá ${product.name} chính hãng Mã Part No: ${product.partNumber}. Hãng ${product.brand} sẵn kho Q.BA Đà Nẵng. Hotline 0903.588.167.`;
+  const title = `${product.name} - Phụ Tùng Ô Tô Q.BA`;
+  const description = `Báo giá ${product.name} chính hãng. Hãng ${product.brand} sẵn kho Q.BA Đà Nẵng. Hotline 0903.588.167.`;
 
   return {
     title,
@@ -146,7 +146,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
         allProducts = json.data.map((p: any) => ({
           id: String(p.id),
           name: p.name,
-          partNumber: p.partNumber || `PN-${p.id}`,
+          partNumber: p.partNumber || '',
+          internalCode: p.internalCode || '',
           brand: p.brand?.name || 'Đối Tác Q.BA',
           categorySlug: p.category?.parent?.slug || p.category?.slug || "dong-co-may-phat",
           imageSrc: formatImageUrl(p.images?.[0]?.imageUrl),
@@ -312,12 +313,21 @@ export default async function ProductDetailPage({ params }: PageProps) {
               {product.name}
             </h1>
 
-            {/* Part Number Badge */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-md bg-slate-900 text-white font-mono font-extrabold text-xs">
-                Part No: <span className="text-amber-400">{product.partNumber}</span>
-              </span>
+            {/* Product Codes directly below Title (stacked on separate lines) */}
+            <div className="flex flex-col items-start gap-1.5 pt-1 text-xs font-mono">
+              {product.internalCode && (
+                <div className="px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200/90 text-slate-900 font-bold">
+                  {product.internalCode}
+                </div>
+              )}
+              {product.partNumber && (
+                <div className="px-2.5 py-1 rounded-md bg-red-50 border border-red-200/80 text-red-600 font-extrabold">
+                  {product.partNumber}
+                </div>
+              )}
             </div>
+
+
 
             {/* Pricing Line */}
             <div className="py-2 border-y border-slate-100 flex items-center justify-between">
@@ -388,8 +398,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
         {(() => {
           const rawSpecs = (product.specifications && typeof product.specifications === 'object') ? product.specifications : {};
           const cleanSpecs: Record<string, string> = {
-            'Mã phụ tùng (Part No.)': product.partNumber || rawSpecs['Mã Phụ Tùng (Part No.)'] || rawSpecs['Mã phụ tùng (Part No.)'] || 'Đang cập nhật',
-            'Thương hiệu nhà máy': product.brand,
+            'Mã phụ tùng': product.partNumber || 'Chưa cập nhật',
             'Danh mục phụ tùng': product.categoryName,
           };
 
@@ -399,13 +408,18 @@ export default async function ProductDetailPage({ params }: PageProps) {
           }
 
           Object.entries(rawSpecs).forEach(([k, v]) => {
+            const lowerKey = k.toLowerCase();
+            const isCodeKey =
+              lowerKey.includes('mã phụ tùng') ||
+              lowerKey.includes('part no') ||
+              lowerKey.includes('sku') ||
+              lowerKey.includes('mã nội bộ');
+
             if (
               v &&
               typeof v === 'string' &&
               v.trim() &&
-              !cleanSpecs[k] &&
-              k !== 'Mã Phụ Tùng (Part No.)' &&
-              k !== 'Mã phụ tùng (Part No.)' &&
+              !isCodeKey &&
               k !== 'Chất liệu đúc/sản xuất'
             ) {
               cleanSpecs[k] = v.trim();
@@ -468,15 +482,15 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   href={getProductUrl(rel)}
                   className="group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xl hover:border-brand/40 transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer"
                 >
-                  <div className="relative h-44 sm:h-48 w-full bg-slate-100 overflow-hidden">
+                  <div className="relative h-44 sm:h-48 w-full bg-slate-50 overflow-hidden">
                     <Image
                       src={rel.imageSrc}
-                      alt={`${rel.name} (Part No: ${rel.partNumber}) - Phụ tùng xe tải Q.BA Đà Nẵng`}
+                      alt={`${rel.name} - Phụ tùng xe tải Q.BA Đà Nẵng`}
                       fill
                       loading="lazy"
                       unoptimized
                       sizes="(max-width: 768px) 50vw, 25vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
                     />
                     {rel.brand && (
                       <div className="absolute top-2.5 left-2.5 bg-slate-900/90 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-md shadow-md z-10">
@@ -485,16 +499,39 @@ export default async function ProductDetailPage({ params }: PageProps) {
                     )}
                   </div>
 
-                  <div className="p-3.5 space-y-3 flex-1 flex flex-col justify-between bg-white">
-                    <div>
+                  <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between bg-white">
+                    <div className="space-y-1">
+                      {/* 1. Tên SP */}
                       <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-brand transition-colors">
                         {rel.name}
                       </h4>
+
+                      {/* 2. Mã nội bộ (Dòng 1) */}
+                      {rel.internalCode && (
+                        <div className="text-[11px] font-mono font-bold text-slate-500">
+                          {rel.internalCode}
+                        </div>
+                      )}
+
+                      {/* 3. Mã phụ tùng (Dòng 2) */}
+                      {rel.partNumber && (
+                        <div className="text-[11px] font-mono font-extrabold text-red-600">
+                          {rel.partNumber}
+                        </div>
+                      )}
+
+                      {/* 4. Liên hệ báo giá */}
+                      <div className="pt-0.5">
+                        <span className="text-xs font-black text-brand">
+                          {rel.price || "Liên hệ Báo Giá"}
+                        </span>
+                      </div>
                     </div>
 
+                    {/* 5. Xem Chi Tiết */}
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Kiểm tra kho Đà Nẵng
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Sẵn kho Đà Nẵng
                       </span>
                       <span className="text-xs font-black text-brand group-hover:translate-x-1 transition-transform flex items-center gap-0.5">
                         Xem Chi Tiết <ChevronRight size={14} />

@@ -221,11 +221,12 @@ export default function AddProductModal({
     setSaving(true);
     setErrorMsg(null);
 
-    const partNoVal = partNo.trim() || internalCode.trim();
+    const partNoVal = partNo.trim();
 
-    const specsObject: Record<string, string> = {
-      'Mã Phụ Tùng (Part No.)': partNoVal,
-    };
+    const specsObject: Record<string, string> = {};
+    if (partNoVal) {
+      specsObject['Mã Phụ Tùng'] = partNoVal;
+    }
     if (material.trim()) {
       specsObject['Chất liệu'] = material.trim();
     }
@@ -337,12 +338,12 @@ export default function AddProductModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="font-bold text-slate-700 block mb-1">Mã Part No. (Không bắt buộc)</label>
+              <label className="font-bold text-slate-700 block mb-1">Mã Phụ Tùng (Không bắt buộc)</label>
               <input
                 type="text"
                 value={partNo}
                 onChange={(e) => setPartNo(e.target.value)}
-                placeholder="HW19710-TB01"
+                placeholder="Bỏ trống nếu không có (Ví dụ: HW19710-TB01)"
                 className="w-full p-2.5 border border-slate-200 rounded-xl font-mono text-slate-900 font-bold focus:ring-2 focus:ring-red-500/20"
               />
             </div>

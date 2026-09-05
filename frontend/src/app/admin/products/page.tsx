@@ -179,8 +179,8 @@ export default function AdminProductsPage() {
             id: p.id,
             name: p.name,
             internalName: p.internalName || p.name,
-            internalCode: p.internalCode || `QB-INT-${p.id}`,
-            partNumber: p.partNumber || `QB-SKU-${p.id}`,
+            internalCode: p.internalCode || '',
+            partNumber: p.partNumber || '',
             mainCategory: p.category?.parent?.name || (p.category?.parentId ? '' : p.category?.name) || 'Phụ Tùng Q.BA',
             mainCategorySlug: p.category?.parent?.slug || (p.category?.parentId ? '' : p.category?.slug) || '',
             subCategory: p.category?.parent ? p.category?.name : (p.category?.name || 'Linh Kiện Khác'),
@@ -325,7 +325,7 @@ export default function AdminProductsPage() {
               fill
               unoptimized
               sizes="48px"
-              className="object-cover group-hover:opacity-90"
+              className="object-contain p-0.5 group-hover:opacity-90"
             />
             <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <ZoomIn className="w-4 h-4 text-white drop-shadow-md" />
@@ -335,17 +335,26 @@ export default function AdminProductsPage() {
       },
     },
     {
-      title: 'Mã Part No / Mã Nội Bộ',
-      key: 'codes',
+      title: 'Mã Phụ Tùng (Không bắt buộc)',
+      key: 'partNumber',
       sorter: (a: ProductItem, b: ProductItem) => a.partNumber.localeCompare(b.partNumber),
       render: (_: any, record: ProductItem) => (
-        <div>
-          <div className="font-mono font-extrabold text-red-600 text-xs">
-            {record.partNumber}
-          </div>
-          <div className="font-mono text-[10px] text-slate-400 mt-0.5">
-            {record.internalCode}
-          </div>
+        <div className="font-mono font-extrabold text-red-600 text-xs">
+          {record.partNumber ? (
+            record.partNumber
+          ) : (
+            <span className="italic text-slate-400 font-normal font-sans text-[11px]">(Chưa có mã)</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: 'Mã Nội Bộ (*)',
+      key: 'internalCode',
+      sorter: (a: ProductItem, b: ProductItem) => a.internalCode.localeCompare(b.internalCode),
+      render: (_: any, record: ProductItem) => (
+        <div className="font-mono text-xs font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded border border-slate-200/80 inline-block">
+          {record.internalCode || '—'}
         </div>
       ),
     },
@@ -538,7 +547,7 @@ export default function AdminProductsPage() {
                 setSearchQuery(e.target.value);
                 setPage(1);
               }}
-              placeholder="Tìm theo Mã Part No, Mã Nội Bộ, Tên công khai hoặc tên nội bộ..."
+              placeholder="Tìm theo Mã Phụ Tùng, Mã Nội Bộ, Tên công khai hoặc tên nội bộ..."
               className="w-full pl-10 pr-4 py-2 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 font-medium"
             />
           </div>

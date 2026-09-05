@@ -22,9 +22,13 @@ export const getBrands = async (req: Request, res: Response): Promise<void> => {
     const brands = await prisma.brand.findMany({
       orderBy: { name: 'asc' },
     });
+    const mappedBrands = brands.map((b) => ({
+      ...b,
+      logoUrl: b.logoUrl || '/images/logo/logonen.png',
+    }));
     res.json({
       ok: true,
-      data: brands,
+      data: mappedBrands,
     });
   } catch (error: any) {
     res.status(500).json({ ok: false, error: { message: error.message || 'Lỗi server khi lấy danh sách thương hiệu' } });

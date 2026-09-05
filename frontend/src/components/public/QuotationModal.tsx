@@ -57,7 +57,7 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
     setIsSubmitting(true);
 
     const prodInfo = product 
-      ? `[Yêu cầu báo giá phụ tùng: ${product.name} - Part No: ${product.partNumber}]`
+      ? `[Yêu cầu báo giá phụ tùng: ${product.name}]`
       : "";
 
     const fullNote = `${prodInfo} ${sanitize(note)}`.trim();
@@ -71,7 +71,7 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
         ? [
             {
               productId: parseNumericProductId(product.id),
-              partNumber: product.partNumber,
+              partNumber: product.partNumber || '',
               productName: product.name,
               quantity: 1,
             },
@@ -103,7 +103,7 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
     const safePhone = sanitize(phone);
     const safeNote = sanitize(note);
     const prodInfo = product 
-      ? `[Báo giá: ${product.name} - Part No: ${product.partNumber}]`
+      ? `[Báo giá: ${product.name}]`
       : "[Yêu cầu báo giá phụ tùng xe tải Q.BA]";
 
     // Submit to DB in background as well
@@ -169,7 +169,6 @@ export default function QuotationModal({ isOpen, onClose, product }: QuotationMo
             </div>
             <div className="text-xs">
               <span className="font-bold text-slate-900 block truncate max-w-xs">{product.name}</span>
-              <span className="text-gray-500 font-mono">Part No: {product.partNumber}</span>
             </div>
           </div>
         )}

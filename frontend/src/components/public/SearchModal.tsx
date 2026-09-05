@@ -66,7 +66,8 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
         if (isSubscribed && res.ok && res.data) {
           const mapped: Product[] = res.data.map((p: any) => ({
             id: String(p.id),
-            partNumber: p.partNumber || `PN-${p.id}`,
+            partNumber: p.partNumber || '',
+            internalCode: p.internalCode || '',
             name: p.name,
             categorySlug: p.category?.slug || '',
             categoryName: p.category?.name || '',
@@ -113,7 +114,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Nhập mã Part No., tên phụ tùng, thương hiệu xe (HOWO, YUCHAI, WEICHAI...)..."
+            placeholder="Nhập tên phụ tùng, thương hiệu xe (HOWO, YUCHAI, WEICHAI...)..."
             className="w-full bg-transparent text-white placeholder-slate-400 font-medium text-lg focus:outline-none pr-2"
           />
           {query && (
@@ -162,7 +163,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
               <div className="text-sm">
                 <div className="text-white font-bold mb-0.5">Kho Phụ Tùng Q.BA Đà Nẵng</div>
                 <div className="text-slate-400 text-xs">
-                  Tra cứu hơn 10,000+ mã SKU phụ tùng xe tải nặng, xe đầu kéo & máy công trình chính hãng.
+                  Tra cứu hơn 10,000+ sản phẩm phụ tùng xe tải nặng, xe đầu kéo & máy công trình chính hãng.
                 </div>
               </div>
             </div>
@@ -180,8 +181,8 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
             {results.length === 0 ? (
               <div className="py-12 text-center">
                 <Package className="w-12 h-12 text-slate-600 mx-auto mb-3 animate-bounce" />
-                <p className="text-slate-300 font-bold mb-1">Không tìm thấy mã phụ tùng phù hợp</p>
-                <p className="text-slate-400 text-xs mb-6">Vui lòng kiểm tra lại mã Part No. hoặc liên hệ Hotline Zalo để kỹ thuật viên tra cứu giúp bạn.</p>
+                <p className="text-slate-300 font-bold mb-1">Không tìm thấy phụ tùng phù hợp</p>
+                <p className="text-slate-400 text-xs mb-6">Vui lòng kiểm tra lại tên sản phẩm hoặc liên hệ Hotline Zalo để kỹ thuật viên tra cứu giúp bạn.</p>
                 <Link
                   href="/contact"
                   onClick={onClose}
@@ -213,18 +214,20 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
                     {/* Meta */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="px-2 py-0.5 bg-[#FF0000]/10 border border-[#FF0000]/30 text-[#FF0000] text-[10px] font-extrabold uppercase rounded">
-                          {product.brand}
-                        </span>
-                        <span className="text-slate-400 text-xs font-mono">Part No: <span className="text-white font-bold">{product.partNumber}</span></span>
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        {product.brand && (
+                          <span className="px-2 py-0.5 bg-[#FF0000]/10 border border-[#FF0000]/30 text-[#FF0000] text-[10px] font-extrabold uppercase rounded">
+                            {product.brand}
+                          </span>
+                        )}
                       </div>
                       <h4 className="text-white font-bold text-sm truncate group-hover:text-[#FF0000] transition-colors">
                         {product.name}
                       </h4>
-                      <p className="text-slate-400 text-xs truncate mt-0.5">
-                        Tương thích: {product.compatibility.join(", ")}
-                      </p>
+                      <div className="text-[11px] font-mono mt-1 space-y-0.5">
+                        {product.internalCode && <div className="text-slate-300 font-bold">{product.internalCode}</div>}
+                        {product.partNumber && <div className="text-red-400 font-extrabold">{product.partNumber}</div>}
+                      </div>
                     </div>
 
                     {/* Stock Status & Arrow */}

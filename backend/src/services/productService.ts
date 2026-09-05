@@ -68,6 +68,8 @@ export class ProductService {
           name: true,
           slug: true,
           partNumber: true,
+          internalCode: true,
+          internalName: true,
           price: true,
           inStock: true,
           qualityStandard: true,
@@ -122,6 +124,8 @@ export class ProductService {
         name: true,
         slug: true,
         partNumber: true,
+        internalCode: true,
+        internalName: true,
         price: true,
         inStock: true,
         qualityStandard: true,
@@ -252,20 +256,26 @@ export class ProductService {
       }
     }
 
-    const partNoVal = input.partNumber && input.partNumber.trim() ? input.partNumber.trim() : (input.internalCode ? input.internalCode.trim() : `PN-${Date.now()}`);
+    const partNoVal = input.partNumber && input.partNumber.trim() ? input.partNumber.trim() : "";
     const trimmedName = input.name.trim();
     const trimmedInternalCode = input.internalCode.trim();
     const trimmedInternalName = input.internalName ? input.internalName.trim() : '';
 
     // Verify Duplicate Product Name / Internal Code / Internal Name / Part Number
+    const duplicateOrConditions: any[] = [
+      { name: { equals: trimmedName, mode: 'insensitive' } },
+      { internalCode: { equals: trimmedInternalCode, mode: 'insensitive' } },
+    ];
+    if (partNoVal) {
+      duplicateOrConditions.push({ partNumber: { equals: partNoVal, mode: 'insensitive' } });
+    }
+    if (trimmedInternalName) {
+      duplicateOrConditions.push({ internalName: { equals: trimmedInternalName, mode: 'insensitive' } });
+    }
+
     const existingDuplicate = await prisma.product.findFirst({
       where: {
-        OR: [
-          { name: { equals: trimmedName, mode: 'insensitive' } },
-          { internalCode: { equals: trimmedInternalCode, mode: 'insensitive' } },
-          { partNumber: { equals: partNoVal, mode: 'insensitive' } },
-          ...(trimmedInternalName ? [{ internalName: { equals: trimmedInternalName, mode: 'insensitive' as const } }] : []),
-        ],
+        OR: duplicateOrConditions,
       },
     });
 
@@ -279,7 +289,7 @@ export class ProductService {
       if (existingDuplicate.internalName && trimmedInternalName && existingDuplicate.internalName.toLowerCase() === trimmedInternalName.toLowerCase()) {
         throw new AppError(`Tên/mã phụ tùng nội bộ kho "${trimmedInternalName}" đã tồn tại cho sản phẩm khác. Không được tạo trùng mã nội bộ!`, 400);
       }
-      if (existingDuplicate.partNumber.toLowerCase() === partNoVal.toLowerCase()) {
+      if (partNoVal && existingDuplicate.partNumber && existingDuplicate.partNumber.toLowerCase() === partNoVal.toLowerCase()) {
         throw new AppError(`Mã Part No. "${partNoVal}" đã tồn tại trong kho hàng!`, 400);
       }
       throw new AppError(`Sản phẩm phụ tùng này đã tồn tại trong kho hàng và không được tạo trùng!`, 400);
@@ -393,7 +403,7 @@ export class ProductService {
       where: { id },
       data: {
         name: input.name ? input.name.trim() : undefined,
-        partNumber: input.partNumber ? input.partNumber.trim() : undefined,
+        partNumber: input.partNumber !== undefined ? input.partNumber.trim() : undefined,
         internalCode: input.internalCode ? input.internalCode.trim() : undefined,
         internalName: input.internalName ? input.internalName.trim() : undefined,
         categoryId: input.categoryId,

@@ -4,10 +4,11 @@ import React from "react";
 import { MapPin, Phone, Mail, Clock, Truck, MessageSquare } from "lucide-react";
 import ContactForm from "@/components/public/ContactForm";
 import { siteConfig } from "@/config/siteConfig";
-import { useSiteSettings } from "@/context/SiteSettingsContext";
+import { useSiteSettings, getGoogleMapSrc } from "@/context/SiteSettingsContext";
 
 export default function ContactPage() {
   const { settings } = useSiteSettings();
+  const mapSrc = getGoogleMapSrc(settings.warehouseAddress || siteConfig.address, settings.googleMapEmbedUrl);
 
   const contactCards = [
     {
@@ -205,7 +206,7 @@ export default function ContactPage() {
 
           <div className="w-full h-[450px] md:h-[550px] bg-slate-900 rounded-3xl overflow-hidden border-4 border-slate-900 shadow-2xl relative group">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3833.916945532585!2d108.17518457597148!3d16.069792688880625!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x314219069d2d8e41%3A0xc3c516f461e712a!2sC%E1%BB%ADa%20H%C3%A0ng%20Ph%E1%BB%A5%20T%C3%B9ng%20%C3%94%20T%C3%B4%20v%E1%BA%ADn%20t%E1%BA%A3i%20Q.Ba!5e0!3m2!1svi!2s!4v1713589999999!5m2!1svi!2s"
+              src={mapSrc}
               width="100%"
               height="100%"
               style={{ border: 0 }}

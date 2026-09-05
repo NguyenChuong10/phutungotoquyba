@@ -139,18 +139,21 @@ export default function AdminCategoriesPage() {
     try {
       const data = await AdminApiService.getCategoriesTree();
       if (data && data.length > 0) {
-        const mappedList: MainCategory[] = data.map((item) => ({
+        const sortedData = [...data].sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+        const mappedList: MainCategory[] = sortedData.map((item) => ({
           id: item.id,
           name: item.name,
           slug: item.slug,
           description: item.description || 'Chủng loại phụ tùng xe tải nặng Q.BA',
-          subCategories: (item.children || []).map((sub) => ({
-            id: sub.id,
-            name: sub.name,
-            slug: sub.slug,
-            productCount: sub._count?.products || 0,
-            description: sub.description || 'Danh mục phụ con',
-          })),
+          subCategories: [...(item.children || [])]
+            .sort((a, b) => a.name.localeCompare(b.name, 'vi'))
+            .map((sub) => ({
+              id: sub.id,
+              name: sub.name,
+              slug: sub.slug,
+              productCount: sub._count?.products || 0,
+              description: sub.description || 'Danh mục phụ con',
+            })),
         }));
         setCategoriesListState(mappedList);
       }
@@ -168,8 +171,8 @@ export default function AdminCategoriesPage() {
           id: p.id,
           name: p.name,
           internalName: p.internalName || p.name,
-          internalCode: p.internalCode || `QB-SKU-${p.id}`,
-          partNumber: p.partNumber || `PN-${p.id}`,
+          internalCode: p.internalCode || '',
+          partNumber: p.partNumber || '',
           subCategorySlug: p.category?.slug || '',
           subCategoryName: p.category?.name || '',
           brand: p.brand?.name || 'HOWO Sinotruk',

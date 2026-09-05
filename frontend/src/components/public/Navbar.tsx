@@ -92,7 +92,7 @@ export default function Navbar() {
                 <span className={`transition-colors duration-300 truncate ${
                   isTransparent ? "text-slate-300 group-hover:text-white drop-shadow-xs" : "text-slate-600 group-hover:text-slate-900"
                 }`}>
-                  Tìm kiếm phụ tùng, mã part no...
+                  Tìm kiếm phụ tùng...
                 </span>
               </div>
             </div>

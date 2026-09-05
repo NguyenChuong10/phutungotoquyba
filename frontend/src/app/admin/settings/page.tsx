@@ -39,7 +39,8 @@ export default function AdminSettingsPage() {
     hotlineZalo: '0903.588.167',
     phoneSales: '0903.588.167',
     emailContact: 'phutungotoqbadanang@gmail.com',
-    warehouseAddress: '351 Điện Biên Phủ, Phường Hòa Khê, Quận Thanh Khê, TP. Đà Nẵng',
+    warehouseAddress: '43-45 Nguyễn Văn Tạo, An Khê, Thanh Khê, Đà Nẵng',
+    googleMapEmbedUrl: '',
     workingHours: 'Thứ 2 - Chủ Nhật: 07:30 - 18:00',
     homeHeroSlogan: 'Nhập Khẩu & Phân Phối Phụ Tùng Xe Tải Nặng Trung Quốc Uy Tín 25 Năm Tại Đà Nẵng',
     noticeBarMessage: 'Tổng kho Phụ Tùng Xe Tải Q.BA Đà Nẵng - Sẵn kho 10.000+ mã linh kiện HOWO, Weichai, Fast Gear. Hotline/Zalo: 0903.588.167',
@@ -394,6 +395,20 @@ export default function AdminSettingsPage() {
                       onChange={(e) => handleChangeSetting('warehouseAddress', e.target.value)}
                       className="w-full p-2.5 border border-slate-200 rounded-xl font-bold text-slate-900 bg-slate-50 focus:bg-white"
                     />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Đường Dẫn Nhúng Google Maps (Embed URL - Tùy chọn)</label>
+                    <input
+                      type="text"
+                      value={settings.googleMapEmbedUrl || ''}
+                      onChange={(e) => handleChangeSetting('googleMapEmbedUrl', e.target.value)}
+                      placeholder="Để trống nếu muốn hệ thống tự động ghim bản đồ theo Địa chỉ kho ở trên"
+                      className="w-full p-2.5 border border-slate-200 rounded-xl font-mono text-xs text-slate-800 bg-slate-50 focus:bg-white"
+                    />
+                    <span className="text-[11px] text-slate-500 mt-1 block">
+                      Hệ thống sẽ tự động ghim chính xác địa chỉ kho lên Google Maps. Nếu bạn có đường dẫn Embed từ Google Maps, dán vào đây để tùy chỉnh.
+                    </span>
                   </div>
                 </div>
               </div>

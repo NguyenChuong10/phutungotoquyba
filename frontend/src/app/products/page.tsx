@@ -56,15 +56,22 @@ function ProductsContent() {
       try {
         const tree = await AdminApiService.getCategoriesTree();
         if (tree && tree.length > 0) {
+          const sortedTree = [...tree].sort((a: CategoryTreeItem, b: CategoryTreeItem) =>
+            a.name.localeCompare(b.name, "vi")
+          );
           const mapped: CategoryData[] = [
             { slug: "all", name: "Tất cả danh mục" },
-            ...tree.map((main: CategoryTreeItem) => ({
+            ...sortedTree.map((main: CategoryTreeItem) => ({
               slug: main.slug,
               name: main.name,
-              subCategories: (main.children || []).map((sub: CategoryTreeItem) => ({
-                slug: sub.slug,
-                name: sub.name,
-              })),
+              subCategories: [...(main.children || [])]
+                .sort((a: CategoryTreeItem, b: CategoryTreeItem) =>
+                  a.name.localeCompare(b.name, "vi")
+                )
+                .map((sub: CategoryTreeItem) => ({
+                  slug: sub.slug,
+                  name: sub.name,
+                })),
             })),
           ];
           setCategories(mapped);
@@ -80,7 +87,9 @@ function ProductsContent() {
         if (res.ok && res.data) {
           const mapped: Product[] = res.data.map((p: any) => ({
             id: String(p.id),
-            partNumber: p.partNumber || `PN-${p.id}`,
+            partNumber: p.partNumber || '',
+            internalCode: p.internalCode || '',
+            internalName: p.internalName || '',
             name: p.name,
             categorySlug: p.category?.parent?.slug || p.category?.slug || '',
             subCategorySlug: p.category?.slug || '',
@@ -231,7 +240,7 @@ function ProductsContent() {
           </h1>
 
           <p className="text-gray-300 text-base md:text-xl max-w-3xl mx-auto leading-relaxed">
-            Tra cứu theo Mã nhà máy (Part No.), Mã quản lý nội bộ và Chủng loại xe. Cam kết hàng chuẩn loại 1 cao cấp sẵn kho Đà Nẵng.
+            Tra cứu theo tên sản phẩm, thương hiệu xe và chủng loại. Cam kết hàng chuẩn loại 1 cao cấp sẵn kho Đà Nẵng.
           </p>
         </div>
       </section>
@@ -367,7 +376,7 @@ function ProductsContent() {
                   <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Nhập tên sản phẩm, Mã Part No hoặc Thương hiệu (Ví dụ: WP10, 12JS160T, Bosch)..."
+                    placeholder="Nhập tên sản phẩm hoặc Thương hiệu (Ví dụ: Động cơ WP10, Hộp số Fast, Bosch)..."
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     className="w-full pl-11 pr-10 py-3.5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-gray-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all bg-slate-50/50"
@@ -434,22 +443,17 @@ function ProductsContent() {
                         href={getProductUrl(p)}
                         className="group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xl hover:border-brand/40 transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer"
                       >
-                        {/* Image Frame with object-cover - NO BLANK WHITE BARS */}
-                        <div className="relative h-52 sm:h-56 w-full bg-slate-100 overflow-hidden">
+                        {/* Image Frame with object-cover - CLEAN WITHOUT OVERLAY CODE BADGES */}
+                        <div className="relative h-52 sm:h-56 w-full bg-slate-50 overflow-hidden">
                           <Image
                             src={formatImageUrl(p.imageSrc || (p as any).image)}
-                            alt={`${p.name} (Part No: ${p.partNumber}) - Phụ tùng xe tải Q.BA Đà Nẵng`}
+                            alt={`${p.name} - Phụ tùng xe tải Q.BA Đà Nẵng`}
                             fill
                             loading="lazy"
                             unoptimized
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
                           />
-
-                          {/* Part Number Dark Badge */}
-                          <div className="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-xs text-amber-400 font-mono font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-md shadow-md border border-slate-800 z-10">
-                            {p.partNumber}
-                          </div>
 
                           {/* Brand Red Badge */}
                           {p.brand && (
@@ -459,18 +463,40 @@ function ProductsContent() {
                           )}
                         </div>
 
-                        {/* Card Content Body */}
-                        <div className="p-4 space-y-3 flex-1 flex flex-col justify-between bg-white">
-                          <div>
-                            <h3 className="font-extrabold text-slate-900 text-sm leading-snug line-clamp-2 group-hover:text-brand transition-colors">
+                        {/* Card Content Body - TÊN SP, MÃ NỘI BỘ, MÃ PHỤ TÙNG, BÁO GIÁ, XEM CHI TIẾT */}
+                        <div className="p-4 space-y-2 flex-1 flex flex-col justify-between bg-white">
+                          <div className="space-y-1.5">
+                            {/* 1. Tên SP */}
+                            <h3 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-brand transition-colors">
                               {p.name}
                             </h3>
+
+                            {/* 2. Mã nội bộ (Dòng 1) */}
+                            {p.internalCode && (
+                              <div className="text-xs font-mono font-bold text-slate-500">
+                                {p.internalCode}
+                              </div>
+                            )}
+
+                            {/* 3. Mã phụ tùng (Dòng 2) */}
+                            {p.partNumber && (
+                              <div className="text-xs font-mono font-extrabold text-red-600">
+                                {p.partNumber}
+                              </div>
+                            )}
+
+                            {/* 4. Liên hệ báo giá */}
+                            <div className="pt-1">
+                              <span className="text-xs sm:text-sm font-black text-brand">
+                                {p.price || "Liên hệ Báo Giá"}
+                              </span>
+                            </div>
                           </div>
 
-                          {/* Card Footer Bar */}
-                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Kiểm tra kho Đà Nẵng
+                          {/* 5. Xem Chi Tiết */}
+                          <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Sẵn kho Đà Nẵng
                             </span>
                             <span className="text-xs font-black text-brand group-hover:translate-x-1 transition-transform flex items-center gap-0.5">
                               Xem Chi Tiết <ChevronRight size={14} />

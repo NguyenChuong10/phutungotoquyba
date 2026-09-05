@@ -40,7 +40,7 @@ export default function ProductImageGallery({
       {/* Main Image Container */}
       <div 
         onClick={() => setIsPreviewOpen(true)}
-        className="relative w-full h-[360px] sm:h-[440px] bg-slate-100 rounded-2xl overflow-hidden border border-slate-200/90 shadow-xs group cursor-zoom-in"
+        className="relative w-full h-[360px] sm:h-[440px] bg-slate-50 rounded-2xl overflow-hidden border border-slate-200/90 shadow-xs group cursor-zoom-in"
       >
         <Image
           key={`active-img-${selectedIdx}`}
@@ -49,7 +49,7 @@ export default function ProductImageGallery({
           fill
           priority
           sizes="(max-width: 768px) 100vw, 50vw"
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          className="object-contain p-2 sm:p-3 group-hover:scale-105 transition-transform duration-500"
         />
 
         {/* Quality Standard Badge */}
@@ -122,7 +122,7 @@ export default function ProductImageGallery({
                   alt={`${productName} thumbnail ${idx + 1}`}
                   fill
                   unoptimized
-                  className="object-cover"
+                  className="object-contain p-1 bg-slate-50"
                 />
               </button>
             );

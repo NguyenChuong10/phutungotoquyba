@@ -8,9 +8,9 @@ export const siteConfig = {
   zalo: "0903.588.167",
   zaloLink: "https://zalo.me/0903588167",
   email: "phutungotoqbadanang@gmail.com",
-  address: "43-45-47 Đường Nguyễn Văn Tạo, Phường An Khê, Quận Thanh Khê, TP. Đà Nẵng",
+  address: "43-45 Nguyễn Văn Tạo, An Khê, Thanh Khê, Đà Nẵng",
   warehouseLocations: [
-    "Tổng Kho 1: 43-45-47 Nguyễn Văn Tạo, Q. Thanh Khê, TP. Đà Nẵng",
+    "Tổng Kho 1: 43-45 Nguyễn Văn Tạo, Q. Thanh Khê, TP. Đà Nẵng",
     "Kho Phụ Tùng Động Cơ: QL1A, H. Hòa Vang, TP. Đà Nẵng"
   ],
   logo: "/images/logo/logonen.png",

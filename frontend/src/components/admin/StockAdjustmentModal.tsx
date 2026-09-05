@@ -115,7 +115,7 @@ export default function StockAdjustmentModal({
               <span>Quản Lý Tồn Kho & Giá Phụ Tùng</span>
             </h3>
             <p className="text-xs font-mono font-bold text-red-600 mt-0.5">
-              Part No: {product.partNumber} | Mã Q.BA: {product.internalCode}
+              Mã phụ tùng: {product.partNumber || 'Trống'} | Mã nội bộ: {product.internalCode}
             </p>
           </div>
           <button

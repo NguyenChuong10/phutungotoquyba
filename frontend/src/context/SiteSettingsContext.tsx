@@ -9,6 +9,7 @@ export interface SiteSettings {
   phoneSales: string;
   emailContact: string;
   warehouseAddress: string;
+  googleMapEmbedUrl: string;
   workingHours: string;
   homeHeroSlogan: string;
   noticeBarMessage: string;
@@ -16,11 +17,21 @@ export interface SiteSettings {
   zaloLink: string;
 }
 
+export function getGoogleMapSrc(address: string, embedUrl?: string): string {
+  if (embedUrl && embedUrl.trim().startsWith("http")) {
+    const match = embedUrl.match(/src=["']([^"']+)["']/);
+    return match ? match[1] : embedUrl.trim();
+  }
+  const cleanAddr = address || siteConfig.address;
+  return `https://maps.google.com/maps?q=${encodeURIComponent(cleanAddr)}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
+}
+
 const DEFAULT_SITE_SETTINGS: SiteSettings = {
   hotlineZalo: siteConfig.hotline,
   phoneSales: siteConfig.hotline,
   emailContact: siteConfig.email,
   warehouseAddress: siteConfig.address,
+  googleMapEmbedUrl: "",
   workingHours: siteConfig.workingHours,
   homeHeroSlogan: "Nhập Khẩu & Phân Phối Phụ Tùng Xe Tải Nặng Trung Quốc Uy Tín 25 Năm Tại Đà Nẵng",
   noticeBarMessage: `Tổng kho Phụ Tùng Xe Tải Q.BA Đà Nẵng - Sẵn kho 10.000+ mã linh kiện HOWO, Weichai, Fast Gear. Hotline/Zalo: ${siteConfig.hotline}`,
@@ -55,6 +66,7 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           phoneSales: d.phoneSales || d.hotlineZalo || siteConfig.hotline,
           emailContact: d.emailContact || siteConfig.email,
           warehouseAddress: d.warehouseAddress || siteConfig.address,
+          googleMapEmbedUrl: d.googleMapEmbedUrl || "",
           workingHours: d.workingHours || siteConfig.workingHours,
           homeHeroSlogan: d.homeHeroSlogan || "Nhập Khẩu & Phân Phối Phụ Tùng Xe Tải Nặng Trung Quốc Uy Tín 25 Năm Tại Đà Nẵng",
           noticeBarMessage: d.noticeBarMessage || `Tổng kho Phụ Tùng Xe Tải Q.BA Đà Nẵng. Hotline: ${d.hotlineZalo || siteConfig.hotline}`,

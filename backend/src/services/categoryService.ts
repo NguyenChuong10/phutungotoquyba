@@ -23,10 +23,8 @@ export class CategoryService {
   static async getCategoryTree() {
     const mainCategories = await prisma.category.findMany({
       where: { parentId: null },
-      orderBy: { sortOrder: "asc" },
       include: {
         children: {
-          orderBy: { sortOrder: "asc" },
           include: {
             _count: {
               select: { products: true },
@@ -38,6 +36,16 @@ export class CategoryService {
         },
       },
     });
+
+    // Sort main categories alphabetically (A to Z)
+    mainCategories.sort((a, b) => a.name.localeCompare(b.name, "vi"));
+
+    // Sort subcategories (children) alphabetically (A to Z)
+    for (const main of mainCategories) {
+      if (main.children && main.children.length > 0) {
+        main.children.sort((a, b) => a.name.localeCompare(b.name, "vi"));
+      }
+    }
 
     return mainCategories;
   }
