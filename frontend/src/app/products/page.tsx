@@ -32,8 +32,8 @@ function ProductsContent() {
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(searchParams.get("subCategory") || null);
   const [selectedBrand, setSelectedBrand] = useState("Tất cả thương hiệu");
 
-  // Items Per Page Settings (6 products per page)
-  const [itemsPerPage, setItemsPerPage] = useState<number>(6);
+  // Items Per Page Settings (42 products per page)
+  const [itemsPerPage, setItemsPerPage] = useState<number>(42);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Track expanded main category accordions in sidebar
