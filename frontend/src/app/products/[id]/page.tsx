@@ -43,7 +43,7 @@ async function getProductDetail(id: string) {
           partNumber: p.partNumber || '',
           categorySlug: p.category?.parent?.slug || p.category?.slug || "dong-co-may-phat",
           categoryName: p.category?.parent?.name || p.category?.name || "Động Cơ & Máy Phát",
-          brand: p.brand?.name || "HOWO Sinotruk",
+          brand: p.brand?.name || "Chưa Phân Loại",
           qualityStandard: p.qualityStandard || "",
           price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString('vi-VN')} ₫` : "Liên hệ Báo Giá",
           inStock: p.inStock,
@@ -51,7 +51,7 @@ async function getProductDetail(id: string) {
           gallery: p.images?.map((img: { imageUrl: string }) => formatImageUrl(img.imageUrl)) || [formatImageUrl(null)],
           description: p.description || "Phụ tùng chính hãng kho Q.BA Đà Nẵng, nhập khẩu trực tiếp từ nhà máy sản xuất.",
           specifications: (p.specifications as Record<string, string>) || {
-            "Thương hiệu": p.brand?.name || "HOWO Sinotruk",
+            "Thương hiệu": p.brand?.name || "Chưa Phân Loại",
           },
           compatibility: (p.compatibility as string[]) || ["Xe Tải Nặng HOWO", "Shacman", "FAW"],
         };
@@ -187,31 +187,31 @@ export default async function ProductDetailPage({ params }: PageProps) {
     },
     "offers": (product.price && product.price !== "Liên hệ Báo Giá" && !isNaN(Number(product.price.replace(/[^0-9]/g, ''))))
       ? {
-          "@type": "Offer",
-          "url": `${baseUrl}${getProductUrl(product)}`,
-          "priceCurrency": "VND",
-          "price": String(Number(product.price.replace(/[^0-9]/g, ''))),
-          "priceValidUntil": "2030-12-31",
-          "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-          "itemCondition": "https://schema.org/NewCondition",
-          "seller": {
-            "@type": "Organization",
-            "name": "Phụ Tùng Ô Tô Q.BA Đà Nẵng",
-          },
-        }
-      : {
-          "@type": "AggregateOffer",
-          "url": `${baseUrl}${getProductUrl(product)}`,
-          "priceCurrency": "VND",
-          "lowPrice": "0",
-          "highPrice": "0",
-          "offerCount": "1",
-          "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-          "seller": {
-            "@type": "Organization",
-            "name": "Phụ Tùng Ô Tô Q.BA Đà Nẵng",
-          },
+        "@type": "Offer",
+        "url": `${baseUrl}${getProductUrl(product)}`,
+        "priceCurrency": "VND",
+        "price": String(Number(product.price.replace(/[^0-9]/g, ''))),
+        "priceValidUntil": "2030-12-31",
+        "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        "itemCondition": "https://schema.org/NewCondition",
+        "seller": {
+          "@type": "Organization",
+          "name": "Phụ Tùng Ô Tô Q.BA Đà Nẵng",
         },
+      }
+      : {
+        "@type": "AggregateOffer",
+        "url": `${baseUrl}${getProductUrl(product)}`,
+        "priceCurrency": "VND",
+        "lowPrice": "0",
+        "highPrice": "0",
+        "offerCount": "1",
+        "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        "seller": {
+          "@type": "Organization",
+          "name": "Phụ Tùng Ô Tô Q.BA Đà Nẵng",
+        },
+      },
     "aggregateRating": {
       "@type": "AggregateRating",
       "ratingValue": "5.0",
@@ -256,7 +256,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
       <JsonLd id={`product-jsonld-${product.id}`} data={productJsonLd} />
       <JsonLd id={`breadcrumb-jsonld-${product.id}`} data={breadcrumbJsonLd} />
       <div className="container mx-auto px-4 max-w-7xl space-y-6">
-        
+
         {/* Breadcrumb Navigation - Docked cleanly inside main container */}
         <nav className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 pb-2 border-b border-slate-100">
           <Link href="/" className="hover:text-slate-900 transition-colors">
@@ -276,7 +276,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
         {/* Main Product Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start pt-2">
-          
+
           {/* Left Column: Focused Image Gallery Slider */}
           <div className="lg:col-span-6">
             <ProductImageGallery
@@ -289,7 +289,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
           {/* Right Column: Product Detail, Actions & Commitments */}
           <div className="lg:col-span-6 space-y-5">
-            
+
             {/* Availability & Brand Tag */}
             <div className="flex flex-wrap items-center justify-between gap-2">
               {product.inStock ? (
@@ -343,7 +343,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {product.compatibility.map((comp: string, idx: number) => (
-                    <span 
+                    <span
                       key={`compat-${idx}`}
                       className="px-2.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1"
                     >
@@ -439,7 +439,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 <table className="w-full text-left text-xs sm:text-sm">
                   <tbody>
                     {specEntries.map(([key, val], idx) => (
-                      <tr 
+                      <tr
                         key={`spec-${idx}`}
                         className={idx % 2 === 0 ? "bg-slate-50/60" : "bg-white"}
                       >
@@ -477,12 +477,12 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {relatedProducts.map((rel: any) => (
-                <Link 
+                <Link
                   key={`rel-prod-${rel.id}`}
                   href={getProductUrl(rel)}
-                  className="group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xl hover:border-brand/40 transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer"
+                  className="group bg-white rounded-md border border-slate-200 hover:border-brand hover:ring-1 hover:ring-brand/40 hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between cursor-pointer"
                 >
-                  <div className="relative h-44 sm:h-48 w-full bg-slate-50 overflow-hidden">
+                  <div className="relative aspect-[3/2] w-full bg-white overflow-hidden flex items-center justify-center border-b border-slate-100">
                     <Image
                       src={rel.imageSrc}
                       alt={`${rel.name} - Phụ tùng xe tải Q.BA Đà Nẵng`}
@@ -490,10 +490,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
                       loading="lazy"
                       unoptimized
                       sizes="(max-width: 768px) 50vw, 25vw"
-                      className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                      className="object-contain"
                     />
                     {rel.brand && (
-                      <div className="absolute top-2.5 left-2.5 bg-slate-900/90 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-md shadow-md z-10">
+                      <div className="absolute top-2 left-2 bg-slate-900/90 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded shadow-sm z-10">
                         {rel.brand}
                       </div>
                     )}
@@ -506,14 +506,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
                         {rel.name}
                       </h4>
 
-                      {/* 2. Mã nội bộ (Dòng 1) */}
+                      {/* 1. Mã SKU Kho (Dòng 1) */}
                       {rel.internalCode && (
                         <div className="text-[11px] font-mono font-bold text-slate-500">
                           {rel.internalCode}
                         </div>
                       )}
 
-                      {/* 3. Mã phụ tùng (Dòng 2) */}
+                      {/* 2. Mã OE / Part No (Dòng 2) */}
                       {rel.partNumber && (
                         <div className="text-[11px] font-mono font-extrabold text-red-600">
                           {rel.partNumber}

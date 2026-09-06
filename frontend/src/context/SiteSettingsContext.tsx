@@ -18,9 +18,17 @@ export interface SiteSettings {
 }
 
 export function getGoogleMapSrc(address: string, embedUrl?: string): string {
-  if (embedUrl && embedUrl.trim().startsWith("http")) {
-    const match = embedUrl.match(/src=["']([^"']+)["']/);
-    return match ? match[1] : embedUrl.trim();
+  if (embedUrl && embedUrl.trim().length > 0) {
+    const raw = embedUrl.trim();
+    // 1. If user pasted entire <iframe> HTML snippet
+    const iframeMatch = raw.match(/src=["']([^"']+)["']/i);
+    if (iframeMatch && iframeMatch[1]) {
+      return iframeMatch[1];
+    }
+    // 2. If user pasted direct http/https URL
+    if (raw.startsWith("http://") || raw.startsWith("https://")) {
+      return raw;
+    }
   }
   const cleanAddr = address || siteConfig.address;
   return `https://maps.google.com/maps?q=${encodeURIComponent(cleanAddr)}&t=&z=16&ie=UTF8&iwloc=&output=embed`;

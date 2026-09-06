@@ -4,18 +4,18 @@ import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Script from "next/script";
-import { 
-  Search, 
-  Clock, 
-  Calendar, 
-  BookOpen, 
-  ArrowRight, 
-  Loader2, 
-  Sparkles, 
-  Plus, 
-  TrendingUp, 
-  Flame, 
-  Tag, 
+import {
+  Search,
+  Clock,
+  Calendar,
+  BookOpen,
+  ArrowRight,
+  Loader2,
+  Sparkles,
+  Plus,
+  TrendingUp,
+  Flame,
+  Tag,
   X,
   ChevronRight,
   User,
@@ -199,23 +199,18 @@ export default function NewsIndexPage() {
       />
 
       {/* 1. Bright & Premium Header Banner & Controls */}
-      <section className="bg-[#111317] text-white pt-32 md:pt-36 pb-12 relative overflow-hidden">
+      <section className="bg-[#111317] text-white pt-28 sm:pt-32 md:pt-36 pb-8 md:pb-10 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#D90429]/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#D90429]/5 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="container mx-auto px-4 max-w-7xl relative z-10 space-y-6">
-          <div className="flex items-center gap-2 text-xs font-mono font-bold text-slate-400">
-            <Link href="/" className="hover:text-white transition-colors">Trang chủ</Link>
-            <ChevronRight size={14} />
-            <span className="text-[#D90429] font-black uppercase">Tin tức & Cẩm nang</span>
-          </div>
+        <div className="container mx-auto px-4 sm:px-6 max-w-[1536px] relative z-10 space-y-4">
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-3 max-w-3xl">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black font-heading uppercase tracking-wide leading-tight text-white">
+            <div className="space-y-2 max-w-3xl">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black font-heading uppercase tracking-wide leading-tight text-white mb-2 sm:mb-3">
                 TIN TỨC & <span className="text-[#D90429]">CẨM NANG KỸ THUẬT</span>
               </h1>
-              <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+              <p className="text-gray-400 text-xs sm:text-sm md:text-base leading-relaxed">
                 Hướng dẫn sửa chữa, bảo dưỡng động cơ Weichai, hộp số Fast Gear, gầm xe HOWO và mẹo tra mã phụ tùng Part No. chính xác từ chuyên gia Q.BA Đà Nẵng.
               </p>
             </div>
@@ -251,11 +246,10 @@ export default function NewsIndexPage() {
 
             <button
               onClick={() => setSelectedCategorySlug(null)}
-              className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
-                selectedCategorySlug === null
-                  ? "bg-[#D90429] text-white shadow-lg shadow-[#D90429]/30 scale-105"
-                  : "bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700/60"
-              }`}
+              className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all cursor-pointer shrink-0 ${selectedCategorySlug === null
+                ? "bg-[#D90429] text-white shadow-lg shadow-[#D90429]/30 scale-105"
+                : "bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700/60"
+                }`}
             >
               TẤT CẢ BÀI VIẾT
             </button>
@@ -266,11 +260,10 @@ export default function NewsIndexPage() {
                 <button
                   key={`pill-cat-${cat.id}-${cat.slug}`}
                   onClick={() => setSelectedCategorySlug(isSelected ? null : cat.slug)}
-                  className={`px-4 py-2 rounded-full text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border ${
-                    isSelected
-                      ? "bg-[#D90429] border-[#D90429] text-white shadow-lg shadow-[#D90429]/30 scale-105"
-                      : "bg-[#16191F] border-slate-700/80 text-slate-300 hover:bg-[#D90429] hover:text-white hover:border-[#D90429]"
-                  }`}
+                  className={`px-4 py-2 rounded-full text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border ${isSelected
+                    ? "bg-[#D90429] border-[#D90429] text-white shadow-lg shadow-[#D90429]/30 scale-105"
+                    : "bg-[#16191F] border-slate-700/80 text-slate-300 hover:bg-[#D90429] hover:text-white hover:border-[#D90429]"
+                    }`}
                 >
                   <Plus size={13} className="stroke-[3]" />
                   <span>{cat.name}</span>
@@ -294,12 +287,12 @@ export default function NewsIndexPage() {
               {/* Dual-Split Verge Hero Showcase Grid */}
               {featuredArticle && !searchQuery && !selectedCategorySlug && !selectedTag && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start border-b border-slate-200 pb-12">
-                  
+
                   {/* Left Column (7 cols): Main Featured Cover Banner */}
                   <div className="lg:col-span-7 space-y-4 group">
                     <Link href={`/news/${featuredArticle.slug}`} className="block">
                       <div className="relative aspect-[16/10] sm:aspect-[16/9] rounded-3xl bg-slate-100 overflow-hidden shadow-lg border border-slate-200">
-                        <Image 
+                        <Image
                           src={featuredArticle.imageSrc}
                           alt={featuredArticle.title}
                           fill
@@ -361,7 +354,7 @@ export default function NewsIndexPage() {
 
                           <Link href={`/news/${art.slug}`} className="shrink-0">
                             <div className="relative w-24 h-20 rounded-2xl bg-slate-100 overflow-hidden border border-slate-200/90 shadow-xs">
-                              <Image 
+                              <Image
                                 src={art.imageSrc}
                                 alt={art.title}
                                 fill
@@ -412,7 +405,7 @@ export default function NewsIndexPage() {
 
               {/* 3. Verge Layout Section: High-Legibility Feed Stream + MOST POPULAR Sidebar */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-                
+
                 {/* Left Feed Stream Column (8 cols) */}
                 <div className="lg:col-span-8 space-y-8">
                   <div className="flex items-center justify-between border-b-2 border-[#D90429] pb-2">
@@ -444,7 +437,7 @@ export default function NewsIndexPage() {
                             <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded bg-slate-100 text-[#D90429] font-mono">
                               {article.category}
                             </span>
-                            
+
                             <h3 className="text-lg sm:text-xl font-black font-heading text-slate-900 uppercase leading-snug group-hover:text-[#D90429] transition-colors">
                               <Link href={`/news/${article.slug}`}>
                                 {article.title}
@@ -466,7 +459,7 @@ export default function NewsIndexPage() {
 
                           <Link href={`/news/${article.slug}`} className="w-full sm:w-auto shrink-0">
                             <div className="relative w-full sm:w-48 h-32 rounded-2xl bg-slate-100 overflow-hidden border border-slate-200 shadow-sm">
-                              <Image 
+                              <Image
                                 src={article.imageSrc}
                                 alt={article.title}
                                 fill
@@ -483,7 +476,7 @@ export default function NewsIndexPage() {
 
                 {/* Right Column (4 cols): Numbered MOST POPULAR Sidebar */}
                 <aside className="lg:col-span-4 space-y-8 lg:sticky lg:top-28 lg:self-start">
-                  
+
                   {/* Numbered MOST POPULAR Widget */}
                   <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200/90 space-y-6 shadow-sm relative overflow-hidden">
                     {/* Submerged Slanted Background Watermark Text (Centered & Fit Form) */}
@@ -528,11 +521,10 @@ export default function NewsIndexPage() {
                           <button
                             key={`tag-cloud-${idx}`}
                             onClick={() => setSelectedTag(isSelected ? null : tag)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                              isSelected
-                                ? "bg-[#D90429] text-white border-[#D90429] shadow-xs"
-                                : "bg-white text-slate-700 border-slate-200 hover:border-[#D90429] hover:text-[#D90429]"
-                            }`}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${isSelected
+                              ? "bg-[#D90429] text-white border-[#D90429] shadow-xs"
+                              : "bg-white text-slate-700 border-slate-200 hover:border-[#D90429] hover:text-[#D90429]"
+                              }`}
                           >
                             #{tag}
                           </button>
@@ -552,9 +544,9 @@ export default function NewsIndexPage() {
                     <p className="text-xs text-red-100 leading-relaxed">
                       Gửi số khung (VIN) hoặc hình ảnh phụ tùng cần tư vấn qua Zalo để nhận báo giá trong 5 phút.
                     </p>
-                    <a 
-                      href="https://zalo.me/0903588167" 
-                      target="_blank" 
+                    <a
+                      href="https://zalo.me/0903588167"
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="w-full py-3.5 bg-white text-[#D90429] font-black rounded-2xl text-xs uppercase tracking-wider block text-center shadow-lg hover:bg-slate-100 transition-colors"
                     >

@@ -25,6 +25,8 @@ import {
   Package,
   Lock,
   ZoomIn,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 interface ProductItem {
@@ -91,6 +93,36 @@ export default function AdminProductsPage() {
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
 
   const [toastState, setToastState] = useState<ToastMessage | null>(null);
+
+  // Quick 1-Click Code Copy State & Handler
+  const [copiedCodeKey, setCopiedCodeKey] = useState<string | null>(null);
+
+  const handleCopyCode = (e: React.MouseEvent, codeText: string, label: string, keyId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!codeText || codeText === '—') return;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(codeText);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = codeText;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+
+    setCopiedCodeKey(keyId);
+    setTimeout(() => setCopiedCodeKey(null), 1500);
+
+    setToastState({
+      id: String(Date.now()),
+      type: 'success',
+      title: 'Đã Sao Chép Mã!',
+      message: `Đã sao chép ${label} [${codeText}] vào bộ nhớ tạm!`,
+    });
+  };
 
   // Load Metadata (Category Tree & Brands) on Mount
   useEffect(() => {
@@ -335,28 +367,57 @@ export default function AdminProductsPage() {
       },
     },
     {
-      title: 'Mã Phụ Tùng (Không bắt buộc)',
-      key: 'partNumber',
-      sorter: (a: ProductItem, b: ProductItem) => a.partNumber.localeCompare(b.partNumber),
-      render: (_: any, record: ProductItem) => (
-        <div className="font-mono font-extrabold text-red-600 text-xs">
-          {record.partNumber ? (
-            record.partNumber
-          ) : (
-            <span className="italic text-slate-400 font-normal font-sans text-[11px]">(Chưa có mã)</span>
-          )}
-        </div>
-      ),
-    },
-    {
-      title: 'Mã Nội Bộ (*)',
+      title: 'Mã SKU Kho (*)',
       key: 'internalCode',
       sorter: (a: ProductItem, b: ProductItem) => a.internalCode.localeCompare(b.internalCode),
-      render: (_: any, record: ProductItem) => (
-        <div className="font-mono text-xs font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded border border-slate-200/80 inline-block">
-          {record.internalCode || '—'}
-        </div>
-      ),
+      render: (_: any, record: ProductItem) => {
+        const isSkuCopied = copiedCodeKey === `sku-${record.id}`;
+        return (
+          <button
+            type="button"
+            onClick={(e) => handleCopyCode(e, record.internalCode, 'Mã SKU Kho', `sku-${record.id}`)}
+            className="group/sku flex items-center gap-1 font-mono text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border border-slate-200/80 transition-all cursor-pointer text-left"
+            title={`Bấm vào để copy nhanh mã SKU Kho [${record.internalCode}]`}
+          >
+            <span className="group-hover/sku:underline">{record.internalCode || '—'}</span>
+            {isSkuCopied ? (
+              <Check size={12} className="text-emerald-600 shrink-0" />
+            ) : (
+              <Copy size={11} className="text-slate-400 opacity-0 group-hover/sku:opacity-100 transition-opacity shrink-0" />
+            )}
+          </button>
+        );
+      },
+    },
+    {
+      title: 'Mã OE / Part No',
+      dataIndex: 'partNumber',
+      key: 'partNumber',
+      sorter: (a: ProductItem, b: ProductItem) => a.partNumber.localeCompare(b.partNumber),
+      render: (_: any, record: ProductItem) => {
+        const hasPartNo = Boolean(record.partNumber && record.partNumber.trim());
+        const isOeCopied = copiedCodeKey === `oe-${record.id}`;
+
+        if (!hasPartNo) {
+          return <span className="italic text-slate-400 font-sans text-[11px]">(Chưa có mã)</span>;
+        }
+
+        return (
+          <button
+            type="button"
+            onClick={(e) => handleCopyCode(e, record.partNumber, 'Mã OE / Part No', `oe-${record.id}`)}
+            className="group/oe flex items-center gap-1 font-mono font-extrabold text-red-600 text-xs leading-snug hover:bg-red-50 px-1.5 py-0.5 rounded transition-all cursor-pointer text-left"
+            title={`Bấm vào để copy nhanh mã OE / Part No [${record.partNumber}]`}
+          >
+            <span className="group-hover/oe:underline">{record.partNumber}</span>
+            {isOeCopied ? (
+              <Check size={12} className="text-emerald-600 shrink-0" />
+            ) : (
+              <Copy size={11} className="text-red-400 opacity-0 group-hover/oe:opacity-100 transition-opacity shrink-0" />
+            )}
+          </button>
+        );
+      },
     },
     {
       title: 'Tên Công Khai & Nội Bộ',
@@ -390,7 +451,11 @@ export default function AdminProductsPage() {
       key: 'brand',
       filters: brandsList.map((b) => ({ text: b.name, value: b.name })),
       onFilter: (value: any, record: ProductItem) => record.brand === value,
-      render: (brand: string) => <AntTag color="red" className="font-bold text-xs">{brand}</AntTag>,
+      render: (brand: string) => (
+        <AntTag color={brand === 'Chưa Phân Loại' ? 'default' : 'red'} className="font-bold text-xs">
+          {brand}
+        </AntTag>
+      ),
     },
     {
       title: 'Tồn Kho',

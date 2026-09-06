@@ -22,7 +22,7 @@ export const createProductSchema = z.object({
     .min(2, "Tên nội bộ không hợp lệ")
     .max(200, "Tên nội bộ quá dài"),
   categoryId: z.number().int().positive({ message: "Vui lòng chọn danh mục phụ tùng" }),
-  brandId: z.number().int().positive({ message: "Vui lòng chọn thương hiệu nhà sản xuất" }),
+  brandId: z.number().int().nonnegative().optional().nullable(),
   price: z.number().nonnegative("Giá bán không được âm").default(0),
   costPrice: z.number().nonnegative("Giá vốn không được âm").default(0),
   stockQuantity: z.number().int().nonnegative("Số lượng tồn kho không được âm").default(0),

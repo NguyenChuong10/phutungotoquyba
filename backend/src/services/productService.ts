@@ -26,7 +26,7 @@ export class ProductService {
     limit?: number;
   }) {
     const page = Math.max(query.page || 1, 1);
-    const limit = Math.min(query.limit || 12, 50);
+    const limit = Math.min(query.limit || 12, 5000);
     const skip = (page - 1) * limit;
 
     const whereCondition: Record<string, unknown> = {};
@@ -164,7 +164,7 @@ export class ProductService {
     limit?: number;
   }) {
     const page = Math.max(query.page || 1, 1);
-    const limit = Math.min(query.limit || 10, 100);
+    const limit = Math.min(query.limit || 10, 5000);
     const skip = (page - 1) * limit;
 
     const whereCondition: Record<string, unknown> = {};
@@ -241,18 +241,11 @@ export class ProductService {
       throw new AppError(`Danh mục phụ tùng đã chọn (ID: ${input.categoryId}) không tồn tại trong hệ thống`, 400);
     }
 
-    let finalBrandId = input.brandId;
-    let brandExists = await prisma.brand.findUnique({ where: { id: finalBrandId } });
-    if (!brandExists) {
-      // Fallback to first available brand or default brand in DB
-      const fallbackBrand = await prisma.brand.findFirst();
-      if (fallbackBrand) {
-        finalBrandId = fallbackBrand.id;
-      } else {
-        const created = await prisma.brand.create({
-          data: { name: "HOWO Sinotruk", slug: "howo-sinotruk" },
-        });
-        finalBrandId = created.id;
+    let finalBrandId: number | null = input.brandId && Number(input.brandId) > 0 ? Number(input.brandId) : null;
+    if (finalBrandId) {
+      let brandExists = await prisma.brand.findUnique({ where: { id: finalBrandId } });
+      if (!brandExists) {
+        finalBrandId = null;
       }
     }
 
@@ -346,13 +339,13 @@ export class ProductService {
       }
     }
 
-    let targetBrandId = input.brandId;
-    if (targetBrandId) {
-      const brandExists = await prisma.brand.findUnique({ where: { id: targetBrandId } });
-      if (!brandExists) {
-        const fallbackBrand = await prisma.brand.findFirst();
-        if (fallbackBrand) {
-          targetBrandId = fallbackBrand.id;
+    let targetBrandId: number | null | undefined = undefined;
+    if (input.brandId !== undefined) {
+      targetBrandId = input.brandId && Number(input.brandId) > 0 ? Number(input.brandId) : null;
+      if (targetBrandId) {
+        const brandExists = await prisma.brand.findUnique({ where: { id: targetBrandId } });
+        if (!brandExists) {
+          targetBrandId = null;
         }
       }
     }

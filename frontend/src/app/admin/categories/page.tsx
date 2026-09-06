@@ -181,7 +181,7 @@ export default function AdminCategoriesPage() {
           price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString()} ₫` : 'Liên hệ Báo Giá',
           costPrice: p.costPrice ? `${Number(p.costPrice).toLocaleString()} ₫` : '0 ₫',
           description: p.description || '',
-          image: p.images?.[0]?.imageUrl || '/images/vehicle-category/dongco.png',
+          image: p.images?.[0]?.imageUrl || '/images/logo/logonen.png',
         }));
         setLiveProductsList(mapped);
       }

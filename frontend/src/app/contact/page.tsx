@@ -48,21 +48,21 @@ export default function ContactPage() {
   return (
     <div>
       {/* 1. Header Banner */}
-      <section className="bg-[#111317] text-white pt-32 md:pt-40 pb-16 md:pb-24 relative overflow-hidden">
+      <section className="bg-[#111317] text-white pt-28 sm:pt-32 md:pt-36 pb-8 md:pb-10 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand/5 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="container mx-auto px-4 max-w-7xl relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand/10 border border-brand/30 text-brand text-xs font-black tracking-widest uppercase mb-4">
+        <div className="container mx-auto px-4 sm:px-6 max-w-[1536px] relative z-10 text-center">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand/10 border border-brand/30 text-brand text-[11px] font-black tracking-widest uppercase mb-3">
             <span className="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
             Hỗ Trợ Kỹ Thuật & Báo Giá Trực Tiếp
           </div>
 
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-black font-heading uppercase tracking-wide leading-tight mb-6">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black font-heading uppercase tracking-wide leading-tight mb-2 sm:mb-3">
             LIÊN HỆ & VỊ TRÍ <span className="text-brand">CỬA HÀNG Q.BA</span>
           </h1>
 
-          <p className="text-gray-300 text-base md:text-xl max-w-3xl mx-auto leading-relaxed">
+          <p className="text-gray-400 text-xs sm:text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
             Hệ thống tư vấn kỹ thuật đúng mã chuẩn xác, sẵn sàng phản hồi báo giá hỏa tốc cho các chủ xe, bác tài và doanh nghiệp vận tải.
           </p>
         </div>

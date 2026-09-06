@@ -19,7 +19,7 @@ export default function ProductImageGallery({
   brandName,
   images,
 }: ProductImageGalleryProps) {
-  const safeImages = images && images.length > 0 ? images : ["/images/vehicle-category/dongco.png"];
+  const safeImages = images && images.length > 0 ? images : ["/images/logo/logonen.png"];
   const [selectedIdx, setSelectedIdx] = useState<number>(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
 

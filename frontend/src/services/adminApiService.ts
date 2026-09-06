@@ -22,7 +22,7 @@ export interface AdminProductItem {
   internalCode: string;
   internalName: string;
   categoryId: number;
-  brandId: number;
+  brandId?: number | null;
   price: number | string;
   costPrice: number | string;
   stockQuantity: number;

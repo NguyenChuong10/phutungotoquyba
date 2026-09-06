@@ -52,24 +52,24 @@ const warehouseImages = [
 export default function AboutPage() {
   return (
     <div>
-      
+
       {/* 1. Header Banner */}
-      <section className="bg-[#111317] text-white pt-32 md:pt-40 pb-16 md:pb-24 relative overflow-hidden">
+      <section className="bg-[#111317] text-white pt-28 sm:pt-32 md:pt-36 pb-8 md:pb-10 relative overflow-hidden">
         {/* Background Glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand/5 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="container mx-auto px-4 max-w-7xl relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand/10 border border-brand/30 text-brand text-xs font-black tracking-widest uppercase mb-4">
+        <div className="container mx-auto px-4 sm:px-6 max-w-[1536px] relative z-10 text-center">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand/10 border border-brand/30 text-brand text-[11px] font-black tracking-widest uppercase mb-3">
             <span className="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
             Hành Trình 25 Năm Uy Tín
           </div>
 
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-black font-heading uppercase tracking-wide leading-tight mb-6">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black font-heading uppercase tracking-wide leading-tight mb-2 sm:mb-3">
             GIỚI THIỆU <span className="text-brand">PHỤ TÙNG Ô TÔ Q.BA</span>
           </h1>
 
-          <p className="text-gray-300 text-base md:text-xl max-w-3xl mx-auto leading-relaxed">
+          <p className="text-gray-400 text-xs sm:text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
             Chuyên cung cấp & phân phối phụ tùng ô tô xe tải nặng, xe ben, xe đầu kéo, rơ-moóc Trung Quốc chính hãng với độ bền vượt trội và giá thành tối ưu nhất thị trường.
           </p>
         </div>
@@ -79,7 +79,7 @@ export default function AboutPage() {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            
+
             {/* Left Story Text */}
             <div className="lg:col-span-6 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-slate-100 border border-slate-200 text-slate-800 text-xs font-extrabold uppercase tracking-wider">
@@ -126,11 +126,11 @@ export default function AboutPage() {
             <div className="lg:col-span-6">
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-900 group">
                 <div className="relative aspect-[4/3] w-full">
-                  <Image 
-                    src="/images/about/mat-tien-cua-hang.jpg" 
-                    alt="Cửa Hàng Phụ Tùng Ô Tô Q.BA tại 43-45 Nguyễn Văn Tạo Đà Nẵng" 
-                    fill 
-                    className="object-cover group-hover:scale-105 transition-transform duration-700" 
+                  <Image
+                    src="/images/about/mat-tien-cua-hang.jpg"
+                    alt="Cửa Hàng Phụ Tùng Ô Tô Q.BA tại 43-45 Nguyễn Văn Tạo Đà Nẵng"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
@@ -176,15 +176,15 @@ export default function AboutPage() {
           {/* Gallery Grid - Pure Clean Images */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {warehouseImages.map((img, idx) => (
-              <div 
+              <div
                 key={`wh-img-${idx}`}
                 className="group relative aspect-[4/3] rounded-3xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-lg hover:shadow-2xl transition-all duration-500"
               >
-                <Image 
-                  src={img.src} 
-                  alt={img.alt} 
-                  fill 
-                  className="object-cover group-hover:scale-105 transition-transform duration-700" 
+                <Image
+                  src={img.src}
+                  alt={img.alt}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
               </div>
@@ -206,17 +206,17 @@ export default function AboutPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-            <a 
-              href="tel:0903588167" 
+            <a
+              href="tel:0903588167"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-brand text-white font-black py-4 px-8 rounded-full text-base uppercase tracking-wider hover:bg-white hover:text-brand hover:scale-105 transition-all duration-300 shadow-[0_0_25px_rgba(217,4,41,0.4)]"
             >
               <Phone size={20} />
               GỌI HOTLINE: 0903.588.167
             </a>
 
-            <a 
-              href="https://zalo.me/0903588167" 
-              target="_blank" 
+            <a
+              href="https://zalo.me/0903588167"
+              target="_blank"
               rel="noopener noreferrer"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-blue-600 text-white font-black py-4 px-8 rounded-full text-base uppercase tracking-wider hover:bg-white hover:text-blue-600 hover:scale-105 transition-all duration-300 shadow-lg"
             >

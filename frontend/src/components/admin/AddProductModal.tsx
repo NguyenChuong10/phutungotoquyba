@@ -97,7 +97,7 @@ export default function AddProductModal({
     if (editingProduct?.image) {
       return [{ imageUrl: editingProduct.image, isPrimary: true }];
     }
-    return [{ imageUrl: '/images/vehicle-category/dongco.png', isPrimary: true }];
+    return [{ imageUrl: '/images/logo/logonen.png', isPrimary: true }];
   })();
 
   const [imageList, setImageList] = useState<ProductImageItem[]>(initialImages);
@@ -124,9 +124,9 @@ export default function AddProductModal({
           } else if (editingProduct?.brand) {
             const matched = list.find((b: any) => b.name.toLowerCase() === editingProduct.brand.toLowerCase());
             if (matched) setSelectedBrandId(matched.id);
-            else if (list[0]) setSelectedBrandId(list[0].id);
-          } else if (list[0]) {
-            setSelectedBrandId(list[0].id);
+            else setSelectedBrandId(0);
+          } else {
+            setSelectedBrandId(0);
           }
         }
 
@@ -245,7 +245,7 @@ export default function AddProductModal({
       internalCode: internalCode.trim(),
       internalName: internalName.trim(),
       categoryId: Number(selectedCategoryId) || activeSubModal.id,
-      brandId: Number(selectedBrandId) || brandsList[0]?.id || 2,
+      brandId: Number(selectedBrandId) > 0 ? Number(selectedBrandId) : null,
       price: 0,
       costPrice: 0,
       stockQuantity: Number(stock) || 0,
@@ -338,25 +338,35 @@ export default function AddProductModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="font-bold text-slate-700 block mb-1">Mã Phụ Tùng (Không bắt buộc)</label>
+              <label className="font-bold text-slate-700 block mb-1">
+                Mã OE / Part No (Không bắt buộc)
+              </label>
               <input
                 type="text"
                 value={partNo}
                 onChange={(e) => setPartNo(e.target.value)}
-                placeholder="Bỏ trống nếu không có (Ví dụ: HW19710-TB01)"
+                placeholder="Mã phụ tùng chính hãng nhà máy (VD: 612600080277)"
                 className="w-full p-2.5 border border-slate-200 rounded-xl font-mono text-slate-900 font-bold focus:ring-2 focus:ring-red-500/20"
               />
+              <span className="text-[10px] text-slate-400 font-medium block mt-1">
+                Mã do nhà máy sản xuất dập trên linh kiện
+              </span>
             </div>
             <div>
-              <label className="font-bold text-slate-700 block mb-1">Mã Nội Bộ Q.BA (*)</label>
+              <label className="font-bold text-slate-700 block mb-1 text-red-600">
+                Mã SKU Kho Q.BA (*)
+              </label>
               <input
                 type="text"
                 required
                 value={internalCode}
                 onChange={(e) => setInternalCode(e.target.value)}
-                placeholder="QB-TB-19710-01"
+                placeholder="Mã quản lý kho nội bộ (VD: QB-SKU-102934)"
                 className="w-full p-2.5 border border-slate-200 rounded-xl font-mono text-slate-900 font-bold bg-slate-50 focus:ring-2 focus:ring-red-500/20"
               />
+              <span className="text-[10px] text-slate-400 font-medium block mt-1">
+                Mã quản lý tồn kho & kiểm kê nội bộ Q.BA
+              </span>
             </div>
           </div>
 
@@ -390,8 +400,9 @@ export default function AddProductModal({
               <select
                 value={selectedBrandId}
                 onChange={(e) => setSelectedBrandId(Number(e.target.value))}
-                className="w-full p-2.5 border border-slate-200 rounded-xl font-semibold bg-white"
+                className="w-full p-2.5 border border-slate-200 rounded-xl font-semibold bg-white text-slate-900 focus:ring-2 focus:ring-red-500/20"
               >
+                <option value={0}>-- Không có thương hiệu (Chưa phân loại) --</option>
                 {brandsList.map((b) => (
                   <option key={`brand-opt-${b.id}`} value={b.id}>
                     {b.name}
