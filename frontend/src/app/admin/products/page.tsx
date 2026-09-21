@@ -218,7 +218,7 @@ export default function AdminProductsPage() {
             subCategory: p.category?.parent ? p.category?.name : (p.category?.name || 'Linh Kiện Khác'),
             subCategorySlug: p.category?.slug || 'linh-kien-khac',
             subCategoryId: p.categoryId,
-            brand: p.brand?.name || 'Chưa Phân Loại',
+            brand: p.brand?.name || 'Không',
             brandId: p.brandId,
             stock: p.stockQuantity ?? 0,
             price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString('vi-VN')} ₫` : 'Liên hệ Báo Giá',
@@ -451,11 +451,16 @@ export default function AdminProductsPage() {
       key: 'brand',
       filters: brandsList.map((b) => ({ text: b.name, value: b.name })),
       onFilter: (value: any, record: ProductItem) => record.brand === value,
-      render: (brand: string) => (
-        <AntTag color={brand === 'Chưa Phân Loại' ? 'default' : 'red'} className="font-bold text-xs">
-          {brand}
-        </AntTag>
-      ),
+      render: (brand: string) => {
+        if (!brand || brand === 'Chưa Phân Loại' || brand === 'Chưa phân loại' || brand === 'Không' || brand === 'Không có thương hiệu') {
+          return <span className="text-slate-400 font-normal italic text-xs">-</span>;
+        }
+        return (
+          <AntTag color="red" className="font-bold text-xs">
+            {brand}
+          </AntTag>
+        );
+      },
     },
     {
       title: 'Tồn Kho',

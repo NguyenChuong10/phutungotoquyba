@@ -19,6 +19,50 @@ const DEFAULT_SETTINGS: Record<string, string> = {
     { id: "brand-5", name: "BOSCH", bg: "/images/vehicle-category/sealphot.png" },
     { id: "brand-6", name: "FAW", bg: "/images/vehicle-category/cabin.png" },
   ]),
+  aboutGalleryImages: JSON.stringify([
+    {
+      id: "img-1",
+      src: "/images/about/kho-hang-1.png",
+      alt: "Kệ hàng phụ tùng quy chuẩn Q.BA",
+      title: "Kho linh kiện đa dạng",
+      desc: "10.000+ chủng loại phụ tùng luôn sẵn kho đáp ứng ngay mọi tiến độ sửa chữa"
+    },
+    {
+      id: "img-2",
+      src: "/images/about/kho-hang-2.png",
+      alt: "Cửa hàng Phụ Tùng Q.BA và nhân viên kỹ thuật",
+      title: "Đội ngũ 25 năm kinh nghiệm",
+      desc: "Tư vấn kỹ thuật chuẩn xác theo đúng mã phụ tùng của từng dòng xe"
+    },
+    {
+      id: "img-3",
+      src: "/images/about/kho-hang-3.png",
+      alt: "Kiện thùng gỗ hàng nhập khẩu chính ngạch Q.BA",
+      title: "Hàng nhập khẩu chính ngạch",
+      desc: "Đóng gói nguyên đai nguyên kiện thùng gỗ từ nhà máy uy tín Trung Quốc"
+    },
+    {
+      id: "img-4",
+      src: "/images/about/kho-hang-4.png",
+      alt: "Kệ hàng linh kiện lưu trữ quy mô lớn",
+      title: "Lưu trữ quy chuẩn",
+      desc: "Bảo quản phụ tùng trong môi trường khô ráo, chống gỉ sét tuyệt đối"
+    },
+    {
+      id: "img-5",
+      src: "/images/about/kho-hang-5.png",
+      alt: "Kho chi tiết linh kiện ron phớt tay gạt Q.BA",
+      title: "Linh kiện làm kín & phụ trợ",
+      desc: "Đầy đủ các bộ phớt, lá lót, chạt tay gạt, gioăng máy chất lượng cao"
+    },
+    {
+      id: "img-6",
+      src: "/images/about/giao-hang-van-chuyen.jpg",
+      alt: "Đội xe vận chuyển giao hàng hỏa tốc Q.BA",
+      title: "Vận chuyển hỏa tốc",
+      desc: "Giao hàng tận nơi tại Đà Nẵng và đóng gói gửi hàng toàn quốc"
+    }
+  ]),
 };
 
 let isSettingTableVerified = false;

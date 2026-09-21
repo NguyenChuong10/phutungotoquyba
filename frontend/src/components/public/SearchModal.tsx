@@ -215,7 +215,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                     {/* Meta */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        {product.brand && (
+                        {product.brand && product.brand.trim() !== '' && product.brand !== 'Chưa Phân Loại' && product.brand !== 'Chưa phân loại' && product.brand !== 'Không có thương hiệu' && product.brand !== 'Không' && (
                           <span className="px-2 py-0.5 bg-[#FF0000]/10 border border-[#FF0000]/30 text-[#FF0000] text-[10px] font-extrabold uppercase rounded">
                             {product.brand}
                           </span>

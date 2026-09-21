@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { Sparkles, FolderPlus, FileText, CornerDownRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Sparkles, FolderPlus, FileText, CornerDownRight, FolderTree } from 'lucide-react';
 import { AdminApiService } from '@/services/adminApiService';
 
 interface AddCategoryModalProps {
   parentCategory?: { id: number; name: string } | null;
   editingCategory?: { id: number; name: string; description?: string; iconUrl?: string; parentId?: number | null } | null;
+  mainCategories?: { id: number; name: string }[];
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -14,15 +15,39 @@ interface AddCategoryModalProps {
 export default function AddCategoryModal({
   parentCategory,
   editingCategory,
+  mainCategories,
   onClose,
   onSuccess,
 }: AddCategoryModalProps) {
   const [name, setName] = useState(editingCategory?.name || '');
   const [description, setDescription] = useState(editingCategory?.description || '');
+  const [selectedParentId, setSelectedParentId] = useState<number | null>(
+    editingCategory?.parentId !== undefined
+      ? editingCategory.parentId
+      : parentCategory
+      ? parentCategory.id
+      : null
+  );
+  const [allMainCats, setAllMainCats] = useState<{ id: number; name: string }[]>(mainCategories || []);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const isSubCategory = !!parentCategory || (editingCategory && !!editingCategory.parentId);
+  useEffect(() => {
+    if (!mainCategories || mainCategories.length === 0) {
+      AdminApiService.getCategoriesTree().then((data) => {
+        if (data && data.length > 0) {
+          const list = data
+            .filter((cat: any) => !editingCategory || cat.id !== editingCategory.id)
+            .map((item: any) => ({ id: item.id, name: item.name }));
+          setAllMainCats(list);
+        }
+      }).catch(() => {});
+    } else {
+      setAllMainCats(mainCategories.filter((m) => !editingCategory || m.id !== editingCategory.id));
+    }
+  }, [mainCategories, editingCategory]);
+
+  const isSubCategory = selectedParentId !== null && selectedParentId > 0;
   const isEditing = !!editingCategory;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,6 +64,7 @@ export default function AddCategoryModal({
       if (isEditing) {
         const res = await AdminApiService.updateCategory(editingCategory.id, {
           name: name.trim(),
+          parentId: selectedParentId && selectedParentId > 0 ? selectedParentId : null,
           description: description.trim() || undefined,
         });
 
@@ -51,7 +77,7 @@ export default function AddCategoryModal({
       } else {
         const res = await AdminApiService.createCategory({
           name: name.trim(),
-          parentId: parentCategory ? parentCategory.id : null,
+          parentId: selectedParentId && selectedParentId > 0 ? selectedParentId : null,
           description: description.trim() || undefined,
         });
 
@@ -83,12 +109,6 @@ export default function AddCategoryModal({
                   : `Tạo ${isSubCategory ? 'Danh Mục Phụ Con' : 'Danh Mục Chính Mới'}`}
               </span>
             </h3>
-            {parentCategory && (
-              <p className="text-xs text-red-600 font-bold mt-1 flex items-center gap-1">
-                <CornerDownRight className="w-3.5 h-3.5" />
-                <span>Trực thuộc danh mục chính: {parentCategory.name}</span>
-              </p>
-            )}
           </div>
 
           <button
@@ -108,6 +128,25 @@ export default function AddCategoryModal({
 
         {/* Form Inputs */}
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <div>
+            <label className="font-bold text-slate-700 block mb-1 flex items-center gap-1">
+              <FolderTree className="w-3.5 h-3.5 text-red-600" />
+              <span>Danh Mục Chính Trực Thuộc (* Bạn có thể chuyển danh mục phụ sang danh mục chính khác)</span>
+            </label>
+            <select
+              value={selectedParentId || 0}
+              onChange={(e) => setSelectedParentId(Number(e.target.value) || null)}
+              className="w-full p-2.5 border border-slate-200 rounded-xl text-slate-900 font-bold bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-xs"
+            >
+              <option value={0}>-- Không thuộc danh mục nào (Là Danh Mục Chính) --</option>
+              {allMainCats.map((main) => (
+                <option key={`parent-cat-${main.id}`} value={main.id}>
+                  📂 {main.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <label className="font-bold text-slate-700 block mb-1">
               Tên Danh Mục Phụ Tùng (*)

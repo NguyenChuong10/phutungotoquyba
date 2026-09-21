@@ -294,7 +294,7 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
       {/* 3. Main Article Content Body */}
       <div
         ref={contentRef}
-        className="article-rich-body font-sans text-slate-800 text-base md:text-lg leading-relaxed
+        className="article-rich-body font-sans text-slate-800 text-base md:text-lg leading-relaxed [word-break:normal] [overflow-wrap:break-word]
           [&_p]:text-slate-700 [&_p]:text-base [&_p]:md:text-lg [&_p]:leading-relaxed [&_p]:my-2 [&_p]:font-normal
           [&_h2]:text-xl [&_h2]:sm:text-2xl [&_h2]:font-bold [&_h2]:font-heading [&_h2]:text-slate-900 [&_h2]:mt-6 [&_h2]:mb-2 [&_h2]:pb-1.5 [&_h2]:border-b [&_h2]:border-slate-200
           [&_h3]:text-lg [&_h3]:sm:text-xl [&_h3]:font-bold [&_h3]:font-heading [&_h3]:text-slate-900 [&_h3]:mt-4.5 [&_h3]:mb-2 [&_h3]:border-l-4 [&_h3]:border-[#D90429] [&_h3]:pl-3

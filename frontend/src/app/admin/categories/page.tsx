@@ -20,6 +20,8 @@ import {
   ArrowRight,
   Eye,
   ChevronLeft,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 import { AdminApiService } from '@/services/adminApiService';
 import AddCategoryModal from '@/components/admin/AddCategoryModal';
@@ -60,6 +62,7 @@ interface ProductItem {
   costPrice: string;
   description: string;
   image: string;
+  rawProduct?: any;
 }
 
 interface BrandItem {
@@ -134,26 +137,23 @@ export default function AdminCategoriesPage() {
 
   const [toastState, setToastState] = useState<ToastMessage | null>(null);
 
-  // Load Real-Time Categories from Backend API
+  // Load Real-Time Categories from Backend API (Sorted by custom sortOrder from Database)
   const fetchRealtimeCategories = useCallback(async () => {
     try {
       const data = await AdminApiService.getCategoriesTree();
       if (data && data.length > 0) {
-        const sortedData = [...data].sort((a, b) => a.name.localeCompare(b.name, 'vi'));
-        const mappedList: MainCategory[] = sortedData.map((item) => ({
+        const mappedList: MainCategory[] = data.map((item) => ({
           id: item.id,
           name: item.name,
           slug: item.slug,
           description: item.description || 'Chủng loại phụ tùng xe tải nặng Q.BA',
-          subCategories: [...(item.children || [])]
-            .sort((a, b) => a.name.localeCompare(b.name, 'vi'))
-            .map((sub) => ({
-              id: sub.id,
-              name: sub.name,
-              slug: sub.slug,
-              productCount: sub._count?.products || 0,
-              description: sub.description || 'Danh mục phụ con',
-            })),
+          subCategories: (item.children || []).map((sub) => ({
+            id: sub.id,
+            name: sub.name,
+            slug: sub.slug,
+            productCount: sub._count?.products || 0,
+            description: sub.description || 'Danh mục phụ con',
+          })),
         }));
         setCategoriesListState(mappedList);
       }
@@ -162,12 +162,95 @@ export default function AdminCategoriesPage() {
     }
   }, []);
 
+  // Reorder Main Categories Custom Order Handler
+  const handleMoveMainCategory = async (mainId: number, direction: 'UP' | 'DOWN') => {
+    const fullIndex = categoriesListState.findIndex((c) => c.id === mainId);
+    if (fullIndex === -1) return;
+
+    const targetIndex = direction === 'UP' ? fullIndex - 1 : fullIndex + 1;
+    if (targetIndex < 0 || targetIndex >= categoriesListState.length) return;
+
+    const newList = [...categoriesListState];
+    const [moved] = newList.splice(fullIndex, 1);
+    newList.splice(targetIndex, 0, moved);
+
+    setCategoriesListState(newList);
+
+    const payload = newList.map((item, idx) => ({
+      id: item.id,
+      sortOrder: idx + 1,
+    }));
+
+    try {
+      await AdminApiService.reorderCategories(payload);
+      setToastState({
+        id: String(Date.now()),
+        type: 'success',
+        title: 'Cập Nhật Thứ Tự',
+        message: `Đã di chuyển danh mục chính "${moved.name}"!`,
+      });
+    } catch {
+      setToastState({
+        id: String(Date.now()),
+        type: 'error',
+        title: 'Lỗi',
+        message: 'Không thể cập nhật thứ tự danh mục.',
+      });
+    }
+  };
+
+  // Reorder Sub Categories Custom Order Handler
+  const handleMoveSubCategory = async (subId: number, direction: 'UP' | 'DOWN') => {
+    if (!activeMainCategory || !activeMainCategory.subCategories) return;
+
+    const subList = [...activeMainCategory.subCategories];
+    const fullIndex = subList.findIndex((s) => s.id === subId);
+    if (fullIndex === -1) return;
+
+    const targetIndex = direction === 'UP' ? fullIndex - 1 : fullIndex + 1;
+    if (targetIndex < 0 || targetIndex >= subList.length) return;
+
+    const [moved] = subList.splice(fullIndex, 1);
+    subList.splice(targetIndex, 0, moved);
+
+    setCategoriesListState((prev) =>
+      prev.map((main) =>
+        main.id === activeMainCategory.id
+          ? { ...main, subCategories: subList }
+          : main
+      )
+    );
+
+    const payload = subList.map((item, idx) => ({
+      id: item.id,
+      sortOrder: idx + 1,
+    }));
+
+    try {
+      await AdminApiService.reorderCategories(payload);
+      setToastState({
+        id: String(Date.now()),
+        type: 'success',
+        title: 'Cập Nhật Thứ Tự',
+        message: `Đã di chuyển danh mục phụ "${moved.name}"!`,
+      });
+    } catch {
+      setToastState({
+        id: String(Date.now()),
+        type: 'error',
+        title: 'Lỗi',
+        message: 'Không thể cập nhật thứ tự danh mục phụ.',
+      });
+    }
+  };
+
   // Load Real-Time Products from Backend API
   const fetchRealtimeProducts = useCallback(async () => {
     try {
-      const res = await AdminApiService.getAdminProducts({ limit: 100 });
+      const res = await AdminApiService.getAdminProducts({ limit: 5000 });
       if (res.ok && res.data) {
-        const mapped: ProductItem[] = res.data.map((p: any) => ({
+        const rawProds = Array.isArray(res.data) ? res.data : res.data.products || [];
+        const mapped: ProductItem[] = rawProds.map((p: any) => ({
           id: p.id,
           name: p.name,
           internalName: p.internalName || p.name,
@@ -175,6 +258,7 @@ export default function AdminCategoriesPage() {
           partNumber: p.partNumber || '',
           subCategorySlug: p.category?.slug || '',
           subCategoryName: p.category?.name || '',
+          subCategoryId: p.categoryId,
           brand: p.brand?.name || 'HOWO Sinotruk',
           brandId: p.brandId || p.brand?.id,
           stock: p.stockQuantity || 0,
@@ -182,6 +266,7 @@ export default function AdminCategoriesPage() {
           costPrice: p.costPrice ? `${Number(p.costPrice).toLocaleString()} ₫` : '0 ₫',
           description: p.description || '',
           image: p.images?.[0]?.imageUrl || '/images/logo/logonen.png',
+          rawProduct: p,
         }));
         setLiveProductsList(mapped);
       }
@@ -475,13 +560,17 @@ export default function AdminCategoriesPage() {
             </div>
 
             {/* Paginated Main Category List */}
-            <div className="divide-y divide-slate-100 flex-1">
+            <div className="divide-y divide-slate-100 flex-1 overflow-y-auto">
               {paginatedMainCategories.map((mainCat) => {
                 const isSelected = mainCat.id === selectedMainId;
                 const totalSub = mainCat.subCategories ? mainCat.subCategories.length : 0;
                 const totalProds = mainCat.subCategories
                   ? mainCat.subCategories.reduce((acc, c) => acc + c.productCount, 0)
                   : 0;
+
+                const fullIndex = categoriesListState.findIndex((c) => c.id === mainCat.id);
+                const isFirst = fullIndex === 0;
+                const isLast = fullIndex === categoriesListState.length - 1;
 
                 return (
                   <div
@@ -490,12 +579,35 @@ export default function AdminCategoriesPage() {
                       setSelectedMainId(mainCat.id);
                       setSubCategoryPage(1);
                     }}
-                    className={`p-3.5 transition-all cursor-pointer flex items-center justify-between border-l-4 ${isSelected
+                    className={`p-3 transition-all cursor-pointer flex items-center justify-between border-l-4 ${isSelected
                         ? 'border-l-red-600 bg-red-50/50 shadow-2xs'
                         : 'border-l-transparent hover:bg-slate-50'
                       }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {/* Custom Sort Order Buttons & Badge */}
+                      <div className="flex flex-col items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          disabled={isFirst}
+                          onClick={() => handleMoveMainCategory(mainCat.id, 'UP')}
+                          className="p-0.5 rounded hover:bg-slate-200 text-slate-500 disabled:opacity-20 cursor-pointer transition-colors"
+                          title="Di chuyển lên trên"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-[10px] font-extrabold text-slate-400 font-mono">
+                          #{fullIndex + 1}
+                        </span>
+                        <button
+                          disabled={isLast}
+                          onClick={() => handleMoveMainCategory(mainCat.id, 'DOWN')}
+                          className="p-0.5 rounded hover:bg-slate-200 text-slate-500 disabled:opacity-20 cursor-pointer transition-colors"
+                          title="Di chuyển xuống dưới"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
                       <div className="min-w-0">
                         <h4
                           className={`font-extrabold text-xs sm:text-sm truncate ${isSelected ? 'text-red-600' : 'text-slate-900'
@@ -668,64 +780,94 @@ export default function AdminCategoriesPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {paginatedSubCategories.map((sub) => (
-                      <tr key={`sub-row-${sub.id}`} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="p-3 pl-5">
-                          <div className="flex items-center gap-2">
-                            <CornerDownRight className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
-                            <span className="font-extrabold text-slate-900 text-xs sm:text-sm">
-                              {sub.name}
+                    {paginatedSubCategories.map((sub) => {
+                      const subList = activeMainCategory?.subCategories || [];
+                      const fullIndex = subList.findIndex((s) => s.id === sub.id);
+                      const isFirst = fullIndex === 0;
+                      const isLast = fullIndex === subList.length - 1;
+
+                      return (
+                        <tr key={`sub-row-${sub.id}`} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="p-3 pl-4">
+                            <div className="flex items-center gap-2">
+                              {/* Custom Sort Order Buttons & Badge */}
+                              <div className="flex items-center gap-1 shrink-0">
+                                <span className="text-[10px] font-extrabold text-slate-400 font-mono min-w-[20px]">
+                                  #{fullIndex + 1}
+                                </span>
+                                <button
+                                  disabled={isFirst}
+                                  onClick={() => handleMoveSubCategory(sub.id, 'UP')}
+                                  className="p-1 rounded hover:bg-slate-200 text-slate-600 disabled:opacity-20 cursor-pointer transition-colors"
+                                  title="Di chuyển lên trên"
+                                >
+                                  <ChevronUp className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  disabled={isLast}
+                                  onClick={() => handleMoveSubCategory(sub.id, 'DOWN')}
+                                  className="p-1 rounded hover:bg-slate-200 text-slate-600 disabled:opacity-20 cursor-pointer transition-colors"
+                                  title="Di chuyển xuống dưới"
+                                >
+                                  <ChevronDown className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+
+                              <CornerDownRight className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+                              <span className="font-extrabold text-slate-900 text-xs sm:text-sm">
+                                {sub.name}
+                              </span>
+                            </div>
+                          </td>
+
+                          <td className="p-3 font-mono text-slate-500 font-semibold">/{sub.slug}</td>
+
+                          <td className="p-3 text-slate-500 max-w-xs">
+                            <p className="line-clamp-1 leading-snug">{sub.description}</p>
+                          </td>
+
+                          <td className="p-3">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-extrabold border border-emerald-200/80 cursor-default">
+                              <Package className="w-3 h-3 text-emerald-600 shrink-0" />
+                              <span>{sub.productCount} mã SP</span>
                             </span>
-                          </div>
-                        </td>
+                          </td>
 
-                        <td className="p-3 font-mono text-slate-500 font-semibold">/{sub.slug}</td>
+                          <td className="p-3 pr-5 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => setActiveSubModal(sub)}
+                                className="px-2.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                                title="Xem danh sách sản phẩm & upload ảnh của danh mục phụ này"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Xem SP</span>
+                              </button>
 
-                        <td className="p-3 text-slate-500 max-w-xs">
-                          <p className="line-clamp-1 leading-snug">{sub.description}</p>
-                        </td>
+                              <button
+                                onClick={() => {
+                                  setParentForSubCategory({ id: activeMainCategory.id, name: activeMainCategory.name });
+                                  setEditingCategoryData({ id: sub.id, name: sub.name, description: sub.description, iconUrl: sub.iconUrl, parentId: activeMainCategory.id });
+                                  setShowAddCategoryModal(true);
+                                }}
+                                className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
+                                title="Sửa danh mục phụ"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
 
-                        <td className="p-3">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-extrabold border border-emerald-200/80 cursor-default">
-                            <Package className="w-3 h-3 text-emerald-600 shrink-0" />
-                            <span>{sub.productCount} mã SP</span>
-                          </span>
-                        </td>
-
-                        <td className="p-3 pr-5 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => setActiveSubModal(sub)}
-                              className="px-2.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
-                              title="Xem danh sách sản phẩm & upload ảnh của danh mục phụ này"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                              <span>Xem SP</span>
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setParentForSubCategory({ id: activeMainCategory.id, name: activeMainCategory.name });
-                                setEditingCategoryData({ id: sub.id, name: sub.name, description: sub.description, iconUrl: sub.iconUrl, parentId: activeMainCategory.id });
-                                setShowAddCategoryModal(true);
-                              }}
-                              className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
-                              title="Sửa danh mục phụ"
-                            >
-                              <Edit className="w-3.5 h-3.5" />
-                            </button>
-
-                            <button
-                              onClick={() => handleDeleteCategory(sub, true)}
-                              className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
-                              title="Xoá danh mục phụ"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                              <button
+                                onClick={() => handleDeleteCategory(sub, true)}
+                                className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+                                title="Xoá danh mục phụ"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )}
@@ -761,6 +903,7 @@ export default function AdminCategoriesPage() {
         <AddCategoryModal
           parentCategory={parentForSubCategory}
           editingCategory={editingCategoryData}
+          mainCategories={categoriesListState.map((c) => ({ id: c.id, name: c.name }))}
           onClose={() => {
             setShowAddCategoryModal(false);
             setEditingCategoryData(null);

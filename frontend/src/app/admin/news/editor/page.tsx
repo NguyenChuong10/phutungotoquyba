@@ -74,6 +74,18 @@ function slugify(text: string): string {
     .trim();
 }
 
+function formatDateToLocalInput(dateInput?: string | Date): string {
+  const d = dateInput ? new Date(dateInput) : new Date();
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 function NewsEditorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -94,6 +106,8 @@ function NewsEditorContent() {
   const [thumbnailUrl, setThumbnailUrl] = useState('/images/news-section/news-1.png');
   const [isFeatured, setIsFeatured] = useState(false);
   const [articleTags, setArticleTags] = useState<string[]>([]);
+  const [publishedAt, setPublishedAt] = useState<string>('');
+  const [publishType, setPublishType] = useState<'now' | 'scheduled'>('now');
 
   // Mode: 'freeform' | 'sections'
   const [editorMode, setEditorMode] = useState<'freeform' | 'sections'>('freeform');
@@ -656,6 +670,16 @@ function NewsEditorContent() {
           setContent(mainContent);
         }
 
+        if (art.publishedAt) {
+          const pubDate = new Date(art.publishedAt);
+          setPublishedAt(formatDateToLocalInput(pubDate));
+          if (pubDate.getTime() > Date.now()) {
+            setPublishType('scheduled');
+          } else {
+            setPublishType('now');
+          }
+        }
+
         if (parsedSections.length > 0) {
           setSections(parsedSections);
           setEditorMode('sections');
@@ -799,7 +823,7 @@ function NewsEditorContent() {
 <div class="my-6 space-y-3">
   ${sec.heading ? `<h2 class="text-xl sm:text-2xl font-black text-slate-900 uppercase font-heading flex items-center gap-3 pt-6 border-t border-slate-200"><span class="w-8 h-8 rounded-xl bg-[#D90429] text-white text-xs font-black flex items-center justify-center shadow-sm shrink-0 font-mono">${idx + 1}</span><span>${sec.heading}</span></h2>` : ''}
   ${sec.imageUrl ? `<img src="${sec.imageUrl}" alt="${sec.heading || 'Phụ tùng Q.BA'}" class="rounded-2xl w-full max-h-[500px] object-cover my-4 shadow-sm border border-slate-200/90" />` : ''}
-  ${sec.bodyText ? `<p class="text-slate-700 text-base md:text-lg leading-relaxed whitespace-pre-line my-4 font-normal">${sec.bodyText}</p>` : ''}
+  ${sec.bodyText ? `<p class="text-slate-700 text-base md:text-lg leading-relaxed whitespace-pre-wrap my-4 font-normal">${sec.bodyText}</p>` : ''}
 </div>`
         )
         .join('\n');
@@ -820,6 +844,10 @@ function NewsEditorContent() {
 
     setSubmitting(true);
     try {
+      const finalPublishedAt = publishType === 'scheduled' && publishedAt
+        ? new Date(publishedAt).toISOString()
+        : new Date().toISOString();
+
       const payload = {
         title: title.trim(),
         slug: computedSlug,
@@ -828,6 +856,7 @@ function NewsEditorContent() {
         content: finalContent,
         thumbnailUrl: thumbnailUrl || '/images/news-section/news-1.png',
         isFeatured,
+        publishedAt: finalPublishedAt,
       };
 
       if (editingArticleId) {
@@ -1569,7 +1598,7 @@ function NewsEditorContent() {
                   <div className="p-4 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
                     <h1 className="text-2xl font-black text-slate-900">{title || 'Tiêu đề bài viết'}</h1>
                     {leadSummary && <p className="text-slate-700 text-sm leading-relaxed font-medium italic bg-white p-3.5 rounded-xl border border-slate-200">{leadSummary}</p>}
-                    {content && <div className="text-slate-800 text-sm leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: content }} />}
+                    {content && <div className="text-slate-800 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: content }} />}
                     {sections.map((sec, idx) => (
                       <div key={`prev-${sec.id}`} className="my-6 space-y-3 border-t border-slate-200 pt-4">
                         {sec.heading && (
@@ -1589,7 +1618,7 @@ function NewsEditorContent() {
                           />
                         )}
                         {sec.bodyText && (
-                          <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line">
+                          <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
                             {sec.bodyText}
                           </p>
                         )}
@@ -1682,6 +1711,62 @@ function NewsEditorContent() {
                       value: c.slug,
                     }))}
                   />
+                </div>
+
+                {/* Scheduled Publishing Option */}
+                <div className="pt-2 border-t border-slate-100 space-y-2">
+                  <label className="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                    <ClockIcon className="w-4 h-4 text-red-600" />
+                    <span>Thời Gian Xuất Bản (Hẹn Giờ Lên Bài)</span>
+                  </label>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPublishType('now')}
+                      className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                        publishType === 'now'
+                          ? 'bg-red-50 border-red-200 text-[#D90429] shadow-2xs'
+                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Đăng Ngay</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPublishType('scheduled');
+                        if (!publishedAt) {
+                          const future = new Date(Date.now() + 3600 * 1000);
+                          setPublishedAt(formatDateToLocalInput(future));
+                        }
+                      }}
+                      className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                        publishType === 'scheduled'
+                          ? 'bg-red-50 border-red-200 text-[#D90429] shadow-2xs'
+                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      <ClockIcon className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Hẹn Giờ</span>
+                    </button>
+                  </div>
+
+                  {publishType === 'scheduled' && (
+                    <div className="pt-1 space-y-1">
+                      <input
+                        type="datetime-local"
+                        value={publishedAt}
+                        onChange={(e) => setPublishedAt(e.target.value)}
+                        className="w-full p-2.5 border border-slate-200 rounded-xl font-mono text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500/20 bg-amber-50/50"
+                      />
+                      <p className="text-[11px] text-amber-700 font-medium italic">
+                        💡 Bài viết sẽ tự động hiển thị công khai khi tới thời điểm này.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-2">

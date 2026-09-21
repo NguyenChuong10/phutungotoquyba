@@ -10,6 +10,9 @@ router.use(verifyAdmin);
 // POST /api/v1/admin/categories - Create Category (Main or Sub-Category via parentId)
 router.post("/", CategoryController.createCategory);
 
+// PUT /api/v1/admin/categories/reorder - Batch Reorder Categories
+router.put("/reorder", CategoryController.reorderCategories);
+
 // PUT /api/v1/admin/categories/:id - Update Category
 router.put("/:id", CategoryController.updateCategory);
 

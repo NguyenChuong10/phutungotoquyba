@@ -33,6 +33,7 @@ export class NewsService {
 
     if (params?.isPublicOnly) {
       where.isPublished = true;
+      where.publishedAt = { lte: new Date() };
     }
 
     if (params?.categorySlug && params.categorySlug !== "all") {
@@ -86,6 +87,7 @@ export class NewsService {
 
     if (isPublicOnly) {
       where.isPublished = true;
+      where.publishedAt = { lte: new Date() };
     }
 
     const article = await prisma.news.findFirst({
@@ -97,8 +99,13 @@ export class NewsService {
       },
     });
 
-    if (!article || (isPublicOnly && article.isPublished === false)) {
-      throw new AppError("Bài viết kỹ thuật này hiện đang tạm ẩn", 404);
+    if (
+      !article ||
+      (isPublicOnly &&
+        (article.isPublished === false ||
+          (article.publishedAt && new Date(article.publishedAt) > new Date())))
+    ) {
+      throw new AppError("Bài viết kỹ thuật này hiện chưa đến giờ xuất bản", 404);
     }
 
     // Increment views count asynchronously
@@ -125,6 +132,7 @@ export class NewsService {
     thumbnailUrl?: string;
     isFeatured?: boolean;
     isPublished?: boolean;
+    publishedAt?: Date | string;
     authorId?: number;
   }) {
     if (!data.title || data.title.trim() === "") {
@@ -135,9 +143,19 @@ export class NewsService {
     }
 
     let finalSlug = data.slug ? slugify(data.slug) : slugify(data.title);
+    if (!finalSlug) finalSlug = `post-${Date.now()}`;
+
     const slugCheck = await prisma.news.findUnique({ where: { slug: finalSlug } });
     if (slugCheck) {
       finalSlug = `${finalSlug}-${Date.now().toString().slice(-4)}`;
+    }
+
+    let validAuthorId: number | null = null;
+    if (data.authorId) {
+      const user = await prisma.user.findUnique({ where: { id: data.authorId } });
+      if (user) {
+        validAuthorId = data.authorId;
+      }
     }
 
     const newArticle = await prisma.news.create({
@@ -150,7 +168,8 @@ export class NewsService {
         thumbnailUrl: data.thumbnailUrl || "/images/logo/logonen.png",
         isFeatured: data.isFeatured ?? false,
         isPublished: data.isPublished ?? true,
-        authorId: data.authorId || null,
+        publishedAt: data.publishedAt ? new Date(data.publishedAt) : new Date(),
+        authorId: validAuthorId,
       },
     });
 
@@ -171,6 +190,7 @@ export class NewsService {
       thumbnailUrl?: string;
       isFeatured?: boolean;
       isPublished?: boolean;
+      publishedAt?: Date | string;
     }
   ) {
     const existing = await prisma.news.findUnique({ where: { id } });
@@ -179,18 +199,17 @@ export class NewsService {
     }
 
     let slug = existing.slug;
-    if (data.slug && data.slug.trim()) {
-      const targetSlug = slugify(data.slug);
+    const requestedSlug = data.slug ? slugify(data.slug) : data.title ? slugify(data.title) : undefined;
+
+    if (requestedSlug && requestedSlug !== existing.slug) {
       const slugConflict = await prisma.news.findFirst({
-        where: { slug: targetSlug, NOT: { id } },
+        where: { slug: requestedSlug, NOT: { id } },
       });
       if (slugConflict) {
-        slug = `${targetSlug}-${Date.now().toString().slice(-4)}`;
+        slug = `${requestedSlug}-${Date.now().toString().slice(-4)}`;
       } else {
-        slug = targetSlug;
+        slug = requestedSlug;
       }
-    } else if (data.title && data.title.trim() !== existing.title) {
-      slug = `${slugify(data.title)}-${Date.now().toString().slice(-4)}`;
     }
 
     const updated = await prisma.news.update({
@@ -204,6 +223,7 @@ export class NewsService {
         thumbnailUrl: data.thumbnailUrl !== undefined ? data.thumbnailUrl : undefined,
         isFeatured: data.isFeatured !== undefined ? data.isFeatured : undefined,
         isPublished: data.isPublished !== undefined ? data.isPublished : undefined,
+        publishedAt: data.publishedAt !== undefined ? (data.publishedAt ? new Date(data.publishedAt) : new Date()) : undefined,
       },
     });
 

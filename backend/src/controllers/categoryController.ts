@@ -70,6 +70,25 @@ export class CategoryController {
   }
 
   /**
+   * PUT /api/v1/admin/categories/reorder - Reorder Categories (Admin Only)
+   */
+  static async reorderCategories(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { items } = req.body;
+      if (!Array.isArray(items)) {
+        return res.status(400).json({ success: false, message: "Dữ liệu không hợp lệ" });
+      }
+      const result = await CategoryService.reorderCategories(items);
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * DELETE /api/v1/admin/categories/:id - Delete Category (Admin Only)
    */
   static async deleteCategory(req: Request, res: Response, next: NextFunction) {

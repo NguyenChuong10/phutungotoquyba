@@ -114,6 +114,12 @@ const MENU_SECTIONS: MenuSection[] = [
     groupIcon: Cog,
     items: [
       {
+        name: 'Trang Giới Thiệu',
+        href: '/admin/about',
+        icon: ImageIcon,
+        badge: null,
+      },
+      {
         name: 'Tin Tức & Kỹ Thuật',
         href: '/admin/news',
         icon: Newspaper,

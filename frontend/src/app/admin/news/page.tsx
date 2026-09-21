@@ -628,24 +628,45 @@ export default function AdminNewsPage() {
       ),
     },
     {
-      title: 'Hiển Thị',
+      title: 'Trạng Thái & Hẹn Giờ',
       dataIndex: 'isPublished',
       key: 'isPublished',
-      width: 130,
+      width: 170,
       className: '!px-4',
-      render: (isPublished: boolean = true, record: NewsArticleItem) => (
-        <div className="flex items-center gap-2">
-          <Switch
-            size="small"
-            checked={isPublished !== false}
-            onChange={(checked) => handleQuickTogglePublished(record, checked)}
-            className={isPublished !== false ? '!bg-emerald-600' : '!bg-slate-300'}
-          />
-          <span className={`text-[11px] font-extrabold whitespace-nowrap ${isPublished !== false ? 'text-emerald-700' : 'text-slate-400'}`}>
-            {isPublished !== false ? 'Đang Hiện' : 'Đã Ẩn'}
-          </span>
-        </div>
-      ),
+      render: (isPublished: boolean = true, record: NewsArticleItem) => {
+        const isScheduled = isPublished !== false && record.publishedAt && new Date(record.publishedAt).getTime() > Date.now();
+        const formattedDate = record.publishedAt
+          ? new Date(record.publishedAt).toLocaleString('vi-VN', {
+              hour: '2-digit',
+              minute: '2-digit',
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+            })
+          : '';
+
+        return (
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <Switch
+                size="small"
+                checked={isPublished !== false}
+                onChange={(checked) => handleQuickTogglePublished(record, checked)}
+                className={isPublished === false ? '!bg-slate-300' : isScheduled ? '!bg-amber-500' : '!bg-emerald-600'}
+              />
+              <span className={`text-[11px] font-extrabold whitespace-nowrap ${isPublished === false ? 'text-slate-400' : isScheduled ? 'text-amber-700' : 'text-emerald-700'}`}>
+                {isPublished === false ? 'Bản Nháp / Ẩn' : isScheduled ? 'Hẹn Giờ' : 'Đã Đăng'}
+              </span>
+            </div>
+            {isScheduled && (
+              <div className="text-[10px] font-mono font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md flex items-center gap-1 w-fit">
+                <Clock className="w-3 h-3 text-amber-600 shrink-0" />
+                <span>{formattedDate}</span>
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       title: 'Nổi Bật',

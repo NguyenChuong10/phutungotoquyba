@@ -29,31 +29,52 @@ export class ProductService {
     const limit = Math.min(query.limit || 12, 5000);
     const skip = (page - 1) * limit;
 
-    const whereCondition: Record<string, unknown> = {};
+    const whereCondition: any = {};
+    const andConditions: any[] = [];
 
     // Category Filter
     if (query.subCategorySlug) {
-      whereCondition.category = { slug: query.subCategorySlug };
+      andConditions.push({ category: { slug: query.subCategorySlug } });
     } else if (query.categorySlug && query.categorySlug !== "all") {
-      whereCondition.OR = [
-        { category: { slug: query.categorySlug } },
-        { category: { parent: { slug: query.categorySlug } } },
-      ];
+      andConditions.push({
+        OR: [
+          { category: { slug: query.categorySlug } },
+          { category: { parent: { slug: query.categorySlug } } },
+        ],
+      });
     }
 
     // Brand Filter
     if (query.brandName && query.brandName !== "Tất cả thương hiệu") {
-      whereCondition.brand = { name: query.brandName };
+      if (query.brandName === "Không") {
+        andConditions.push({
+          OR: [
+            { brandId: null },
+            { brand: { name: { in: ["Chưa Phân Loại", "Chưa phân loại", "Không", "Không có thương hiệu"] } } },
+          ],
+        });
+      } else {
+        andConditions.push({ brand: { name: query.brandName } });
+      }
     }
 
-    // Search Query (Searches in public name, partNumber, description)
+    // Search Query (Searches in public name, partNumber, internalCode, internalName, description, brand)
     if (query.search && query.search.trim()) {
       const q = query.search.trim();
-      whereCondition.OR = [
-        { name: { contains: q, mode: "insensitive" } },
-        { partNumber: { contains: q, mode: "insensitive" } },
-        { description: { contains: q, mode: "insensitive" } },
-      ];
+      andConditions.push({
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { partNumber: { contains: q, mode: "insensitive" } },
+          { internalCode: { contains: q, mode: "insensitive" } },
+          { internalName: { contains: q, mode: "insensitive" } },
+          { description: { contains: q, mode: "insensitive" } },
+          { brand: { name: { contains: q, mode: "insensitive" } } },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) {
+      whereCondition.AND = andConditions;
     }
 
     const [total, products] = await Promise.all([
@@ -167,27 +188,38 @@ export class ProductService {
     const limit = Math.min(query.limit || 10, 5000);
     const skip = (page - 1) * limit;
 
-    const whereCondition: Record<string, unknown> = {};
+    const whereCondition: any = {};
+    const andConditions: any[] = [];
 
     if (query.categoryId) {
-      whereCondition.OR = [
-        { categoryId: query.categoryId },
-        { category: { parentId: query.categoryId } },
-      ];
+      andConditions.push({
+        OR: [
+          { categoryId: query.categoryId },
+          { category: { parentId: query.categoryId } },
+        ],
+      });
     }
 
     if (query.brandId) {
-      whereCondition.brandId = query.brandId;
+      andConditions.push({ brandId: query.brandId });
     }
 
     if (query.search && query.search.trim()) {
       const q = query.search.trim();
-      whereCondition.OR = [
-        { name: { contains: q, mode: "insensitive" } },
-        { partNumber: { contains: q, mode: "insensitive" } },
-        { internalCode: { contains: q, mode: "insensitive" } },
-        { internalName: { contains: q, mode: "insensitive" } },
-      ];
+      andConditions.push({
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { partNumber: { contains: q, mode: "insensitive" } },
+          { internalCode: { contains: q, mode: "insensitive" } },
+          { internalName: { contains: q, mode: "insensitive" } },
+          { description: { contains: q, mode: "insensitive" } },
+          { brand: { name: { contains: q, mode: "insensitive" } } },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) {
+      whereCondition.AND = andConditions;
     }
 
     const [total, products] = await Promise.all([

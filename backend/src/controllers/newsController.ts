@@ -7,13 +7,15 @@ export class NewsController {
    */
   static async getNewsList(req: Request, res: Response, next: NextFunction) {
     try {
-      const { categorySlug, search, page, limit, isPublicOnly } = req.query;
+      const { categorySlug, search, page, limit } = req.query;
+      const isPublicOnly = !req.originalUrl.includes("/admin");
+      
       const result = await NewsService.getNewsList({
         categorySlug: categorySlug as string,
         search: search as string,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
-        isPublicOnly: isPublicOnly === "true",
+        isPublicOnly,
       });
 
       return res.status(200).json({
@@ -32,7 +34,7 @@ export class NewsController {
   static async getNewsBySlug(req: Request, res: Response, next: NextFunction) {
     try {
       const slug = req.params.slug;
-      const isAdmin = req.query.isAdmin === "true";
+      const isAdmin = req.originalUrl.includes("/admin");
       const article = await NewsService.getNewsBySlug(slug, !isAdmin);
 
       return res.status(200).json({
@@ -49,7 +51,7 @@ export class NewsController {
    */
   static async createNews(req: Request, res: Response, next: NextFunction) {
     try {
-      const { title, slug, categorySlug, tags, content, thumbnailUrl, isFeatured, isPublished } = req.body;
+      const { title, slug, categorySlug, tags, content, thumbnailUrl, isFeatured, isPublished, publishedAt } = req.body;
       const user = (req as any).user;
 
       const newArticle = await NewsService.createNews({
@@ -61,6 +63,7 @@ export class NewsController {
         thumbnailUrl,
         isFeatured,
         isPublished,
+        publishedAt,
         authorId: user?.userId,
       });
 
@@ -80,7 +83,7 @@ export class NewsController {
   static async updateNews(req: Request, res: Response, next: NextFunction) {
     try {
       const id = parseInt(req.params.id);
-      const { title, slug, categorySlug, tags, content, thumbnailUrl, isFeatured, isPublished } = req.body;
+      const { title, slug, categorySlug, tags, content, thumbnailUrl, isFeatured, isPublished, publishedAt } = req.body;
 
       const updated = await NewsService.updateNews(id, {
         title,
@@ -91,6 +94,7 @@ export class NewsController {
         thumbnailUrl,
         isFeatured,
         isPublished,
+        publishedAt,
       });
 
       return res.status(200).json({

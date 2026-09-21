@@ -77,6 +77,16 @@ export class AdminApiService {
   }
 
   /**
+   * Reorder Categories Batch
+   */
+  static async reorderCategories(items: { id: number; sortOrder: number }[]) {
+    return await fetchApi("/admin/categories/reorder", {
+      method: "PUT",
+      body: JSON.stringify({ items }),
+    });
+  }
+
+  /**
    * Delete Category
    */
   static async deleteCategory(id: number) {

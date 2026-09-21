@@ -18,13 +18,21 @@ export class CategoryService {
   }
 
   /**
-   * Get 2-Level Hierarchical Category Tree for Public Website & Admin
+   * Get 2-Level Hierarchical Category Tree for Public Website & Admin (Sorted by sortOrder)
    */
   static async getCategoryTree() {
     const mainCategories = await prisma.category.findMany({
       where: { parentId: null },
+      orderBy: [
+        { sortOrder: "asc" },
+        { id: "asc" },
+      ],
       include: {
         children: {
+          orderBy: [
+            { sortOrder: "asc" },
+            { id: "asc" },
+          ],
           include: {
             _count: {
               select: { products: true },
@@ -37,17 +45,21 @@ export class CategoryService {
       },
     });
 
-    // Sort main categories alphabetically (A to Z)
-    mainCategories.sort((a, b) => a.name.localeCompare(b.name, "vi"));
-
-    // Sort subcategories (children) alphabetically (A to Z)
-    for (const main of mainCategories) {
-      if (main.children && main.children.length > 0) {
-        main.children.sort((a, b) => a.name.localeCompare(b.name, "vi"));
-      }
-    }
-
     return mainCategories;
+  }
+
+  /**
+   * Batch update category sort order
+   */
+  static async reorderCategories(items: { id: number; sortOrder: number }[]) {
+    const updates = items.map((item) =>
+      prisma.category.update({
+        where: { id: item.id },
+        data: { sortOrder: item.sortOrder },
+      })
+    );
+    await prisma.$transaction(updates);
+    return { success: true, message: "Đã cập nhật thứ tự danh mục thành công" };
   }
 
   /**

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -50,6 +50,7 @@ interface ProductItem {
   costPrice: string;
   description: string;
   image: string;
+  rawProduct?: any;
 }
 
 interface SubCategoryProductsModalProps {
@@ -161,22 +162,63 @@ export default function SubCategoryProductsModal({
     }
   };
 
-  // Base list for active subcategory
+  const [modalProducts, setModalProducts] = useState<ProductItem[]>([]);
+
+  // Load Real-Time SubCategory Products directly by Category ID from Backend API
+  useEffect(() => {
+    async function loadSubCategoryProducts() {
+      if (!activeSubModal?.id) return;
+      try {
+        const res = await AdminApiService.getAdminProducts({
+          categoryId: activeSubModal.id,
+          limit: 5000,
+        });
+        if (res.ok && res.data) {
+          const rawProds = Array.isArray(res.data) ? res.data : res.data.products || [];
+          const mapped: ProductItem[] = rawProds.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            internalName: p.internalName || p.name,
+            internalCode: p.internalCode || '',
+            partNumber: p.partNumber || '',
+            subCategorySlug: p.category?.slug || '',
+            subCategoryName: p.category?.name || '',
+            brand: p.brand?.name || 'HOWO Sinotruk',
+            brandId: p.brandId || p.brand?.id,
+            stock: p.stockQuantity || 0,
+            price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString()} ₫` : 'Liên hệ Báo Giá',
+            costPrice: p.costPrice ? `${Number(p.costPrice).toLocaleString()} ₫` : '0 ₫',
+            description: p.description || '',
+            image: p.images?.[0]?.imageUrl || '/images/logo/logonen.png',
+            rawProduct: p,
+          }));
+          setModalProducts(mapped);
+        }
+      } catch {}
+    }
+    loadSubCategoryProducts();
+  }, [activeSubModal]);
+
+  // Base list for active subcategory (uses direct API products or fallback to productsMock)
   const rawCategoryProducts = useMemo(() => {
-    return productsMock.filter(
+    const listToFilter = modalProducts.length > 0 ? modalProducts : productsMock;
+    return listToFilter.filter(
       (p) =>
+        (p as any).subCategoryId === activeSubModal.id ||
+        (p as any).rawProduct?.categoryId === activeSubModal.id ||
+        (p as any).categoryId === activeSubModal.id ||
         p.subCategorySlug === activeSubModal.slug ||
         p.subCategoryName === activeSubModal.name ||
         (p as any).mainCategorySlug === activeSubModal.slug ||
         (p as any).mainCategory === activeSubModal.name
     );
-  }, [productsMock, activeSubModal]);
+  }, [modalProducts, productsMock, activeSubModal]);
 
   // Extract unique brands present in this subcategory
   const availableBrands = useMemo(() => {
     const brandSet = new Set<string>();
     rawCategoryProducts.forEach((p) => {
-      if (p.brand && p.brand !== 'Chưa Phân Loại' && p.brand !== 'Không có thương hiệu') {
+      if (p.brand && p.brand !== 'Chưa Phân Loại' && p.brand !== 'Không có thương hiệu' && p.brand !== 'Không') {
         brandSet.add(p.brand);
       }
     });
@@ -203,7 +245,7 @@ export default function SubCategoryProductsModal({
     // Brand filter
     if (selectedBrand !== 'ALL') {
       if (selectedBrand === 'UNBRANDED') {
-        result = result.filter((p) => !p.brand || p.brand === 'Chưa Phân Loại' || p.brand === 'Không có thương hiệu');
+        result = result.filter((p) => !p.brand || p.brand === 'Chưa Phân Loại' || p.brand === 'Không có thương hiệu' || p.brand === 'Không');
       } else {
         result = result.filter((p) => p.brand === selectedBrand);
       }
@@ -350,7 +392,7 @@ export default function SubCategoryProductsModal({
                 className="bg-transparent font-bold text-slate-800 text-xs focus:outline-none cursor-pointer"
               >
                 <option value="ALL">Thương hiệu: Tất cả ({rawCategoryProducts.length})</option>
-                <option value="UNBRANDED">Chưa Phân Loại / Không thương hiệu</option>
+                <option value="UNBRANDED">Không có thương hiệu / Không</option>
                 {availableBrands.map((b) => (
                   <option key={`sub-brand-opt-${b}`} value={b}>
                     Hãng: {b}
@@ -530,12 +572,12 @@ export default function SubCategoryProductsModal({
                     <td className="p-3.5 font-bold text-slate-800">
                       <span
                         className={`px-2 py-0.5 rounded text-xs font-bold inline-block ${
-                          !prod.brand || prod.brand === 'Chưa Phân Loại' || prod.brand === 'Không có thương hiệu'
+                          !prod.brand || prod.brand === 'Chưa Phân Loại' || prod.brand === 'Không có thương hiệu' || prod.brand === 'Không'
                             ? 'bg-slate-100 text-slate-600 border border-slate-200'
                             : 'bg-red-50 text-red-700 font-extrabold border border-red-200'
                         }`}
                       >
-                        {prod.brand || 'Chưa Phân Loại'}
+                        {!prod.brand || prod.brand === 'Chưa Phân Loại' || prod.brand === 'Không có thương hiệu' ? 'Không' : prod.brand}
                       </span>
                     </td>
                     <td className="p-3.5">

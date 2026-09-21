@@ -72,6 +72,7 @@ export const metadata: Metadata = {
 
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import LocalBusinessJsonLd from "@/components/seo/LocalBusinessJsonLd";
+import ExtensionErrorFilter from "@/components/ExtensionErrorFilter";
 
 export default function RootLayout({
   children,
@@ -86,6 +87,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning={true}>
         <AntdRegistry>
+          <ExtensionErrorFilter />
           <LocalBusinessJsonLd />
           <MainLayout>{children}</MainLayout>
         </AntdRegistry>

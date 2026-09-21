@@ -43,7 +43,7 @@ async function getProductDetail(id: string) {
           partNumber: p.partNumber || '',
           categorySlug: p.category?.parent?.slug || p.category?.slug || "dong-co-may-phat",
           categoryName: p.category?.parent?.name || p.category?.name || "Động Cơ & Máy Phát",
-          brand: p.brand?.name || "Chưa Phân Loại",
+          brand: p.brand?.name || "Không",
           qualityStandard: p.qualityStandard || "",
           price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString('vi-VN')} ₫` : "Liên hệ Báo Giá",
           inStock: p.inStock,
@@ -51,7 +51,7 @@ async function getProductDetail(id: string) {
           gallery: p.images?.map((img: { imageUrl: string }) => formatImageUrl(img.imageUrl)) || [formatImageUrl(null)],
           description: p.description || "Phụ tùng chính hãng kho Q.BA Đà Nẵng, nhập khẩu trực tiếp từ nhà máy sản xuất.",
           specifications: (p.specifications as Record<string, string>) || {
-            "Thương hiệu": p.brand?.name || "Chưa Phân Loại",
+            "Thương hiệu": p.brand?.name || "Không",
           },
           compatibility: (p.compatibility as string[]) || ["Xe Tải Nặng HOWO", "Shacman", "FAW"],
         };
@@ -148,7 +148,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
           name: p.name,
           partNumber: p.partNumber || '',
           internalCode: p.internalCode || '',
-          brand: p.brand?.name || 'Đối Tác Q.BA',
+          brand: (p.brand?.name && p.brand.name !== 'Chưa Phân Loại' && p.brand.name !== 'Chưa phân loại' && p.brand.name !== 'Không có thương hiệu' && p.brand.name !== 'Không') ? p.brand.name : '',
           categorySlug: p.category?.parent?.slug || p.category?.slug || "dong-co-may-phat",
           imageSrc: formatImageUrl(p.images?.[0]?.imageUrl),
           price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString('vi-VN')} ₫` : 'Liên Hệ Báo Giá',
@@ -360,9 +360,9 @@ export default async function ProductDetailPage({ params }: PageProps) {
               <span className="text-xs font-extrabold uppercase text-slate-500 block">
                 Mô Tả Sản Phẩm:
               </span>
-              <p className="text-slate-600 text-sm leading-relaxed">
+              <div className="text-slate-700 text-sm sm:text-base leading-relaxed whitespace-pre-line font-normal">
                 {product.description}
-              </p>
+              </div>
             </div>
 
             {/* Quotation Action Buttons */}
@@ -492,7 +492,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                       sizes="(max-width: 768px) 50vw, 25vw"
                       className="object-contain"
                     />
-                    {rel.brand && (
+                    {rel.brand && rel.brand.trim() !== '' && rel.brand !== 'Chưa Phân Loại' && rel.brand !== 'Chưa phân loại' && rel.brand !== 'Không có thương hiệu' && rel.brand !== 'Không' && rel.brand !== 'Đối Tác Q.BA' && (
                       <div className="absolute top-2 left-2 bg-slate-900/90 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded shadow-sm z-10">
                         {rel.brand}
                       </div>

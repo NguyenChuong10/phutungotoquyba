@@ -1,14 +1,18 @@
 import React from "react";
 import Image from "next/image";
 import { ShieldCheck, Truck, Package, Award, Phone, ArrowRight, MapPin } from "lucide-react";
+import { fetchApi } from "@/config/api";
+import { formatImageUrl } from "@/utils/imageHelper";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata = {
   title: "Giới Thiệu - Phụ Tùng Ô Tô Q.BA | 25 Năm Uy Tín Hàng Đầu",
   description: "Tìm hiểu về Phụ Tùng Ô Tô Q.BA - Đơn vị 25 năm kinh nghiệm phân phối phụ tùng xe ben, xe đầu kéo, xe tải Trung Quốc chuẩn OEM tại Đà Nẵng và miền Trung.",
 };
 
-const warehouseImages = [
+const defaultWarehouseImages = [
   {
     src: "/images/about/kho-hang-1.png",
     alt: "Kệ hàng phụ tùng quy chuẩn Q.BA",
@@ -47,9 +51,21 @@ const warehouseImages = [
   }
 ];
 
+export default async function AboutPage() {
+  // Fetch dynamic gallery data from backend settings
+  let warehouseImages = defaultWarehouseImages;
+  try {
+    const res = await fetchApi("/settings", { cache: "no-store" });
+    if (res.ok && res.data && res.data.aboutGalleryImages) {
+      const parsed = JSON.parse(res.data.aboutGalleryImages);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        warehouseImages = parsed;
+      }
+    }
+  } catch (err) {
+    console.error("Failed to load about gallery images:", err);
+  }
 
-
-export default function AboutPage() {
   return (
     <div>
 
@@ -130,6 +146,7 @@ export default function AboutPage() {
                     src="/images/about/mat-tien-cua-hang.jpg"
                     alt="Cửa Hàng Phụ Tùng Ô Tô Q.BA tại 43-45 Nguyễn Văn Tạo Đà Nẵng"
                     fill
+                    priority
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                   />
@@ -173,20 +190,26 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* Gallery Grid - Pure Clean Images */}
+          {/* Gallery Grid - Dynamic Images */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {warehouseImages.map((img, idx) => (
+            {warehouseImages.map((img: any, idx: number) => (
               <div
-                key={`wh-img-${idx}`}
+                key={img.id || `wh-img-${idx}`}
                 className="group relative aspect-[4/3] rounded-3xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-lg hover:shadow-2xl transition-all duration-500"
               >
                 <Image
-                  src={img.src}
-                  alt={img.alt}
+                  src={formatImageUrl(img.src)}
+                  alt={img.alt || img.title || "Hình ảnh kho hàng Q.BA"}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
+                
+                {/* Optional overlay for Title/Desc on hover */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
+                  <h4 className="text-white font-bold text-lg font-heading drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300">{img.title}</h4>
+                  <p className="text-gray-300 text-xs mt-1 drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75 line-clamp-2">{img.desc}</p>
+                </div>
               </div>
             ))}
           </div>

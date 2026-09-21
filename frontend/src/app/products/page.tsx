@@ -56,22 +56,15 @@ function ProductsContent() {
       try {
         const tree = await AdminApiService.getCategoriesTree();
         if (tree && tree.length > 0) {
-          const sortedTree = [...tree].sort((a: CategoryTreeItem, b: CategoryTreeItem) =>
-            a.name.localeCompare(b.name, "vi")
-          );
           const mapped: CategoryData[] = [
             { slug: "all", name: "Tất cả danh mục" },
-            ...sortedTree.map((main: CategoryTreeItem) => ({
+            ...tree.map((main: CategoryTreeItem) => ({
               slug: main.slug,
               name: main.name,
-              subCategories: [...(main.children || [])]
-                .sort((a: CategoryTreeItem, b: CategoryTreeItem) =>
-                  a.name.localeCompare(b.name, "vi")
-                )
-                .map((sub: CategoryTreeItem) => ({
-                  slug: sub.slug,
-                  name: sub.name,
-                })),
+              subCategories: (main.children || []).map((sub: CategoryTreeItem) => ({
+                slug: sub.slug,
+                name: sub.name,
+              })),
             })),
           ];
           setCategories(mapped);
@@ -93,7 +86,7 @@ function ProductsContent() {
             name: p.name,
             categorySlug: p.category?.parent?.slug || p.category?.slug || '',
             subCategorySlug: p.category?.slug || '',
-            brand: p.brand?.name || 'Chưa Phân Loại',
+            brand: (!p.brand?.name || p.brand?.name === 'Chưa Phân Loại' || p.brand?.name === 'Chưa phân loại' || p.brand?.name === 'Không có thương hiệu' || p.brand?.name === 'Không') ? '' : p.brand.name,
             qualityStandard: p.qualityStandard || '',
             price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString()} ₫` : 'Liên hệ Báo Giá',
             imageSrc: formatImageUrl(p.images?.[0]?.imageUrl || p.image || p.imageSrc),
@@ -113,10 +106,11 @@ function ProductsContent() {
       try {
         const res = await AdminApiService.getBrands();
         if (res.ok && res.data && res.data.length > 0) {
-          const brandNames = ["Tất cả thương hiệu", "Chưa Phân Loại", ...res.data.map((b: any) => b.name)];
+          const mappedNames = res.data.map((b: any) => (b.name === "Chưa Phân Loại" || b.name === "Chưa phân loại" ? "Không" : b.name));
+          const brandNames = Array.from(new Set(["Tất cả thương hiệu", "Không", ...mappedNames]));
           setBrands(brandNames);
         } else {
-          setBrands(["Tất cả thương hiệu", "Chưa Phân Loại"]);
+          setBrands(["Tất cả thương hiệu", "Không"]);
         }
       } catch (err) {
         console.error("Failed to load brands:", err);
@@ -175,8 +169,8 @@ function ProductsContent() {
       const matchBrand =
         selectedBrand === "Tất cả thương hiệu"
           ? true
-          : selectedBrand === "Chưa Phân Loại"
-          ? (!p.brand || p.brand === "" || p.brand === "Chưa Phân Loại" || p.brand === "Không có thương hiệu")
+          : selectedBrand === "Không"
+          ? (!p.brand || p.brand === "" || p.brand === "Không" || p.brand === "Chưa Phân Loại" || p.brand === "Không có thương hiệu")
           : p.brand === selectedBrand;
 
       const q = searchQuery.toLowerCase().trim();
@@ -184,7 +178,10 @@ function ProductsContent() {
         !q ||
         p.name.toLowerCase().includes(q) ||
         p.partNumber.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q);
+        (p.internalCode && p.internalCode.toLowerCase().includes(q)) ||
+        (p.internalName && p.internalName.toLowerCase().includes(q)) ||
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        (p.brand && p.brand.toLowerCase().includes(q));
 
       return matchCat && matchBrand && matchSearch;
     });
@@ -349,7 +346,7 @@ function ProductsContent() {
               <div className="p-3.5 md:p-4 rounded-md bg-white border border-slate-200/90 shadow-sm space-y-2">
                 <h3 className="text-xs font-black font-heading text-slate-900 uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-100">
                   <Tag size={15} className="text-brand" />
-                  THƯƠNG HIỆU NHÀ MÁY
+                  THƯƠNG HIỆU
                 </h3>
 
                 <div className="space-y-1">
@@ -481,14 +478,8 @@ function ProductsContent() {
                           />
 
                           {/* Brand Badge */}
-                          {p.brand && (
-                            <div
-                              className={`absolute top-2 right-2 font-extrabold text-[9px] uppercase px-2 py-0.5 rounded shadow-sm z-10 ${
-                                p.brand === 'Chưa Phân Loại' || p.brand === 'Không có thương hiệu'
-                                  ? 'bg-slate-100 text-slate-600 border border-slate-200'
-                                  : 'bg-slate-900/90 text-white'
-                              }`}
-                            >
+                          {p.brand && p.brand.trim() !== '' && p.brand !== 'Chưa Phân Loại' && p.brand !== 'Chưa phân loại' && p.brand !== 'Không có thương hiệu' && p.brand !== 'Không' && (
+                            <div className="absolute top-2 right-2 font-extrabold text-[9px] uppercase px-2 py-0.5 rounded shadow-sm z-10 bg-slate-900/90 text-white">
                               {p.brand}
                             </div>
                           )}
