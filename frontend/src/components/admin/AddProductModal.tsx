@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import ImagePreviewModal from '@/components/ui/ImagePreviewModal';
-import { Sparkles, FileText, ImageIcon, Upload, Loader2, Trash2, Star, ZoomIn, ChevronLeft, ChevronRight, GripVertical, Search, ChevronDown, Check } from 'lucide-react';
+import { Sparkles, FileText, ImageIcon, Upload, Loader2, Trash2, Star, ZoomIn, ChevronLeft, ChevronRight, GripVertical, Search, ChevronDown, Check, FolderOpen, X } from 'lucide-react';
 import { AdminApiService } from '@/services/adminApiService';
 import { formatImageUrl } from '@/utils/imageHelper';
 
@@ -123,17 +123,20 @@ export default function AddProductModal({
   const [description, setDescription] = useState(editingProduct?.description || '');
 
   // Multi-Image Gallery State
+  // Multi-Image Gallery State
   const initialImages: ProductImageItem[] = (() => {
     const rawImgs = editingProduct?.rawProduct?.images || (editingProduct as any)?.images;
     if (Array.isArray(rawImgs) && rawImgs.length > 0) {
-      const mapped = rawImgs.map((img: any, idx: number) => ({
+      const items: ProductImageItem[] = rawImgs.map((img: any, idx: number) => ({
         imageUrl: typeof img === 'string' ? img : img.imageUrl,
         isPrimary: Boolean(typeof img === 'string' ? idx === 0 : (img.isPrimary ?? idx === 0)),
       }));
-      if (!mapped.some((m) => m.isPrimary) && mapped.length > 0) {
-        mapped[0].isPrimary = true;
+      const primaryIdx = items.findIndex((img) => img.isPrimary);
+      if (primaryIdx > 0) {
+        const [pItem] = items.splice(primaryIdx, 1);
+        items.unshift(pItem);
       }
-      return mapped;
+      return items.map((img, idx) => ({ ...img, isPrimary: idx === 0 }));
     }
     if (editingProduct?.image) {
       return [{ imageUrl: editingProduct.image, isPrimary: true }];
@@ -160,14 +163,22 @@ export default function AddProductModal({
 
         if (list.length > 0) {
           setBrandsList(list);
+
+          const sinotrukBrand = list.find((b: any) =>
+            b.name.toLowerCase().includes('sinotruk') ||
+            b.name.toLowerCase().includes('sinotruck') ||
+            b.name.toLowerCase().includes('howo')
+          );
+          const defaultBrandId = sinotrukBrand ? sinotrukBrand.id : list[0].id;
+
           if (editingProduct?.brandId) {
             setSelectedBrandId(editingProduct.brandId);
           } else if (editingProduct?.brand) {
             const matched = list.find((b: any) => b.name.toLowerCase() === editingProduct.brand.toLowerCase());
             if (matched) setSelectedBrandId(matched.id);
-            else setSelectedBrandId(0);
+            else setSelectedBrandId(defaultBrandId);
           } else {
-            setSelectedBrandId(0);
+            setSelectedBrandId(defaultBrandId);
           }
         }
 
@@ -204,53 +215,53 @@ export default function AddProductModal({
       try {
         const res = await AdminApiService.uploadMultipleProductImages(files);
         if (res.ok && res.data && res.data.length > 0) {
-          const newImages: ProductImageItem[] = res.data.map((item: any, idx: number) => ({
+          const newImages: ProductImageItem[] = res.data.map((item: any) => ({
             imageUrl: item.imageUrl,
-            isPrimary: imageList.length === 0 && idx === 0,
+            isPrimary: false,
           }));
           setImageList((prev) => {
-            const combined = [...prev, ...newImages].slice(0, 5); // Limit max 5 images
-            if (!combined.some((img) => img.isPrimary) && combined.length > 0) {
-              combined[0].isPrimary = true;
-            }
-            return combined;
+            const combined = [...prev, ...newImages];
+            return combined.map((img, idx) => ({
+              ...img,
+              isPrimary: idx === 0,
+            }));
           });
         } else {
           const rawMsg = res.message || 'Upload ảnh thất bại. Vui lòng thử lại.';
           const cleanMsg = (rawMsg.includes('is not valid JSON') || rawMsg.includes('Unexpected token'))
-            ? 'Dung lượng các tệp ảnh quá lớn (vượt quá 10MB) hoặc không đúng định dạng. Vui lòng chọn các tệp ảnh nhẹ hơn!'
+            ? 'Cần đăng nhập tài khoản Admin để upload ảnh sản phẩm.'
             : rawMsg;
           setErrorMsg(cleanMsg);
         }
       } catch (err: any) {
-        const rawMsg = err?.message || '';
-        const cleanMsg = (rawMsg.includes('is not valid JSON') || rawMsg.includes('Unexpected token'))
-          ? 'Dung lượng các tệp ảnh quá lớn (vượt quá 10MB) hoặc không đúng định dạng. Vui lòng chọn các tệp ảnh nhẹ hơn!'
-          : 'Không thể tải ảnh lên máy chủ Express backend.';
-        setErrorMsg(cleanMsg);
+        setErrorMsg('Lỗi kết nối khi upload ảnh. Vui lòng kiểm tra lại backend.');
       } finally {
         setUploading(false);
       }
     }
   };
 
-  const handleRemoveImage = (index: number) => {
+  const handleRemoveImage = (indexToRemove: number) => {
     setImageList((prev) => {
-      const next = prev.filter((_, idx) => idx !== index);
-      if (next.length > 0 && !next.some((img) => img.isPrimary)) {
-        next[0].isPrimary = true;
-      }
-      return next;
+      const next = prev.filter((_, idx) => idx !== indexToRemove);
+      return next.map((img, idx) => ({
+        ...img,
+        isPrimary: idx === 0,
+      }));
     });
   };
 
-  const handleSetPrimaryImage = (index: number) => {
-    setImageList((prev) =>
-      prev.map((img, idx) => ({
+  const handleSetPrimaryImage = (indexToSet: number) => {
+    setImageList((prev) => {
+      if (indexToSet < 0 || indexToSet >= prev.length) return prev;
+      const targetItem = prev[indexToSet];
+      const remaining = prev.filter((_, idx) => idx !== indexToSet);
+      const updated = [targetItem, ...remaining];
+      return updated.map((img, idx) => ({
         ...img,
-        isPrimary: idx === index,
-      }))
-    );
+        isPrimary: idx === 0,
+      }));
+    });
   };
 
   // Reorder / Drag & Drop Image Handlers
@@ -266,7 +277,10 @@ export default function AddProductModal({
       const temp = next[fromIndex];
       next[fromIndex] = next[toIndex];
       next[toIndex] = temp;
-      return next;
+      return next.map((img, idx) => ({
+        ...img,
+        isPrimary: idx === 0,
+      }));
     });
   };
 
@@ -284,7 +298,10 @@ export default function AddProductModal({
       const next = [...prev];
       const [draggedItem] = next.splice(draggedIndex, 1);
       next.splice(index, 0, draggedItem);
-      return next;
+      return next.map((img, idx) => ({
+        ...img,
+        isPrimary: idx === 0,
+      }));
     });
     setDraggedIndex(null);
   };
@@ -316,13 +333,21 @@ export default function AddProductModal({
         }))
       : [{ imageUrl: '/images/logo/logonen.png', isPrimary: true, sortOrder: 0 }];
 
+    const sinotrukBrand = brandsList.find((b: any) =>
+      b.name.toLowerCase().includes('sinotruk') ||
+      b.name.toLowerCase().includes('sinotruck') ||
+      b.name.toLowerCase().includes('howo')
+    );
+    const fallbackBrandId = sinotrukBrand ? sinotrukBrand.id : (brandsList[0]?.id || null);
+    const finalBrandId = Number(selectedBrandId) > 0 ? Number(selectedBrandId) : fallbackBrandId;
+
     const payload = {
       name: publicName.trim(),
       partNumber: partNoVal,
       internalCode: internalCode.trim(),
       internalName: internalName.trim(),
       categoryId: Number(selectedCategoryId) || activeSubModal.id,
-      brandId: Number(selectedBrandId) > 0 ? Number(selectedBrandId) : null,
+      brandId: finalBrandId,
       price: 0,
       costPrice: 0,
       stockQuantity: Number(stock) || 0,
@@ -359,8 +384,15 @@ export default function AddProductModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl max-w-xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-200">
+    <>
+      <div
+        className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200 cursor-pointer"
+        onClick={onClose}
+      >
+      <div
+        className="bg-white rounded-lg max-w-xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-200 cursor-default"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
@@ -373,10 +405,12 @@ export default function AddProductModal({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center cursor-pointer flex-shrink-0"
+            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer flex-shrink-0 transition-colors"
+            title="Đóng"
           >
-            ✕
+            <X className="w-4 h-4 text-slate-500" />
           </button>
         </div>
 
@@ -444,7 +478,7 @@ export default function AddProductModal({
                         <div key={`cat-grp-${main.id}`} className="py-1">
                           {/* Main category header */}
                           <div className="px-3 py-1.5 font-black text-slate-800 bg-slate-50 text-[11px] uppercase tracking-wider flex items-center gap-1.5 sticky top-0 border-b border-slate-100">
-                            <span className="text-red-600">📂</span>
+                            <FolderOpen className="w-4 h-4 text-red-600 shrink-0" />
                             <span>{main.name}</span>
                           </div>
 
@@ -607,147 +641,178 @@ export default function AddProductModal({
             />
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-            <div className="flex items-center justify-between flex-wrap gap-1">
-              <label className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+          <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-200/80">
+              <div className="flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-red-600" />
-                <span>Bộ Ảnh Phụ Tùng Chuẩn SEO ({imageList.length}/5 Ảnh)</span>
-              </label>
-              <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1">
-                <Star className="w-3 h-3 text-amber-500 fill-amber-500" /> Kéo thả / Bấm nút ‹ › để đổi vị trí ảnh • Icon Sao để chọn Ảnh Chính
+                <span className="font-extrabold text-slate-900 text-xs tracking-tight">
+                  Bộ Ảnh Phụ Tùng Chuẩn SEO
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-bold text-[10px]">
+                  {imageList.length} Ảnh
+                </span>
+              </div>
+              <span className="text-[11px] text-slate-500 font-medium">
+                Kéo thả để đổi vị trí • ⭐ Ảnh chính hiển thị trên Web
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Upload Button */}
-              {imageList.length < 5 && (
-                <label className="h-24 w-24 rounded-xl bg-white border-2 border-dashed border-red-400 hover:border-red-600 text-red-600 font-bold text-[11px] flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors shadow-2xs">
-                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                  <span>{uploading ? 'Đang Upload...' : '+ Chọn Nhiều Ảnh'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                </label>
-              )}
-
-              {/* Uploaded Images Thumbnails Grid */}
-              {imageList.map((img, idx) => (
-                <div
-                  key={`img-thumb-${idx}-${img.imageUrl}`}
-                  draggable
-                  onDragStart={() => handleDragStart(idx)}
-                  onDragOver={handleDragOver}
-                  onDrop={() => handleDrop(idx)}
-                  onDragEnd={() => setDraggedIndex(null)}
-                  className={`relative h-24 w-24 rounded-xl bg-white border-2 overflow-hidden flex-shrink-0 shadow-2xs transition-all group ${
-                    img.isPrimary ? 'border-red-600 ring-2 ring-red-500/20' : 'border-slate-300'
-                  } ${draggedIndex === idx ? 'opacity-40 scale-95 border-dashed border-red-500' : ''}`}
-                >
-                  <Image
-                    src={formatImageUrl(img.imageUrl)}
-                    alt={`Preview ${idx + 1}`}
-                    fill
-                    unoptimized
-                    sizes="96px"
-                    className="object-cover"
-                  />
-
-                  {/* Primary Star Badge (Top-Left) */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSetPrimaryImage(idx);
-                    }}
-                    title={img.isPrimary ? 'Ảnh chính hiển thị đầu tiên' : 'Bấm để đặt làm Ảnh Chính'}
-                    className={`absolute top-1 left-1 p-1 rounded-md text-[9px] font-bold flex items-center gap-0.5 shadow-md transition-all cursor-pointer z-10 ${
-                      img.isPrimary
-                        ? 'bg-red-600 text-white ring-1 ring-amber-400'
-                        : 'bg-slate-900/80 text-slate-200 hover:bg-red-600 hover:text-white opacity-90 group-hover:opacity-100 hover:scale-105'
-                    }`}
-                  >
-                    <Star className={`w-3 h-3 ${img.isPrimary ? 'fill-amber-300 text-amber-300' : ''}`} />
-                  </button>
-
-                  {/* Sequence Order Badge (#1, #2...) (Top-Center) */}
-                  <div className="absolute top-1 left-1/2 -translate-x-1/2 bg-slate-900/80 text-white font-mono text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10 pointer-events-none">
-                    #{idx + 1}
-                  </div>
-
-                  {/* Delete Button (Top-Right) */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveImage(idx);
-                    }}
-                    title="Xóa ảnh này"
-                    className="absolute top-1 right-1 p-1 rounded-md bg-slate-900/80 hover:bg-red-600 text-white transition-all opacity-90 group-hover:opacity-100 hover:scale-105 cursor-pointer z-10"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-
-                  {/* Zoom Preview Button */}
-                  <button
-                    type="button"
-                    onClick={() => setPreviewImage({ url: formatImageUrl(img.imageUrl), title: `Ảnh sản phẩm #${idx + 1}` })}
-                    title="Bấm vào để phóng to xem ảnh (Hoặc kéo thả để đổi vị trí)"
-                    className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-grab active:cursor-grabbing"
-                  >
-                    <ZoomIn className="w-5 h-5 text-white drop-shadow-md" />
-                  </button>
-
-                  {/* Reorder Controls Footer Bar */}
-                  <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-xs px-1 py-0.5 flex items-center justify-between z-10">
-                    {idx > 0 ? (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMoveImage(idx, 'left');
-                        }}
-                        title="Đẩy ảnh sang trái (Lên trước)"
-                        className="p-0.5 rounded text-white hover:bg-red-600 transition-colors cursor-pointer"
-                      >
-                        <ChevronLeft className="w-3.5 h-3.5" />
-                      </button>
-                    ) : (
-                      <span className="w-3.5" />
-                    )}
-
-                    {img.isPrimary ? (
-                      <span className="text-[8px] font-black text-amber-300 uppercase tracking-tight truncate">Ảnh Chính</span>
-                    ) : (
-                      <span className="text-[8px] font-bold text-slate-300 truncate">Vị trí #{idx + 1}</span>
-                    )}
-
-                    {idx < imageList.length - 1 ? (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMoveImage(idx, 'right');
-                        }}
-                        title="Đẩy ảnh sang phải (Xuống sau)"
-                        className="p-0.5 rounded text-white hover:bg-red-600 transition-colors cursor-pointer"
-                      >
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                    ) : (
-                      <span className="w-3.5" />
-                    )}
-                  </div>
+            <div className="space-y-3">
+              {/* Full-width Upload Banner Dropzone */}
+              <label className="w-full py-3 px-4 rounded-md bg-white border-2 border-dashed border-red-300 hover:border-red-600 hover:bg-red-50/40 transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-2xs group">
+                {uploading ? (
+                  <Loader2 className="w-5 h-5 text-red-600 animate-spin" />
+                ) : (
+                  <Upload className="w-5 h-5 text-red-600 group-hover:scale-110 transition-transform" />
+                )}
+                <div className="text-left">
+                  <span className="text-xs font-bold text-slate-800 block">
+                    {uploading ? 'Đang tải tệp ảnh lên máy chủ Express...' : '+ Tải Lên / Thêm Ảnh Phụ Tùng Mới'}
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-medium block">
+                    Hỗ trợ tải không giới hạn số lượng ảnh PNG, JPG, WEBP
+                  </span>
                 </div>
-              ))}
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+
+              {/* Uploaded Images Clean Grid */}
+              {imageList.length > 0 && (
+                <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2.5">
+                  {imageList.map((img, idx) => (
+                    <div
+                      key={`img-thumb-${idx}-${img.imageUrl}`}
+                      draggable
+                      onDragStart={() => handleDragStart(idx)}
+                      onDragOver={handleDragOver}
+                      onDrop={() => handleDrop(idx)}
+                      onDragEnd={() => setDraggedIndex(null)}
+                      className={`relative w-full aspect-square min-h-[72px] rounded-md bg-white border-2 overflow-hidden shadow-2xs transition-all group select-none ${
+                        img.isPrimary
+                          ? 'border-red-600 ring-2 ring-red-500/20'
+                          : 'border-slate-200 hover:border-slate-400'
+                      } ${draggedIndex === idx ? 'opacity-30 scale-95 border-dashed border-red-600' : ''}`}
+                    >
+                      <Image
+                        src={formatImageUrl(img.imageUrl)}
+                        alt={`Ảnh phụ tùng ${idx + 1}`}
+                        fill
+                        unoptimized
+                        sizes="120px"
+                        className="object-cover"
+                      />
+
+                      {/* Primary Badge Tag (Non-intrusive) */}
+                      {img.isPrimary && (
+                        <div className="absolute top-1 left-1 bg-red-600 text-white font-extrabold text-[9px] px-1.5 py-0.5 rounded shadow-sm z-10 flex items-center gap-1">
+                          <Star className="w-2.5 h-2.5 fill-amber-300 text-amber-300" />
+                          <span>Chính</span>
+                        </div>
+                      )}
+
+                      {/* Sequence Order Tag (if not primary) */}
+                      {!img.isPrimary && (
+                        <div className="absolute top-1 left-1 bg-slate-900/70 text-white font-mono text-[9px] font-bold px-1.5 py-0.5 rounded z-10">
+                          #{idx + 1}
+                        </div>
+                      )}
+
+                      {/* Sleek Hover Action Controls Overlay */}
+                      <div className="absolute inset-0 bg-slate-950/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-1.5 z-20">
+                        <div className="flex items-center justify-between">
+                          {/* Set Primary Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSetPrimaryImage(idx);
+                            }}
+                            title={img.isPrimary ? 'Đã là Ảnh Chính' : 'Bấm để đặt làm Ảnh Chính'}
+                            className={`p-1 rounded transition-transform cursor-pointer ${
+                              img.isPrimary
+                                ? 'bg-amber-500 text-white'
+                                : 'bg-white/20 text-white hover:bg-amber-500 hover:scale-110'
+                            }`}
+                          >
+                            <Star className={`w-3.5 h-3.5 ${img.isPrimary ? 'fill-white' : ''}`} />
+                          </button>
+
+                          {/* Delete Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveImage(idx);
+                            }}
+                            title="Xóa ảnh này"
+                            className="p-1 rounded bg-white/20 text-white hover:bg-red-600 hover:scale-110 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-1">
+                          {/* Shift Left */}
+                          {idx > 0 ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMoveImage(idx, 'left');
+                              }}
+                              title="Di chuyển sang trái"
+                              className="p-1 rounded bg-white/20 text-white hover:bg-red-600 cursor-pointer"
+                            >
+                              <ChevronLeft className="w-3.5 h-3.5" />
+                            </button>
+                          ) : <span className="w-3.5" />}
+
+                          {/* Zoom Preview */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPreviewImage({
+                                url: formatImageUrl(img.imageUrl),
+                                title: `Ảnh sản phẩm #${idx + 1}${img.isPrimary ? ' (Ảnh Chính)' : ''}`,
+                              });
+                            }}
+                            title="Bấm để phóng to xem ảnh"
+                            className="p-1 rounded bg-white/20 text-white hover:bg-slate-900 cursor-pointer"
+                          >
+                            <ZoomIn className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* Shift Right */}
+                          {idx < imageList.length - 1 ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMoveImage(idx, 'right');
+                              }}
+                              title="Di chuyển sang phải"
+                              className="p-1 rounded bg-white/20 text-white hover:bg-red-600 cursor-pointer"
+                            >
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                          ) : <span className="w-3.5" />}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-4">
+          <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-4">
           <button
             type="button"
             onClick={onClose}
@@ -759,21 +824,23 @@ export default function AddProductModal({
             type="button"
             disabled={saving}
             onClick={handleSaveProduct}
-            className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-900/30 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+            className="px-5 py-2.5 rounded-md bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-900/30 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
           >
             {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             <span>{saving ? 'Đang lưu...' : 'Lưu Phụ Tùng & Ảnh SEO'}</span>
           </button>
         </div>
       </div>
-
-      {/* Fullscreen Image Zoom Lightbox Modal */}
-      <ImagePreviewModal
-        isOpen={!!previewImage}
-        imageUrl={previewImage?.url || null}
-        title={previewImage?.title}
-        onClose={() => setPreviewImage(null)}
-      />
     </div>
-  );
+  </div>
+
+  {/* Fullscreen Image Zoom Lightbox Modal */}
+  <ImagePreviewModal
+    isOpen={!!previewImage}
+    imageUrl={previewImage?.url || null}
+    title={previewImage?.title}
+    onClose={() => setPreviewImage(null)}
+  />
+</>
+);
 }

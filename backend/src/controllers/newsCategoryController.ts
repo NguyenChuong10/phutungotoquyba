@@ -18,6 +18,22 @@ export class NewsCategoryController {
   }
 
   /**
+   * PUT /api/v1/admin/news/categories/reorder - Reorder News Categories
+   */
+  static async reorderCategories(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { categoryIds } = req.body;
+      const result = await NewsCategoryService.reorderCategories(categoryIds);
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * POST /api/v1/admin/news/categories - Create News Category
    */
   static async createCategory(req: Request, res: Response, next: NextFunction) {

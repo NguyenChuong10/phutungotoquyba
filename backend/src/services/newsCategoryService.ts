@@ -27,21 +27,40 @@ export class NewsCategoryService {
    */
   static async getAllCategories() {
     let categories = await prisma.newsCategory.findMany({
-      orderBy: { id: "asc" },
+      orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
     });
 
     if (categories.length === 0) {
       await prisma.newsCategory.createMany({
-        data: DEFAULT_NEWS_CATEGORIES,
+        data: DEFAULT_NEWS_CATEGORIES.map((cat, idx) => ({ ...cat, sortOrder: idx })),
         skipDuplicates: true,
       });
 
       categories = await prisma.newsCategory.findMany({
-        orderBy: { id: "asc" },
+        orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
       });
     }
 
     return categories;
+  }
+
+  /**
+   * Reorder News Categories
+   */
+  static async reorderCategories(categoryIds: number[]) {
+    if (!Array.isArray(categoryIds) || categoryIds.length === 0) {
+      throw new AppError("Danh sách ID danh mục sắp xếp không hợp lệ", 400);
+    }
+
+    const updatePromises = categoryIds.map((id, index) =>
+      prisma.newsCategory.update({
+        where: { id: Number(id) },
+        data: { sortOrder: index },
+      })
+    );
+
+    await Promise.all(updatePromises);
+    return { success: true, message: "Đã cập nhật thứ tự danh mục tin tức thành công" };
   }
 
   /**
@@ -60,10 +79,18 @@ export class NewsCategoryService {
       throw new AppError("Danh mục này đã tồn tại trong hệ thống", 400);
     }
 
+    // Get max sortOrder to append to bottom
+    const maxItem = await prisma.newsCategory.findFirst({
+      orderBy: { sortOrder: "desc" },
+      select: { sortOrder: true },
+    });
+    const nextSortOrder = (maxItem?.sortOrder ?? 0) + 1;
+
     const newCategory = await prisma.newsCategory.create({
       data: {
         name: cleanName,
         slug,
+        sortOrder: nextSortOrder,
       },
     });
 

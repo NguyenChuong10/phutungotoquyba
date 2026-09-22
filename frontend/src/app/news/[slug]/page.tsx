@@ -46,7 +46,7 @@ async function getArticleDetail(slug: string) {
       if (data.success && data.data) {
         const art = data.data;
 
-        // Block access to hidden/unpublished articles (Return null to trigger Next.js 404 Not Found)
+        // Block access to hidden/unpublished articles on public website
         if (art.isPublished === false) {
           return null;
         }

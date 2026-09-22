@@ -22,7 +22,28 @@ import {
   ChevronLeft,
   ChevronUp,
   ChevronDown,
+  GripVertical,
+  X,
 } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { AdminApiService } from '@/services/adminApiService';
 import AddCategoryModal from '@/components/admin/AddCategoryModal';
 import SubCategoryProductsModal from '@/components/admin/SubCategoryProductsModal';
@@ -73,6 +94,226 @@ interface BrandItem {
   logo: string;
 }
 
+function SortableMainCategoryItem({
+  mainCat,
+  fullIndex,
+  isSelected,
+  totalSub,
+  totalProds,
+  onSelect,
+  onEdit,
+  onDelete,
+}: {
+  mainCat: MainCategory;
+  fullIndex: number;
+  isSelected: boolean;
+  totalSub: number;
+  totalProds: number;
+  onSelect: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: mainCat.id });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    transition: isDragging ? undefined : transition || 'transform 180ms ease',
+    zIndex: isDragging ? 50 : 'auto',
+  };
+
+  if (isDragging) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="px-3 py-2 bg-red-50/80 border-y-2 border-dashed border-red-500 h-[50px] flex items-center justify-between opacity-80"
+      >
+        <span className="text-xs font-bold text-red-600 pl-2">
+          Vị trí #{fullIndex + 1} (thả tại đây)
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      onClick={onSelect}
+      className={`px-3 py-2.5 transition-colors cursor-pointer flex items-center justify-between border-l-4 select-none border-b border-slate-100 ${isSelected
+        ? 'border-l-red-600 bg-red-50/60 font-bold'
+        : 'border-l-transparent hover:bg-slate-50'
+        }`}
+    >
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        <div
+          {...attributes}
+          {...listeners}
+          className="p-1 cursor-grab active:cursor-grabbing text-slate-400 hover:text-red-600 transition-colors shrink-0 touch-none"
+          title="Kéo thả để sắp xếp vị trí danh mục chính"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical className="w-4 h-4" />
+        </div>
+
+        <span className="text-[10px] font-bold text-slate-400 font-mono shrink-0">
+          #{fullIndex + 1}
+        </span>
+
+        <div className="min-w-0 pl-1 flex-1">
+          <h4
+            className={`font-bold text-xs sm:text-sm truncate ${isSelected ? 'text-red-600' : 'text-slate-900'
+              }`}
+          >
+            {mainCat.name}
+          </h4>
+          <p className="text-[11px] text-slate-400 font-mono truncate">/{mainCat.slug}</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 flex-shrink-0 pl-2">
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 hidden sm:inline-block">
+          {totalSub} mục phụ
+        </span>
+
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={onEdit}
+            className="p-1.5 rounded-md bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
+            title="Sửa"
+          >
+            <Edit className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onDelete}
+            className="p-1.5 rounded-md bg-slate-100 text-slate-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+            title="Xoá"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <ChevronRight
+          className={`w-4 h-4 transition-transform ${isSelected ? 'text-red-600 translate-x-0.5' : 'text-slate-300'
+            }`}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SortableSubCategoryRow({
+  sub,
+  fullIndex,
+  onViewProducts,
+  onEdit,
+  onDelete,
+}: {
+  sub: SubCategory;
+  fullIndex: number;
+  onViewProducts: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: sub.id });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    transition: isDragging ? undefined : transition || 'transform 180ms ease',
+    zIndex: isDragging ? 50 : 'auto',
+  };
+
+  if (isDragging) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="px-4 py-2 bg-red-50/80 border-y-2 border-dashed border-red-500 h-[48px] flex items-center justify-between opacity-80"
+      >
+        <span className="text-xs font-bold text-red-600 pl-2">
+          Vị trí phụ #{fullIndex + 1} (thả tại đây)
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="px-4 py-2.5 bg-white hover:bg-slate-50 transition-colors select-none border-b border-slate-200/80 flex items-center justify-between gap-3 text-xs"
+    >
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        <div
+          {...attributes}
+          {...listeners}
+          className="p-1 cursor-grab active:cursor-grabbing text-slate-400 hover:text-red-600 transition-colors shrink-0 touch-none"
+          title="Kéo thả để sắp xếp vị trí"
+        >
+          <GripVertical className="w-4 h-4" />
+        </div>
+
+        <span className="text-[10px] font-bold text-slate-400 font-mono min-w-[20px] shrink-0">
+          #{fullIndex + 1}
+        </span>
+
+        <CornerDownRight className="w-3.5 h-3.5 text-red-500 shrink-0" />
+
+        <div className="min-w-0 flex-1">
+          <span className="font-bold text-slate-900 text-xs sm:text-sm block truncate">
+            {sub.name}
+          </span>
+        </div>
+      </div>
+
+      <div className="hidden sm:block font-mono text-slate-500 font-medium w-48 truncate">
+        /{sub.slug}
+      </div>
+
+      <div className="flex items-center gap-2 shrink-0">
+        <button
+          onClick={onViewProducts}
+          className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 font-bold text-xs transition-colors flex items-center gap-1.5 border border-slate-200/80 cursor-pointer"
+          title="Xem danh sách sản phẩm thuộc danh mục này"
+        >
+          <Eye className="w-3.5 h-3.5 text-red-600" />
+          <span>{sub.productCount} SP</span>
+        </button>
+
+        <button
+          onClick={onEdit}
+          className="p-1.5 rounded-md bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
+          title="Sửa"
+        >
+          <Edit className="w-3.5 h-3.5" />
+        </button>
+
+        <button
+          onClick={onDelete}
+          className="p-1.5 rounded-md bg-slate-100 text-slate-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+          title="Xoá"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminCategoriesPage() {
   const [activeTab, setActiveTab] = useState<'CATEGORIES' | 'BRANDS'>('CATEGORIES');
   const [searchMainQuery, setSearchMainQuery] = useState('');
@@ -86,7 +327,7 @@ export default function AdminCategoriesPage() {
   const mainCategoriesPerPage = 7;
 
   const [subCategoryPage, setSubCategoryPage] = useState<number>(1);
-  const subCategoriesPerPage = 7;
+  const subCategoriesPerPage = 9;
 
   // Real-Time Database Categories Tree State
   const [categoriesListState, setCategoriesListState] = useState<MainCategory[]>([]);
@@ -137,6 +378,110 @@ export default function AdminCategoriesPage() {
 
   const [toastState, setToastState] = useState<ToastMessage | null>(null);
 
+  // DnD Active Drag Item Tracking
+  const [activeMainId, setActiveMainId] = useState<number | null>(null);
+  const [activeSubId, setActiveSubId] = useState<number | null>(null);
+
+  // DnD Sensors Configuration
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleMainDragStart = (event: DragStartEvent) => {
+    setActiveMainId(event.active.id as number);
+  };
+
+  const handleSubDragStart = (event: DragStartEvent) => {
+    setActiveSubId(event.active.id as number);
+  };
+
+  const handleMainDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveMainId(null);
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = categoriesListState.findIndex((c) => c.id === active.id);
+    const newIndex = categoriesListState.findIndex((c) => c.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newList = arrayMove(categoriesListState, oldIndex, newIndex);
+    setCategoriesListState(newList);
+
+    const payload = newList.map((item, idx) => ({
+      id: item.id,
+      sortOrder: idx + 1,
+    }));
+
+    try {
+      await AdminApiService.reorderCategories(payload);
+      setToastState({
+        id: String(Date.now()),
+        type: 'success',
+        title: 'Cập Nhật Thứ Tự',
+        message: `Đã di chuyển danh mục chính "${categoriesListState[oldIndex]?.name}"!`,
+      });
+    } catch {
+      setToastState({
+        id: String(Date.now()),
+        type: 'error',
+        title: 'Lỗi',
+        message: 'Không thể cập nhật thứ tự danh mục.',
+      });
+    }
+  };
+
+  const handleSubDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveSubId(null);
+    if (!activeMainCategory || !activeMainCategory.subCategories || !over || active.id === over.id) return;
+
+    const subList = activeMainCategory.subCategories;
+    const oldIndex = subList.findIndex((s) => s.id === active.id);
+    const newIndex = subList.findIndex((s) => s.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const updatedSubList = arrayMove(subList, oldIndex, newIndex);
+
+    setCategoriesListState((prev) =>
+      prev.map((main) =>
+        main.id === activeMainCategory.id
+          ? { ...main, subCategories: updatedSubList }
+          : main
+      )
+    );
+
+    const payload = updatedSubList.map((item, idx) => ({
+      id: item.id,
+      sortOrder: idx + 1,
+    }));
+
+    try {
+      await AdminApiService.reorderCategories(payload);
+      setToastState({
+        id: String(Date.now()),
+        type: 'success',
+        title: 'Cập Nhật Thứ Tự',
+        message: `Đã di chuyển danh mục phụ "${subList[oldIndex]?.name}"!`,
+      });
+    } catch {
+      setToastState({
+        id: String(Date.now()),
+        type: 'error',
+        title: 'Lỗi',
+        message: 'Không thể cập nhật thứ tự danh mục phụ.',
+      });
+    }
+  };
+
   // Load Real-Time Categories from Backend API (Sorted by custom sortOrder from Database)
   const fetchRealtimeCategories = useCallback(async () => {
     try {
@@ -162,17 +507,20 @@ export default function AdminCategoriesPage() {
     }
   }, []);
 
-  // Reorder Main Categories Custom Order Handler
-  const handleMoveMainCategory = async (mainId: number, direction: 'UP' | 'DOWN') => {
-    const fullIndex = categoriesListState.findIndex((c) => c.id === mainId);
-    if (fullIndex === -1) return;
-
-    const targetIndex = direction === 'UP' ? fullIndex - 1 : fullIndex + 1;
-    if (targetIndex < 0 || targetIndex >= categoriesListState.length) return;
+  // Reorder Main Categories Drag & Drop / Step Handler
+  const handleReorderMainCategory = async (fromIndex: number, toIndex: number) => {
+    if (
+      fromIndex === toIndex ||
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= categoriesListState.length ||
+      toIndex >= categoriesListState.length
+    )
+      return;
 
     const newList = [...categoriesListState];
-    const [moved] = newList.splice(fullIndex, 1);
-    newList.splice(targetIndex, 0, moved);
+    const [moved] = newList.splice(fromIndex, 1);
+    newList.splice(toIndex, 0, moved);
 
     setCategoriesListState(newList);
 
@@ -199,19 +547,29 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  // Reorder Sub Categories Custom Order Handler
-  const handleMoveSubCategory = async (subId: number, direction: 'UP' | 'DOWN') => {
+  const handleMoveMainCategory = async (mainId: number, direction: 'UP' | 'DOWN') => {
+    const fullIndex = categoriesListState.findIndex((c) => c.id === mainId);
+    if (fullIndex === -1) return;
+    const targetIndex = direction === 'UP' ? fullIndex - 1 : fullIndex + 1;
+    handleReorderMainCategory(fullIndex, targetIndex);
+  };
+
+  // Reorder Sub Categories Drag & Drop / Step Handler
+  const handleReorderSubCategory = async (fromIndex: number, toIndex: number) => {
     if (!activeMainCategory || !activeMainCategory.subCategories) return;
 
     const subList = [...activeMainCategory.subCategories];
-    const fullIndex = subList.findIndex((s) => s.id === subId);
-    if (fullIndex === -1) return;
+    if (
+      fromIndex === toIndex ||
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= subList.length ||
+      toIndex >= subList.length
+    )
+      return;
 
-    const targetIndex = direction === 'UP' ? fullIndex - 1 : fullIndex + 1;
-    if (targetIndex < 0 || targetIndex >= subList.length) return;
-
-    const [moved] = subList.splice(fullIndex, 1);
-    subList.splice(targetIndex, 0, moved);
+    const [moved] = subList.splice(fromIndex, 1);
+    subList.splice(toIndex, 0, moved);
 
     setCategoriesListState((prev) =>
       prev.map((main) =>
@@ -242,6 +600,15 @@ export default function AdminCategoriesPage() {
         message: 'Không thể cập nhật thứ tự danh mục phụ.',
       });
     }
+  };
+
+  const handleMoveSubCategory = async (subId: number, direction: 'UP' | 'DOWN') => {
+    if (!activeMainCategory || !activeMainCategory.subCategories) return;
+    const subList = activeMainCategory.subCategories;
+    const fullIndex = subList.findIndex((s) => s.id === subId);
+    if (fullIndex === -1) return;
+    const targetIndex = direction === 'UP' ? fullIndex - 1 : fullIndex + 1;
+    handleReorderSubCategory(fullIndex, targetIndex);
   };
 
   // Load Real-Time Products from Backend API
@@ -346,6 +713,16 @@ export default function AdminCategoriesPage() {
   const totalSubCategories = categoriesListState.reduce(
     (acc, cur) => acc + (cur.subCategories ? cur.subCategories.length : 0),
     0
+  );
+
+  const activeMainItem = useMemo(
+    () => categoriesListState.find((c) => c.id === activeMainId) || null,
+    [activeMainId, categoriesListState]
+  );
+
+  const activeSubItem = useMemo(
+    () => activeMainCategory?.subCategories.find((s) => s.id === activeSubId) || null,
+    [activeSubId, activeMainCategory]
   );
 
   // Real-Time Delete Category Handler
@@ -502,12 +879,12 @@ export default function AdminCategoriesPage() {
   return (
     <div className="space-y-6 pb-6">
       {/* Header Bar */}
-      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white p-4 sm:p-5 rounded-lg border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
               <FolderTree className="w-6 h-6 text-red-600" />
-              <span>Quản Lý Danh Mục & Thương Hiệu (Real-Time Database)</span>
+              <span>Quản Lý Danh Mục & Thương Hiệu</span>
             </h1>
             <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 font-extrabold text-xs">
               {totalMainCategories} Danh Mục Chính • {totalSubCategories} Danh Mục Phụ
@@ -521,382 +898,299 @@ export default function AdminCategoriesPage() {
 
       {/* Master-Detail Split Panel View */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Panel (Col 4): List of Main Categories with Level 1 Pagination */}
-          <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col h-[630px]">
-            <div className="p-4 border-b border-slate-100 bg-slate-50/70 space-y-3 flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                  <FolderOpen className="w-4 h-4 text-red-600" />
-                  <span>DANH MỤC CHÍNH ({totalMainCategories})</span>
-                </h3>
-                <button
-                  onClick={() => {
-                    setParentForSubCategory(null);
-                    setEditingCategoryData(null);
-                    setShowAddCategoryModal(true);
-                  }}
-                  className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors text-[11px] font-bold flex items-center gap-1 cursor-pointer"
-                  title="Tạo danh mục chính mới"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Tạo Chính</span>
-                </button>
-              </div>
-
-              {/* Quick Filter Input */}
-              <div className="relative w-full">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchMainQuery}
-                  onChange={(e) => {
-                    setSearchMainQuery(e.target.value);
-                    setMainCategoryPage(1);
-                  }}
-                  placeholder="Lọc danh mục chính..."
-                  className="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800"
-                />
-              </div>
+        {/* Left Panel (Col 4): List of Main Categories with Level 1 Pagination */}
+        <div className="lg:col-span-4 bg-white rounded-lg border border-slate-200/80 shadow-xs overflow-hidden flex flex-col h-[630px]">
+          <div className="p-4 border-b border-slate-100 bg-slate-50/70 space-y-3 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <FolderOpen className="w-4 h-4 text-red-600" />
+                <span>DANH MỤC CHÍNH ({totalMainCategories})</span>
+              </h3>
+              <button
+                onClick={() => {
+                  setParentForSubCategory(null);
+                  setEditingCategoryData(null);
+                  setShowAddCategoryModal(true);
+                }}
+                className="p-1.5 rounded-md bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                title="Tạo danh mục chính mới"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Tạo Chính</span>
+              </button>
             </div>
 
-            {/* Paginated Main Category List */}
-            <div className="divide-y divide-slate-100 flex-1 overflow-y-auto">
-              {paginatedMainCategories.map((mainCat) => {
-                const isSelected = mainCat.id === selectedMainId;
-                const totalSub = mainCat.subCategories ? mainCat.subCategories.length : 0;
-                const totalProds = mainCat.subCategories
-                  ? mainCat.subCategories.reduce((acc, c) => acc + c.productCount, 0)
-                  : 0;
-
-                const fullIndex = categoriesListState.findIndex((c) => c.id === mainCat.id);
-                const isFirst = fullIndex === 0;
-                const isLast = fullIndex === categoriesListState.length - 1;
-
-                return (
-                  <div
-                    key={`main-item-${mainCat.id}`}
-                    onClick={() => {
-                      setSelectedMainId(mainCat.id);
-                      setSubCategoryPage(1);
-                    }}
-                    className={`p-3 transition-all cursor-pointer flex items-center justify-between border-l-4 ${isSelected
-                        ? 'border-l-red-600 bg-red-50/50 shadow-2xs'
-                        : 'border-l-transparent hover:bg-slate-50'
-                      }`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      {/* Custom Sort Order Buttons & Badge */}
-                      <div className="flex flex-col items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          disabled={isFirst}
-                          onClick={() => handleMoveMainCategory(mainCat.id, 'UP')}
-                          className="p-0.5 rounded hover:bg-slate-200 text-slate-500 disabled:opacity-20 cursor-pointer transition-colors"
-                          title="Di chuyển lên trên"
-                        >
-                          <ChevronUp className="w-3.5 h-3.5" />
-                        </button>
-                        <span className="text-[10px] font-extrabold text-slate-400 font-mono">
-                          #{fullIndex + 1}
-                        </span>
-                        <button
-                          disabled={isLast}
-                          onClick={() => handleMoveMainCategory(mainCat.id, 'DOWN')}
-                          className="p-0.5 rounded hover:bg-slate-200 text-slate-500 disabled:opacity-20 cursor-pointer transition-colors"
-                          title="Di chuyển xuống dưới"
-                        >
-                          <ChevronDown className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-
-                      <div className="min-w-0">
-                        <h4
-                          className={`font-extrabold text-xs sm:text-sm truncate ${isSelected ? 'text-red-600' : 'text-slate-900'
-                            }`}
-                        >
-                          {mainCat.name}
-                        </h4>
-                        <p className="text-[11px] text-slate-400 font-mono truncate">/{mainCat.slug}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-shrink-0 pl-2">
-                      <div className="text-right hidden sm:block">
-                        <span className="block text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                          {totalSub} mục phụ
-                        </span>
-                        <span className="block text-[9px] font-mono text-slate-400 mt-0.5">
-                          {totalProds} mã SP
-                        </span>
-                      </div>
-
-                      {/* Action Buttons for Main Category */}
-                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => {
-                            setParentForSubCategory(null);
-                            setEditingCategoryData(mainCat);
-                            setShowAddCategoryModal(true);
-                          }}
-                          className="p-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
-                          title="Sửa danh mục chính"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteCategory(mainCat, false)}
-                          className="p-1 rounded-md bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
-                          title="Xoá danh mục chính"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-
-                      <ChevronRight
-                        className={`w-4 h-4 transition-transform ${isSelected ? 'text-red-600 translate-x-0.5' : 'text-slate-300'
-                          }`}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Level 1 Pagination Bar for Main Categories */}
-            <div className="p-2.5 border-t border-slate-200/80 bg-slate-50 flex items-center justify-between text-xs flex-shrink-0">
-              <span className="text-[11px] text-slate-500 font-semibold">
-                Trang <strong className="text-slate-900">{mainCategoryPage}</strong> / {totalMainPages}
-              </span>
-              <div className="flex items-center gap-1">
-                <button
-                  disabled={mainCategoryPage === 1}
-                  onClick={() => setMainCategoryPage((p) => Math.max(p - 1, 1))}
-                  className="p-1 rounded-md bg-white border border-slate-200 disabled:opacity-40 hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5 text-slate-700" />
-                </button>
-                <button
-                  disabled={mainCategoryPage === totalMainPages}
-                  onClick={() => setMainCategoryPage((p) => Math.min(p + 1, totalMainPages))}
-                  className="p-1 rounded-md bg-white border border-slate-200 disabled:opacity-40 hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-700" />
-                </button>
-              </div>
+            {/* Quick Filter Input */}
+            <div className="relative w-full">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchMainQuery}
+                onChange={(e) => {
+                  setSearchMainQuery(e.target.value);
+                  setMainCategoryPage(1);
+                }}
+                placeholder="Lọc danh mục chính..."
+                className="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800"
+              />
             </div>
           </div>
 
-          {/* Right Panel (Col 8): Sub Categories & Products of Selected Main Category */}
-          <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col h-[630px]">
-            {/* Panel Header */}
-            <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md bg-red-600 text-white font-extrabold text-[10px] uppercase">
-                      DANH MỤC CHÍNH ĐANG CHỌN
-                    </span>
-                    <h2 className="font-extrabold text-slate-900 text-lg">
-                      {activeMainCategory?.name}
-                    </h2>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-0.5 line-clamp-1 max-w-xl">
-                    {activeMainCategory?.description}
-                  </p>
-                </div>
-              </div>
+          {/* Paginated Main Category List */}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleMainDragStart}
+            onDragEnd={handleMainDragEnd}
+            onDragCancel={() => setActiveMainId(null)}
+          >
+            <SortableContext items={paginatedMainCategories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+              <div className="divide-y divide-slate-100 flex-1 overflow-y-auto custom-scrollbar">
+                {paginatedMainCategories.map((mainCat) => {
+                  const isSelected = mainCat.id === selectedMainId;
+                  const totalSub = mainCat.subCategories ? mainCat.subCategories.length : 0;
+                  const totalProds = mainCat.subCategories
+                    ? mainCat.subCategories.reduce((acc, c) => acc + c.productCount, 0)
+                    : 0;
 
-              <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto">
+                  const fullIndex = categoriesListState.findIndex((c) => c.id === mainCat.id);
+                  const isFirst = fullIndex === 0;
+                  const isLast = fullIndex === categoriesListState.length - 1;
+
+                  return (
+                    <SortableMainCategoryItem
+                      key={`main-item-${mainCat.id}`}
+                      mainCat={mainCat}
+                      fullIndex={fullIndex}
+                      isSelected={isSelected}
+                      totalSub={totalSub}
+                      totalProds={totalProds}
+                      onSelect={() => {
+                        setSelectedMainId(mainCat.id);
+                        setSubCategoryPage(1);
+                      }}
+                      onEdit={() => {
+                        setParentForSubCategory(null);
+                        setEditingCategoryData(mainCat);
+                        setShowAddCategoryModal(true);
+                      }}
+                      onDelete={() => handleDeleteCategory(mainCat, false)}
+                    />
+                  );
+                })}
+              </div>
+            </SortableContext>
+            <DragOverlay dropAnimation={{ duration: 150, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
+              {activeMainItem ? (
+                <div className="p-3 rounded-md bg-white border-2 border-red-600 shadow-2xl flex items-center justify-between opacity-95 scale-[1.02] select-none">
+                  <div className="flex items-center gap-2">
+                    <GripVertical className="w-4 h-4 text-red-600" />
+                    <span className="font-extrabold text-slate-900 text-sm">{activeMainItem.name}</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-red-600 px-2.5 py-0.5 rounded-full bg-red-50 border border-red-200">
+                    Đang di chuyển
+                  </span>
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+
+          {/* Level 1 Pagination Bar for Main Categories */}
+          <div className="px-4 py-2.5 h-[48px] border-t border-slate-200/80 bg-slate-50 flex items-center justify-between text-xs flex-shrink-0">
+            <span className="text-xs text-slate-500 font-medium">
+              Trang <strong className="text-slate-900 font-bold">{mainCategoryPage}</strong> / {totalMainPages}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                disabled={mainCategoryPage === 1}
+                onClick={() => setMainCategoryPage((p) => Math.max(p - 1, 1))}
+                className="p-1.5 rounded bg-white border border-slate-200/80 disabled:opacity-30 hover:bg-slate-100 hover:border-slate-300 transition-colors cursor-pointer shadow-2xs"
+                title="Trang trước"
+              >
+                <ChevronLeft className="w-4 h-4 text-slate-700" />
+              </button>
+              <button
+                disabled={mainCategoryPage === totalMainPages}
+                onClick={() => setMainCategoryPage((p) => Math.min(p + 1, totalMainPages))}
+                className="p-1.5 rounded bg-white border border-slate-200/80 disabled:opacity-30 hover:bg-slate-100 hover:border-slate-300 transition-colors cursor-pointer shadow-2xs"
+                title="Trang sau"
+              >
+                <ChevronRight className="w-4 h-4 text-slate-700" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Panel (Col 8): Sub Categories & Products of Selected Main Category */}
+        <div className="lg:col-span-8 bg-white rounded-lg border border-slate-200/80 shadow-xs overflow-hidden flex flex-col h-[630px]">
+          {/* Panel Header */}
+          <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded bg-red-600 text-white font-extrabold text-[10px] uppercase">
+                    DANH MỤC CHÍNH ĐANG CHỌN
+                  </span>
+                  <h2 className="font-extrabold text-slate-900 text-lg">
+                    {activeMainCategory?.name}
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5 line-clamp-1 max-w-xl">
+                  {activeMainCategory?.description}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto">
+              <button
+                onClick={() => {
+                  setParentForSubCategory({ id: activeMainCategory.id, name: activeMainCategory.name });
+                  setEditingCategoryData(null);
+                  setShowAddCategoryModal(true);
+                }}
+                className="px-3.5 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md shadow-red-900/30 transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Thêm Mục Phụ</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Sub Categories Filter Bar & Direct Product Link */}
+          <div className="p-3 bg-slate-100/60 border-b border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
+            <div className="relative max-w-xs w-full">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchSubQuery}
+                onChange={(e) => {
+                  setSearchSubQuery(e.target.value);
+                  setSubCategoryPage(1);
+                }}
+                placeholder="Tìm tên danh mục phụ con..."
+                className="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 text-xs">
+              <span className="font-semibold text-slate-500">
+                Hiển thị: <strong className="text-red-600">{filteredSubCategories.length}</strong> danh mục phụ
+              </span>
+              <Link
+                href={`/admin/products?categorySlug=${activeMainCategory?.slug}`}
+                className="px-3 py-1.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:text-red-600 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+              >
+                <Package className="w-3.5 h-3.5 text-red-600" />
+                <span>Quản Lý Tất Cả Sản Phẩm</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Table Header Bar for Sub Categories */}
+          <div className="bg-slate-100 text-slate-700 font-bold uppercase text-[11px] tracking-wider px-4 py-2 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
+            <div className="flex-1">Danh Mục Phụ Con</div>
+            <div className="hidden sm:block w-48">Đường Dẫn Slug</div>
+            <div className="shrink-0 text-right pr-2">Thao Tác</div>
+          </div>
+
+          {/* Sub Categories Data List View */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            {paginatedSubCategories.length === 0 ? (
+              <div className="p-12 text-center space-y-3">
+                <FolderOpen className="w-10 h-10 text-slate-300 mx-auto" />
+                <h4 className="text-xs font-bold text-slate-600">Chưa có danh mục phụ phù hợp trong nhóm này</h4>
                 <button
                   onClick={() => {
                     setParentForSubCategory({ id: activeMainCategory.id, name: activeMainCategory.name });
                     setEditingCategoryData(null);
                     setShowAddCategoryModal(true);
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md shadow-red-900/30 transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 rounded-md bg-red-600 text-white font-bold text-xs inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>Thêm Mục Phụ</span>
+                  <Plus className="w-4 h-4" /> Thêm danh mục phụ đầu tiên
                 </button>
               </div>
-            </div>
-
-            {/* Sub Categories Filter Bar & Direct Product Link */}
-            <div className="p-3 bg-slate-100/60 border-b border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
-              <div className="relative max-w-xs w-full">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchSubQuery}
-                  onChange={(e) => {
-                    setSearchSubQuery(e.target.value);
-                    setSubCategoryPage(1);
-                  }}
-                  placeholder="Tìm tên danh mục phụ con..."
-                  className="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 text-xs">
-                <span className="font-semibold text-slate-500">
-                  Hiển thị: <strong className="text-red-600">{filteredSubCategories.length}</strong> danh mục phụ
-                </span>
-                <Link
-                  href={`/admin/products?categorySlug=${activeMainCategory?.slug}`}
-                  className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-red-600 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-                >
-                  <Package className="w-3.5 h-3.5 text-red-600" />
-                  <span>Quản Lý Tất Cả Sản Phẩm</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-
-            {/* Sub Categories Data Table View with Always-Visible Red Scrollbar */}
-            <div className="max-h-[390px] overflow-y-scroll flex-1 custom-scrollbar pr-1">
-              {paginatedSubCategories.length === 0 ? (
-                <div className="p-12 text-center space-y-3">
-                  <FolderOpen className="w-10 h-10 text-slate-300 mx-auto" />
-                  <h4 className="text-xs font-bold text-slate-600">Chưa có danh mục phụ phù hợp trong nhóm này</h4>
-                  <button
-                    onClick={() => {
-                      setParentForSubCategory({ id: activeMainCategory.id, name: activeMainCategory.name });
-                      setEditingCategoryData(null);
-                      setShowAddCategoryModal(true);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-red-600 text-white font-bold text-xs inline-flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" /> Thêm danh mục phụ đầu tiên
-                  </button>
-                </div>
-              ) : (
-                <table className="w-full text-left text-xs border-collapse relative">
-                  <thead className="sticky top-0 z-10 shadow-2xs">
-                    <tr className="bg-slate-100/95 backdrop-blur-xs text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
-                      <th className="p-3 pl-5">Tên Danh Mục Phụ Con</th>
-                      <th className="p-3">Đường Dẫn Slug</th>
-                      <th className="p-3">Mô Tả Phụ Tùng</th>
-                      <th className="p-3">Số Lượng Kho</th>
-                      <th className="p-3 pr-5 text-right">Thao Tác</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
+            ) : (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleSubDragStart}
+                onDragEnd={handleSubDragEnd}
+                onDragCancel={() => setActiveSubId(null)}
+              >
+                <SortableContext items={paginatedSubCategories.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+                  <div className="divide-y divide-slate-100">
                     {paginatedSubCategories.map((sub) => {
                       const subList = activeMainCategory?.subCategories || [];
                       const fullIndex = subList.findIndex((s) => s.id === sub.id);
-                      const isFirst = fullIndex === 0;
-                      const isLast = fullIndex === subList.length - 1;
 
                       return (
-                        <tr key={`sub-row-${sub.id}`} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="p-3 pl-4">
-                            <div className="flex items-center gap-2">
-                              {/* Custom Sort Order Buttons & Badge */}
-                              <div className="flex items-center gap-1 shrink-0">
-                                <span className="text-[10px] font-extrabold text-slate-400 font-mono min-w-[20px]">
-                                  #{fullIndex + 1}
-                                </span>
-                                <button
-                                  disabled={isFirst}
-                                  onClick={() => handleMoveSubCategory(sub.id, 'UP')}
-                                  className="p-1 rounded hover:bg-slate-200 text-slate-600 disabled:opacity-20 cursor-pointer transition-colors"
-                                  title="Di chuyển lên trên"
-                                >
-                                  <ChevronUp className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  disabled={isLast}
-                                  onClick={() => handleMoveSubCategory(sub.id, 'DOWN')}
-                                  className="p-1 rounded hover:bg-slate-200 text-slate-600 disabled:opacity-20 cursor-pointer transition-colors"
-                                  title="Di chuyển xuống dưới"
-                                >
-                                  <ChevronDown className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-
-                              <CornerDownRight className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
-                              <span className="font-extrabold text-slate-900 text-xs sm:text-sm">
-                                {sub.name}
-                              </span>
-                            </div>
-                          </td>
-
-                          <td className="p-3 font-mono text-slate-500 font-semibold">/{sub.slug}</td>
-
-                          <td className="p-3 text-slate-500 max-w-xs">
-                            <p className="line-clamp-1 leading-snug">{sub.description}</p>
-                          </td>
-
-                          <td className="p-3">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-extrabold border border-emerald-200/80 cursor-default">
-                              <Package className="w-3 h-3 text-emerald-600 shrink-0" />
-                              <span>{sub.productCount} mã SP</span>
-                            </span>
-                          </td>
-
-                          <td className="p-3 pr-5 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => setActiveSubModal(sub)}
-                                className="px-2.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
-                                title="Xem danh sách sản phẩm & upload ảnh của danh mục phụ này"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                                <span>Xem SP</span>
-                              </button>
-
-                              <button
-                                onClick={() => {
-                                  setParentForSubCategory({ id: activeMainCategory.id, name: activeMainCategory.name });
-                                  setEditingCategoryData({ id: sub.id, name: sub.name, description: sub.description, iconUrl: sub.iconUrl, parentId: activeMainCategory.id });
-                                  setShowAddCategoryModal(true);
-                                }}
-                                className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
-                                title="Sửa danh mục phụ"
-                              >
-                                <Edit className="w-3.5 h-3.5" />
-                              </button>
-
-                              <button
-                                onClick={() => handleDeleteCategory(sub, true)}
-                                className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
-                                title="Xoá danh mục phụ"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
+                        <SortableSubCategoryRow
+                          key={`sub-row-${sub.id}`}
+                          sub={sub}
+                          fullIndex={fullIndex}
+                          onViewProducts={() => setActiveSubModal(sub)}
+                          onEdit={() => {
+                            setParentForSubCategory({ id: activeMainCategory.id, name: activeMainCategory.name });
+                            setEditingCategoryData({
+                              id: sub.id,
+                              name: sub.name,
+                              description: sub.description,
+                              iconUrl: sub.iconUrl,
+                              parentId: activeMainCategory.id,
+                            });
+                            setShowAddCategoryModal(true);
+                          }}
+                          onDelete={() => handleDeleteCategory(sub, true)}
+                        />
                       );
                     })}
-                  </tbody>
-                </table>
-              )}
-            </div>
+                  </div>
+                </SortableContext>
+                <DragOverlay dropAnimation={{ duration: 150, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
+                  {activeSubItem ? (
+                    <div className="p-3 rounded-md bg-white border-2 border-red-600 shadow-2xl flex items-center justify-between opacity-95 scale-[1.02] select-none min-w-[320px]">
+                      <div className="flex items-center gap-2">
+                        <GripVertical className="w-4 h-4 text-red-600" />
+                        <span className="font-extrabold text-slate-900 text-sm">{activeSubItem.name}</span>
+                      </div>
+                      <span className="text-[11px] font-bold text-red-600 px-2.5 py-0.5 rounded bg-red-50 border border-red-200">
+                        Đang sắp xếp
+                      </span>
+                    </div>
+                  ) : null}
+                </DragOverlay>
+              </DndContext>
+            )}
+          </div>
 
-            {/* Level 2 Pagination Bar for Sub Categories */}
-            <div className="p-3 border-t border-slate-200/80 bg-slate-50 flex items-center justify-between text-xs flex-shrink-0">
-              <span className="text-xs text-slate-500 font-semibold">
-                Hiển thị trang <strong className="text-slate-900">{subCategoryPage}</strong> trên tổng số {totalSubPages} trang danh mục phụ
-              </span>
-              <div className="flex items-center gap-1.5">
-                <button
-                  disabled={subCategoryPage === 1}
-                  onClick={() => setSubCategoryPage((p) => Math.max(p - 1, 1))}
-                  className="px-2.5 py-1 rounded-md bg-white border border-slate-200 disabled:opacity-40 hover:bg-slate-100 transition-colors font-bold cursor-pointer"
-                >
-                  Trang Trước
-                </button>
-                <button
-                  disabled={subCategoryPage === totalSubPages}
-                  onClick={() => setSubCategoryPage((p) => Math.min(p + 1, totalSubPages))}
-                  className="px-2.5 py-1 rounded-md bg-white border border-slate-200 disabled:opacity-40 hover:bg-slate-100 transition-colors font-bold cursor-pointer"
-                >
-                  Trang Sau
-                </button>
-              </div>
+          {/* Level 2 Pagination Bar for Sub Categories */}
+          <div className="px-4 py-2.5 h-[48px] border-t border-slate-200/80 bg-slate-50 flex items-center justify-between text-xs flex-shrink-0">
+            <span className="text-xs text-slate-500 font-medium">
+              Trang <strong className="text-slate-900 font-bold">{subCategoryPage}</strong> / {totalSubPages} <span className="hidden sm:inline">danh mục phụ</span>
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                disabled={subCategoryPage === 1}
+                onClick={() => setSubCategoryPage((p) => Math.max(p - 1, 1))}
+                className="p-1.5 rounded bg-white border border-slate-200/80 disabled:opacity-30 hover:bg-slate-100 hover:border-slate-300 transition-colors cursor-pointer shadow-2xs"
+                title="Trang trước"
+              >
+                <ChevronLeft className="w-4 h-4 text-slate-700" />
+              </button>
+              <button
+                disabled={subCategoryPage === totalSubPages}
+                onClick={() => setSubCategoryPage((p) => Math.min(p + 1, totalSubPages))}
+                className="p-1.5 rounded bg-white border border-slate-200/80 disabled:opacity-30 hover:bg-slate-100 hover:border-slate-300 transition-colors cursor-pointer shadow-2xs"
+                title="Trang sau"
+              >
+                <ChevronRight className="w-4 h-4 text-slate-700" />
+              </button>
             </div>
           </div>
         </div>
+      </div>
 
       {/* CREATE / EDIT CATEGORY MODAL */}
       {showAddCategoryModal && (
@@ -985,17 +1279,24 @@ export default function AdminCategoriesPage() {
 
       {/* CREATE / EDIT BRAND MODAL */}
       {showAddBrandModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200 cursor-pointer"
+          onClick={() => setShowAddBrandModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="font-extrabold text-slate-900 text-base">
                 {editingBrandData ? 'Chỉnh Sửa Thương Hiệu' : 'Thêm Thương Hiệu Nhà Máy Mới'}
               </h3>
               <button
                 onClick={() => setShowAddBrandModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center cursor-pointer flex-shrink-0"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer flex-shrink-0 transition-colors"
+                title="Đóng"
               >
-                ✕
+                <X className="w-4 h-4 text-slate-500" />
               </button>
             </div>
 
@@ -1007,7 +1308,7 @@ export default function AdminCategoriesPage() {
                   value={brandNameInput}
                   onChange={(e) => setBrandNameInput(e.target.value)}
                   placeholder="Ví dụ: HOWO Sinotruk, Shacman..."
-                  className="w-full p-2.5 border border-slate-200 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                  className="w-full p-2.5 border border-slate-200 rounded-md font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500/20"
                 />
               </div>
 
@@ -1018,7 +1319,7 @@ export default function AdminCategoriesPage() {
                   value={brandOriginInput}
                   onChange={(e) => setBrandOriginInput(e.target.value)}
                   placeholder="Ví dụ: Trung Quốc, Hà Lan..."
-                  className="w-full p-2.5 border border-slate-200 rounded-xl font-medium text-slate-800"
+                  className="w-full p-2.5 border border-slate-200 rounded-md font-medium text-slate-800"
                 />
               </div>
 
@@ -1027,20 +1328,20 @@ export default function AdminCategoriesPage() {
                 <select
                   value={brandStatusInput}
                   onChange={(e) => setBrandStatusInput(e.target.value)}
-                  className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 font-bold text-slate-800"
+                  className="w-full p-2.5 border border-slate-200 rounded-md bg-slate-50 font-bold text-slate-800"
                 >
                   <option value="Hợp Tác Trực Tiếp">Hợp Tác Trực Tiếp</option>
-                  <option value="Đại Lý Phân Phối">Đại Lý Phân Phối</option>
-                  <option value="Đối Tác Chiến Lược">Đối Tác Chiến Lược</option>
-                  <option value="Nhập Khẩu Chính Hãng">Nhập Khẩu Chính Hãng</option>
+                  <option value="Nhà Nhập Khẩu Ủy Quyền">Nhà Nhập Khẩu Ủy Quyền</option>
+                  <option value="Đối Tác Phân Phối">Đối Tác Phân Phối</option>
                 </select>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-4">
+            <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
               <button
+                type="button"
                 onClick={() => setShowAddBrandModal(false)}
-                className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer"
+                className="px-4 py-2 rounded-md bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer"
               >
                 Hủy
               </button>

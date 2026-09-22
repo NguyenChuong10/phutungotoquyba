@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AdminApiService } from "@/services/adminApiService";
+import { fetchApi } from "@/config/api";
 
 interface NewsCardItem {
   id: string | number;
@@ -19,7 +19,7 @@ export default function NewsSection() {
   useEffect(() => {
     async function loadTopNews() {
       try {
-        const res = await AdminApiService.getNewsList();
+        const res = await fetchApi('/news');
         if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
           const items: NewsCardItem[] = res.data.slice(0, 3).map((art: any) => ({
             id: art.id,

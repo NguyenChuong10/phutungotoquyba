@@ -262,6 +262,8 @@ export class AdminApiService {
     search?: string;
     page?: number;
     limit?: number;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
   }) {
     const query = new URLSearchParams();
     if (params?.categoryId) query.append("categoryId", String(params.categoryId));
@@ -269,6 +271,8 @@ export class AdminApiService {
     if (params?.search) query.append("search", params.search);
     if (params?.page) query.append("page", String(params.page));
     if (params?.limit) query.append("limit", String(params.limit));
+    if (params?.sortBy) query.append("sortBy", params.sortBy);
+    if (params?.sortOrder) query.append("sortOrder", params.sortOrder);
 
     const endpoint = `/admin/products?${query.toString()}`;
     return await fetchApi(endpoint);
@@ -563,14 +567,14 @@ export class AdminApiService {
     if (params?.page) query.append("page", String(params.page));
     if (params?.limit) query.append("limit", String(params.limit));
 
-    return await fetchApi(`/news?${query.toString()}`);
+    return await fetchApi(`/news/admin/list?${query.toString()}`);
   }
 
   /**
-   * Fetch Single News Article by Slug or ID
+   * Fetch Single News Article by Slug or ID (Admin Protected)
    */
   static async getNewsBySlug(slugOrId: string | number) {
-    return await fetchApi(`/news/${slugOrId}`);
+    return await fetchApi(`/news/admin/detail/${slugOrId}`);
   }
 
   /**
@@ -607,6 +611,16 @@ export class AdminApiService {
    */
   static async getNewsCategories() {
     return await fetchApi("/news/categories");
+  }
+
+  /**
+   * Reorder News Categories
+   */
+  static async reorderNewsCategories(categoryIds: number[]) {
+    return await fetchApi("/news/admin/categories/reorder", {
+      method: "PUT",
+      body: JSON.stringify({ categoryIds }),
+    });
   }
 
   /**

@@ -60,6 +60,8 @@ export class ProductController {
       const brandId = req.query.brandId ? Number(req.query.brandId) : undefined;
       const page = req.query.page ? Number(req.query.page) : 1;
       const limit = req.query.limit ? Number(req.query.limit) : 10;
+      const sortBy = req.query.sortBy as string | undefined;
+      const sortOrder = req.query.sortOrder === "asc" ? "asc" : req.query.sortOrder === "desc" ? "desc" : undefined;
 
       const result = await ProductService.getAdminProducts({
         search,
@@ -67,6 +69,8 @@ export class ProductController {
         brandId,
         page,
         limit,
+        sortBy,
+        sortOrder,
       });
 
       return res.status(200).json({

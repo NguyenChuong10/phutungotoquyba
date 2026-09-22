@@ -15,9 +15,12 @@ import {
   Headphones,
   ArrowRight,
   Layers,
+  Home,
 } from "lucide-react";
 import ProductDetailActions from "@/components/public/ProductDetailActions";
 import ProductImageGallery from "@/components/public/ProductImageGallery";
+import ProductDescriptionRenderer from "@/components/public/ProductDescriptionRenderer";
+import ScrollToTopOnMount from "@/components/public/ScrollToTopOnMount";
 import { API_BASE_URL } from "@/config/api";
 import { formatImageUrl } from "@/utils/imageHelper";
 import { parseNumericProductId, slugify, getProductUrl } from "@/utils/productHelper";
@@ -36,23 +39,37 @@ async function getProductDetail(id: string) {
       const json = await res.json();
       if (json.success && json.data) {
         const p = json.data;
+        const rawBrand = p.brand?.name || '';
+        const isInvalidBrand = !rawBrand || ['không', 'chưa phân loại', 'không có thương hiệu', 'đối tác q.ba'].includes(rawBrand.trim().toLowerCase());
+        const validBrand = isInvalidBrand ? '' : rawBrand.trim();
+
+        const parentCat = p.category?.parent;
+        const subCat = p.category;
+
+        const parentCategorySlug = parentCat?.slug || subCat?.slug || "dong-co-may-phat";
+        const parentCategoryName = parentCat?.name || subCat?.name || "Động Cơ & Máy Phát";
+        const subCategorySlug = parentCat ? (subCat?.slug || '') : '';
+        const subCategoryName = parentCat ? (subCat?.name || '') : '';
+
         return {
           id: String(p.id),
           name: p.name,
           internalCode: p.internalCode || '',
           partNumber: p.partNumber || '',
-          categorySlug: p.category?.parent?.slug || p.category?.slug || "dong-co-may-phat",
-          categoryName: p.category?.parent?.name || p.category?.name || "Động Cơ & Máy Phát",
-          brand: p.brand?.name || "Không",
+          parentCategorySlug,
+          parentCategoryName,
+          subCategorySlug,
+          subCategoryName,
+          categorySlug: parentCategorySlug,
+          categoryName: parentCategoryName,
+          brand: validBrand,
           qualityStandard: p.qualityStandard || "",
           price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString('vi-VN')} ₫` : "Liên hệ Báo Giá",
           inStock: p.inStock,
           imageSrc: formatImageUrl(p.images?.[0]?.imageUrl),
           gallery: p.images?.map((img: { imageUrl: string }) => formatImageUrl(img.imageUrl)) || [formatImageUrl(null)],
-          description: p.description || "Phụ tùng chính hãng kho Q.BA Đà Nẵng, nhập khẩu trực tiếp từ nhà máy sản xuất.",
-          specifications: (p.specifications as Record<string, string>) || {
-            "Thương hiệu": p.brand?.name || "Không",
-          },
+          description: p.description || '',
+          specifications: (p.specifications as Record<string, string>) || {},
           compatibility: (p.compatibility as string[]) || ["Xe Tải Nặng HOWO", "Shacman", "FAW"],
         };
       }
@@ -252,30 +269,55 @@ export default async function ProductDetailPage({ params }: PageProps) {
   };
 
   return (
-    <div className="bg-white min-h-screen pt-24 sm:pt-28 pb-16">
+    <div className="bg-white min-h-screen pt-24 sm:pt-28 pb-12">
+      <ScrollToTopOnMount />
       <JsonLd id={`product-jsonld-${product.id}`} data={productJsonLd} />
       <JsonLd id={`breadcrumb-jsonld-${product.id}`} data={breadcrumbJsonLd} />
       <div className="container mx-auto px-4 max-w-7xl space-y-6">
 
-        {/* Breadcrumb Navigation - Docked cleanly inside main container */}
-        <nav className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 pb-2 border-b border-slate-100">
-          <Link href="/" className="hover:text-slate-900 transition-colors">
-            Trang chủ
+        {/* Clean Plain Text Breadcrumb Navigation with Filter Links */}
+        <nav className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500 py-1">
+          <Link href="/" className="hover:text-red-600 transition-colors text-slate-600 flex items-center gap-1">
+            <Home className="w-3.5 h-3.5 text-slate-400" />
+            <span>Trang chủ</span>
           </Link>
-          <ChevronRight size={13} className="text-slate-400" />
-          <Link href="/products" className="hover:text-slate-900 transition-colors">
+          <ChevronRight size={13} className="text-slate-400 shrink-0" />
+          <Link href="/products" className="hover:text-red-600 transition-colors text-slate-600">
             Danh mục Phụ tùng
           </Link>
-          <ChevronRight size={13} className="text-slate-400" />
-          <Link href={`/products?categorySlug=${product.categorySlug}`} className="hover:text-slate-900 transition-colors text-slate-700">
-            {product.categoryName}
-          </Link>
-          <ChevronRight size={13} className="text-slate-400" />
-          <span className="text-slate-900 font-bold truncate max-w-xs">{product.name}</span>
+
+          {/* Parent Category Link */}
+          {product.parentCategorySlug && (
+            <>
+              <ChevronRight size={13} className="text-slate-400 shrink-0" />
+              <Link
+                href={`/products?category=${product.parentCategorySlug}`}
+                className="hover:text-red-600 transition-colors text-slate-700"
+              >
+                {product.parentCategoryName}
+              </Link>
+            </>
+          )}
+
+          {/* Subcategory Link (if present & distinct from parent) */}
+          {product.subCategorySlug && product.subCategorySlug !== product.parentCategorySlug && (
+            <>
+              <ChevronRight size={13} className="text-slate-400 shrink-0" />
+              <Link
+                href={`/products?category=${product.parentCategorySlug}&subCategory=${product.subCategorySlug}`}
+                className="hover:text-red-600 transition-colors text-slate-700 font-semibold"
+              >
+                {product.subCategoryName}
+              </Link>
+            </>
+          )}
+
+          <ChevronRight size={13} className="text-slate-400 shrink-0" />
+          <span className="text-slate-900 font-bold truncate max-w-xs sm:max-w-md">{product.name}</span>
         </nav>
 
-        {/* Main Product Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start pt-2">
+        {/* Main Product Grid (Clean borderless layout) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start pt-1">
 
           {/* Left Column: Focused Image Gallery Slider */}
           <div className="lg:col-span-6">
@@ -288,13 +330,13 @@ export default async function ProductDetailPage({ params }: PageProps) {
           </div>
 
           {/* Right Column: Product Detail, Actions & Commitments */}
-          <div className="lg:col-span-6 space-y-5">
+          <div className="lg:col-span-6 space-y-4">
 
             {/* Availability & Brand Tag */}
             <div className="flex flex-wrap items-center justify-between gap-2">
               {product.inStock ? (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-extrabold text-xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" /> Kiểm tra kho Đà Nẵng
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" /> Sẵn kho Đà Nẵng
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-700 font-extrabold text-xs">
@@ -302,42 +344,42 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 </span>
               )}
 
-              <span className="px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1">
-                <Tag className="w-3 h-3 text-slate-500" />
-                <span>{product.brand}</span>
-              </span>
+              {product.brand && product.brand.trim() !== '' && (
+                <span className="px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1">
+                  <Tag className="w-3 h-3 text-slate-500" />
+                  <span>{product.brand}</span>
+                </span>
+              )}
             </div>
 
             {/* Product Title */}
-            <h1 className="text-2xl sm:text-3xl font-black uppercase text-slate-900 leading-tight">
+            <h1 className="text-xl sm:text-2xl font-black uppercase text-slate-900 leading-tight">
               {product.name}
             </h1>
 
-            {/* Product Codes directly below Title (stacked on separate lines) */}
-            <div className="flex flex-col items-start gap-1.5 pt-1 text-xs font-mono">
+            {/* Product Codes directly below Title (Inline flex row) */}
+            <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
               {product.internalCode && (
                 <div className="px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200/90 text-slate-900 font-bold">
-                  {product.internalCode}
+                  SKU: {product.internalCode}
                 </div>
               )}
               {product.partNumber && (
                 <div className="px-2.5 py-1 rounded-md bg-red-50 border border-red-200/80 text-red-600 font-extrabold">
-                  {product.partNumber}
+                  OE: {product.partNumber}
                 </div>
               )}
             </div>
 
-
-
             {/* Pricing Line */}
-            <div className="py-2 border-y border-slate-100 flex items-center justify-between">
+            <div className="py-2.5 border-y border-slate-200/80 flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500 uppercase">Đơn Giá Báo Sỉ:</span>
               <span className="text-xl sm:text-2xl font-black text-brand">{product.price}</span>
             </div>
 
             {/* Compatible Vehicle Tags */}
             {product.compatibility && product.compatibility.length > 0 && (
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <span className="text-xs font-extrabold uppercase text-slate-500 block">
                   Dòng Xe Tương Thích:
                 </span>
@@ -355,22 +397,12 @@ export default async function ProductDetailPage({ params }: PageProps) {
               </div>
             )}
 
-            {/* Short Description */}
-            <div className="space-y-1">
-              <span className="text-xs font-extrabold uppercase text-slate-500 block">
-                Mô Tả Sản Phẩm:
-              </span>
-              <div className="text-slate-700 text-sm sm:text-base leading-relaxed whitespace-pre-line font-normal">
-                {product.description}
-              </div>
-            </div>
-
             {/* Quotation Action Buttons */}
             <ProductDetailActions product={product as any} />
 
             {/* Quality Commitments Bar (Right Column) */}
-            <div className="grid grid-cols-3 gap-2.5 pt-3 border-t border-slate-100">
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-center space-y-0.5">
+            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100">
+              <div className="p-2 rounded-md bg-slate-50 border border-slate-200/80 text-center space-y-0.5">
                 <ShieldCheck className="w-4 h-4 text-slate-700 mx-auto" />
                 <h4 className="font-extrabold text-slate-900 text-[11px] uppercase">Chất Lượng</h4>
                 <p className="text-[10px] text-slate-500 line-clamp-1">
@@ -378,13 +410,13 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 </p>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-center space-y-0.5">
+              <div className="p-2 rounded-md bg-slate-50 border border-slate-200/80 text-center space-y-0.5">
                 <Truck className="w-4 h-4 text-slate-700 mx-auto" />
                 <h4 className="font-extrabold text-slate-900 text-[11px] uppercase">Giao Hàng</h4>
                 <p className="text-[10px] text-slate-500 line-clamp-1">Toàn quốc hỏa tốc</p>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-center space-y-0.5">
+              <div className="p-2 rounded-md bg-slate-50 border border-slate-200/80 text-center space-y-0.5">
                 <Headphones className="w-4 h-4 text-slate-700 mx-auto" />
                 <h4 className="font-extrabold text-slate-900 text-[11px] uppercase">Tư Vấn</h4>
                 <p className="text-[10px] text-slate-500 line-clamp-1">Hỗ trợ Zalo</p>
@@ -394,69 +426,88 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
         </div>
 
-        {/* Specifications Table */}
-        {(() => {
-          const rawSpecs = (product.specifications && typeof product.specifications === 'object') ? product.specifications : {};
-          const cleanSpecs: Record<string, string> = {
-            'Mã phụ tùng': product.partNumber || 'Chưa cập nhật',
-            'Danh mục phụ tùng': product.categoryName,
-          };
-
-          const mat = rawSpecs['Chất liệu'] || rawSpecs['Chất liệu đúc/sản xuất'];
-          if (mat && String(mat).trim()) {
-            cleanSpecs['Chất liệu'] = String(mat).trim();
-          }
-
-          Object.entries(rawSpecs).forEach(([k, v]) => {
-            const lowerKey = k.toLowerCase();
-            const isCodeKey =
-              lowerKey.includes('mã phụ tùng') ||
-              lowerKey.includes('part no') ||
-              lowerKey.includes('sku') ||
-              lowerKey.includes('mã nội bộ');
-
-            if (
-              v &&
-              typeof v === 'string' &&
-              v.trim() &&
-              !isCodeKey &&
-              k !== 'Chất liệu đúc/sản xuất'
-            ) {
-              cleanSpecs[k] = v.trim();
-            }
-          });
-
-          const specEntries = Object.entries(cleanSpecs);
-
-          return (
-            <div className="space-y-3 pt-6 border-t border-slate-200">
-              <h3 className="text-lg font-black text-slate-900 uppercase flex items-center gap-2">
-                <FileText className="text-brand w-5 h-5" />
-                <span>THÔNG SỐ KỸ THUẬT CHI TIẾT</span>
-              </h3>
-
-              <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
-                <table className="w-full text-left text-xs sm:text-sm">
-                  <tbody>
-                    {specEntries.map(([key, val], idx) => (
-                      <tr
-                        key={`spec-${idx}`}
-                        className={idx % 2 === 0 ? "bg-slate-50/60" : "bg-white"}
-                      >
-                        <td className="py-3 px-4 font-bold text-slate-900 w-1/3 border-b border-slate-200/80 uppercase text-xs">
-                          {key}
-                        </td>
-                        <td className="py-3 px-4 text-slate-700 border-b border-slate-200/80 font-medium">
-                          {String(val)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        {/* Detailed Product Description & Specifications (Clean borderless document flow) */}
+        <div className="space-y-6 pt-6 border-t border-slate-200">
+          
+          {/* Section 1: Detailed Markdown Description & User Guide */}
+          {product.description && product.description.trim() && (
+            <div className="space-y-3">
+              <div className="pb-2 border-b border-slate-200">
+                <h3 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                  <FileText className="text-red-600 w-4.5 h-4.5" />
+                  <span>MÔ TẢ KỸ THUẬT & HƯỚNG DẪN SỬ DỤNG</span>
+                </h3>
               </div>
+              <ProductDescriptionRenderer description={product.description} variant="full" />
             </div>
-          );
-        })()}
+          )}
+
+          {/* Section 2: Detailed Specifications Table */}
+          {(() => {
+            const rawSpecs = (product.specifications && typeof product.specifications === 'object') ? product.specifications : {};
+            const cleanSpecs: Record<string, string> = {
+              'Mã phụ tùng': product.partNumber || 'Chưa cập nhật',
+              'Danh mục phụ tùng': product.categoryName,
+            };
+
+            const mat = rawSpecs['Chất liệu'] || rawSpecs['Chất liệu đúc/sản xuất'];
+            if (mat && String(mat).trim()) {
+              cleanSpecs['Chất liệu'] = String(mat).trim();
+            }
+
+            Object.entries(rawSpecs).forEach(([k, v]) => {
+              const lowerKey = k.toLowerCase();
+              const isCodeKey =
+                lowerKey.includes('mã phụ tùng') ||
+                lowerKey.includes('part no') ||
+                lowerKey.includes('sku') ||
+                lowerKey.includes('mã nội bộ');
+
+              if (
+                v &&
+                typeof v === 'string' &&
+                v.trim() &&
+                !isCodeKey &&
+                k !== 'Chất liệu đúc/sản xuất'
+              ) {
+                cleanSpecs[k] = v.trim();
+              }
+            });
+
+            const specEntries = Object.entries(cleanSpecs);
+
+            return (
+              <div className="space-y-3 pt-3 border-t border-slate-200">
+                <div className="pb-2 border-b border-slate-200">
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                    <Layers className="text-red-600 w-4.5 h-4.5" />
+                    <span>THÔNG SỐ KỸ THUẬT CHI TIẾT</span>
+                  </h3>
+                </div>
+
+                <div className="border border-slate-200 rounded-md overflow-hidden bg-white">
+                  <table className="w-full text-left text-xs sm:text-sm">
+                    <tbody>
+                      {specEntries.map(([key, val], idx) => (
+                        <tr
+                          key={`spec-${idx}`}
+                          className={idx % 2 === 0 ? "bg-slate-50/60" : "bg-white"}
+                        >
+                          <td className="py-2.5 px-3.5 font-bold text-slate-900 w-1/3 sm:w-1/4 border-b border-slate-200/80 uppercase text-[11px]">
+                            {key}
+                          </td>
+                          <td className="py-2.5 px-3.5 text-slate-800 border-b border-slate-200/80 font-medium text-xs">
+                            {String(val)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (

@@ -57,6 +57,82 @@ body {
   font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
+/* Heading Typography & Layout styling for article-rich-body elements */
+.article-rich-body h1 {
+  font-size: 2.25rem !important; /* 36px */
+  line-height: 2.5rem !important;
+  font-weight: 900 !important;
+  color: #0f172a !important; /* slate-900 */
+  margin-top: 1.75rem !important;
+  margin-bottom: 1rem !important;
+  letter-spacing: -0.025em !important;
+}
+
+.article-rich-body h2 {
+  font-size: 1.75rem !important; /* 28px */
+  line-height: 2.125rem !important;
+  font-weight: 800 !important;
+  color: #0f172a !important; /* slate-900 */
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.75rem !important;
+  letter-spacing: -0.02em !important;
+  padding-bottom: 0.35rem !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+
+.article-rich-body h3 {
+  font-size: 1.35rem !important; /* 21.6px */
+  line-height: 1.75rem !important;
+  font-weight: 700 !important;
+  color: #1e293b !important; /* slate-800 */
+  margin-top: 1.25rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.article-rich-body h4 {
+  font-size: 1.125rem !important; /* 18px */
+  line-height: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #334155 !important; /* slate-700 */
+  margin-top: 1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.article-rich-body p {
+  margin-top: 0.75rem !important;
+  margin-bottom: 0.75rem !important;
+  line-height: 1.75 !important;
+}
+
+/* Bullet Point & List Item Alignment Fix (Prevents inner <p> inside <li> from breaking onto a new line) */
+.article-rich-body ul {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.article-rich-body ol {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.article-rich-body li {
+  display: list-item !important;
+  margin-top: 0.35rem !important;
+  margin-bottom: 0.35rem !important;
+  line-height: 1.625 !important;
+}
+
+.article-rich-body li > p,
+.article-rich-body li > div {
+  display: inline !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 /* Custom Red/Slate Enterprise Scrollbar - Always Visible & Bold */
 .custom-scrollbar {
   scrollbar-width: thin;

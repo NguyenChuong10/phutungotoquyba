@@ -25,10 +25,11 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
   const { processedHtml, tocItems } = useMemo(() => {
     if (!content) return { processedHtml: "", tocItems: [] };
 
-    // 0. Clean empty paragraphs, excessive linebreaks & unwrap legacy box card wrapper <div> elements
+    // 0. Clean empty paragraphs, excessive linebreaks, unwrap inner <p> inside <li> & unwrap legacy box card wrapper <div> elements
     let htmlStr = content
       .replace(/<p>\s*(?:&nbsp;|<br\s*\/?>)?\s*<\/p>/gi, "")
       .replace(/(?:<br\s*\/?>\s*){2,}/gi, "<br />")
+      .replace(/<li([^>]*)>\s*<p([^>]*)>([\s\S]*?)<\/p>\s*<\/li>/gi, '<li$1>$3</li>')
       .replace(/<div[^>]*class=["'][^"']*(?:bg-slate-50|border-slate-200|rounded-3xl|shadow-sm|my-10|my-8|space-y-6|space-y-4)[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi, (match, inner) => {
         return `<div class="my-2.5 space-y-2">${inner}</div>`;
       });
@@ -37,8 +38,8 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
     let headingIndex = 0;
     let h2Counter = 0;
 
-    // A. Add IDs & SEO styling to H2 & H3 tags
-    htmlStr = htmlStr.replace(/<(h[23])([^>]*)>([\s\S]*?)<\/\1>/gi, (match, tag, attrs, innerText) => {
+    // A. Add IDs & SEO styling to H1, H2, H3 & H4 tags
+    htmlStr = htmlStr.replace(/<(h[1234])([^>]*)>([\s\S]*?)<\/\1>/gi, (match, tag, attrs, innerText) => {
       headingIndex++;
       
       const textWithoutBadge = innerText.replace(/<span[^>]*w-[0-9]+[^>]*>[\s\S]*?<\/span>/gi, "").trim();
@@ -47,11 +48,11 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
       cleanText = cleanText.replace(/^[\d\.]+\s*[-.:)]?\s*/, "").trim();
 
       const id = `heading-sec-${headingIndex}`;
-      const isH2 = tag.toLowerCase() === "h2";
-      const level = isH2 ? 2 : 3;
+      const tagLower = tag.toLowerCase();
+      const level = tagLower === "h1" ? 1 : tagLower === "h2" ? 2 : tagLower === "h3" ? 3 : 4;
 
       let displayLabel = "•";
-      if (isH2) {
+      if (tagLower === "h1" || tagLower === "h2") {
         h2Counter++;
         displayLabel = `${h2Counter}.`;
       }
@@ -64,9 +65,13 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
         return `<${tag} id="${id}" ${attrs}>${innerText}</${tag}>`;
       }
 
-      const headingClasses = isH2
+      const headingClasses = tagLower === "h1"
+        ? "scroll-mt-36 font-black text-slate-900 font-heading text-2xl sm:text-3xl mt-7 mb-3 pb-2 border-b-2 border-slate-200"
+        : tagLower === "h2"
         ? "scroll-mt-36 font-bold text-slate-900 font-heading text-xl sm:text-2xl mt-6 mb-2 pb-1.5 border-b border-slate-200"
-        : "scroll-mt-36 font-bold text-slate-900 font-heading text-lg sm:text-xl mt-5 mb-2 border-l-4 border-[#D90429] pl-3";
+        : tagLower === "h3"
+        ? "scroll-mt-36 font-bold text-slate-900 font-heading text-lg sm:text-xl mt-5 mb-2 border-l-4 border-[#D90429] pl-3"
+        : "scroll-mt-36 font-semibold text-slate-800 font-heading text-base sm:text-lg mt-4 mb-2 pl-2 border-l-2 border-slate-300";
 
       return `<${tag} id="${id}" ${attrs} class="${headingClasses}">${innerText}</${tag}>`;
     });
@@ -157,11 +162,11 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
     return found.level === 2 ? `${found.displayLabel} ${found.text}` : found.text;
   }, [tocItems, activeTocId]);
 
-  const h2Count = useMemo(() => tocItems.filter((item) => item.level === 2).length, [tocItems]);
+  const mainCount = useMemo(() => tocItems.filter((item) => item.level === 1 || item.level === 2).length, [tocItems]);
   const sectionsBadgeText = useMemo(() => {
-    if (h2Count > 0) return `${h2Count} phần chính`;
+    if (mainCount > 0) return `${mainCount} phần chính`;
     return `${tocItems.length} mục`;
-  }, [h2Count, tocItems.length]);
+  }, [mainCount, tocItems.length]);
 
   return (
     <div className="space-y-4 relative">
@@ -182,17 +187,22 @@ export default function ArticleContentRenderer({ content }: ArticleContentRender
           </div>
 
           <nav className="space-y-1 text-xs font-sans">
-            {tocItems.map((item, idx) => {
+            {tocItems.map((item) => {
               const isActive = activeTocId === item.id;
-              const isH2 = item.level === 2;
+              const levelStyles =
+                item.level === 1
+                  ? "font-extrabold text-slate-900 text-xs sm:text-sm pl-0"
+                  : item.level === 2
+                  ? "font-bold text-slate-800 text-xs pl-2"
+                  : item.level === 3
+                  ? "font-medium text-slate-600 text-[11px] pl-6"
+                  : "font-normal text-slate-500 text-[11px] pl-9";
 
               return (
                 <button
                   key={`toc-${item.id}`}
                   onClick={() => scrollToHeading(item.id)}
-                  className={`group flex items-start gap-2.5 w-full text-left transition-all py-1.5 px-3 rounded-xl cursor-pointer ${
-                    isH2 ? "font-bold text-slate-800" : "pl-7 font-medium text-slate-600 text-[11px]"
-                  } ${
+                  className={`group flex items-start gap-2.5 w-full text-left transition-all py-1.5 px-3 rounded-xl cursor-pointer ${levelStyles} ${
                     isActive
                       ? "text-[#D90429] font-extrabold bg-red-50 border border-red-200/60 shadow-2xs"
                       : "hover:text-[#D90429] hover:bg-slate-100/80"

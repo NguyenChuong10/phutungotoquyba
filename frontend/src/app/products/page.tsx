@@ -122,6 +122,21 @@ function ProductsContent() {
     loadRealtimeBrands();
   }, []);
 
+  // Sync category & subcategory state when navigating via URL searchParams (e.g. from breadcrumbs)
+  useEffect(() => {
+    const cat = searchParams.get("category") || searchParams.get("categorySlug") || "all";
+    const subCat = searchParams.get("subCategory") || searchParams.get("subCategorySlug") || null;
+    const search = searchParams.get("search") || searchParams.get("q") || "";
+
+    setSelectedCategory(cat);
+    setSelectedSubCategory(subCat);
+    if (search) setSearchQuery(search);
+
+    if (cat && cat !== "all") {
+      setExpandedCategories((prev) => ({ ...prev, [cat]: true }));
+    }
+  }, [searchParams]);
+
   const toggleCategoryExpand = (slug: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setExpandedCategories((prev) => ({

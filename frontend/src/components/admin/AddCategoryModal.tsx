@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, FolderPlus, FileText, CornerDownRight, FolderTree } from 'lucide-react';
+import { Sparkles, FolderPlus, FileText, CornerDownRight, FolderTree, X } from 'lucide-react';
 import { AdminApiService } from '@/services/adminApiService';
 
 interface AddCategoryModalProps {
@@ -96,8 +96,14 @@ export default function AddCategoryModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+    <div
+      className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200 cursor-pointer"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-lg max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 cursor-default"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
@@ -113,15 +119,16 @@ export default function AddCategoryModal({
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center cursor-pointer flex-shrink-0"
+            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer flex-shrink-0 transition-colors"
+            title="Đóng"
           >
-            ✕
+            <X className="w-4 h-4 text-slate-500" />
           </button>
         </div>
 
         {/* Error Notification */}
         {errorMsg && (
-          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
+          <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
             {errorMsg}
           </div>
         )}
@@ -136,15 +143,33 @@ export default function AddCategoryModal({
             <select
               value={selectedParentId || 0}
               onChange={(e) => setSelectedParentId(Number(e.target.value) || null)}
-              className="w-full p-2.5 border border-slate-200 rounded-xl text-slate-900 font-bold bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-xs"
+              className="w-full p-2.5 border border-slate-200 rounded-md text-slate-900 font-bold bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-xs"
             >
-              <option value={0}>-- Không thuộc danh mục nào (Là Danh Mục Chính) --</option>
+              <option value={0}>📁 [Thư Mục Cấp Gốc] -- Không Thuộc Danh Mục Nào (Là Danh Mục Chính) --</option>
               {allMainCats.map((main) => (
                 <option key={`parent-cat-${main.id}`} value={main.id}>
-                  📂 {main.name}
+                  📁 {main.name}
                 </option>
               ))}
             </select>
+
+            <div className="mt-2 p-2.5 rounded-md bg-slate-50 border border-slate-200/80 flex items-center gap-2 text-xs">
+              {isSubCategory ? (
+                <>
+                  <CornerDownRight className="w-4 h-4 text-red-600 shrink-0" />
+                  <span className="text-slate-600 font-medium">
+                    Loại danh mục: <strong className="text-red-600 font-bold">Danh Mục Phụ Con</strong> (Trực thuộc thư mục chính)
+                  </span>
+                </>
+              ) : (
+                <>
+                  <FolderTree className="w-4 h-4 text-red-600 shrink-0" />
+                  <span className="text-slate-600 font-medium">
+                    Loại danh mục: <strong className="text-slate-900 font-bold">Danh Mục Chính Gốc</strong> (Thư mục cấp 1 cao nhất)
+                  </span>
+                </>
+              )}
+            </div>
           </div>
 
           <div>
@@ -157,7 +182,7 @@ export default function AddCategoryModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={isSubCategory ? 'vd: Bộ Piston & Xéc Măng' : 'vd: Động Cơ & Máy Phát'}
-              className="w-full p-3 border border-slate-200 rounded-xl text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              className="w-full p-3 border border-slate-200 rounded-md text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-red-500/20"
             />
           </div>
 
@@ -171,7 +196,7 @@ export default function AddCategoryModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Nhập mô tả tóm tắt chủng loại phụ tùng thuộc danh mục này..."
-              className="w-full p-3 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              className="w-full p-3 border border-slate-200 rounded-md text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20"
             />
           </div>
 
@@ -180,14 +205,14 @@ export default function AddCategoryModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
+              className="px-4 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
             >
               Hủy
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-900/30 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+              className="px-5 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-900/30 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
             >
               <Sparkles className="w-4 h-4" />
               <span>{loading ? 'Đang lưu...' : isEditing ? 'Cập Nhật' : 'Tạo Mới'}</span>

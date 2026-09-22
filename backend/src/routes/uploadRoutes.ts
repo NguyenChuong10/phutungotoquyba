@@ -19,13 +19,18 @@ if (!fs.existsSync(uploadDir)) {
 // Multer Storage Engine with SEO filename formatting
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    const rawTitle = req.body?.title || req.body?.name || path.basename(file.originalname, ext);
+    const rawTitle = typeof req.body?.title === "string" 
+      ? req.body.title 
+      : (typeof req.body?.name === "string" ? req.body.name : path.basename(file.originalname, ext));
     
-    let cleanName = rawTitle
+    let cleanName = String(rawTitle || "linh-kien")
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -61,13 +66,13 @@ const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit per file
 });
 
 // POST /api/v1/admin/upload - Upload Single Product Image
 router.post("/", upload.single("image"), UploadController.uploadImage);
 
-// POST /api/v1/admin/upload/multiple - Upload Multiple Product Images (Up to 5 files)
-router.post("/multiple", upload.array("images", 5), UploadController.uploadMultipleImages);
+// POST /api/v1/admin/upload/multiple - Upload Multiple Product Images (Up to 100 files)
+router.post("/multiple", upload.array("images", 100), UploadController.uploadMultipleImages);
 
 export default router;

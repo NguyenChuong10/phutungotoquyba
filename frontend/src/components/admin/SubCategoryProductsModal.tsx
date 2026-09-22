@@ -301,8 +301,14 @@ export default function SubCategoryProductsModal({
   }, [filteredProducts, page, itemsPerPage]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl max-w-6xl w-full h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-slate-200">
+    <div
+      className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200 cursor-pointer"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-lg max-w-6xl w-full h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-slate-200 cursor-default"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Modal Header */}
         <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-slate-900 via-slate-800 to-red-950 text-white flex items-center justify-between flex-shrink-0">
           <div>

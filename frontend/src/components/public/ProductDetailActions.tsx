@@ -34,16 +34,16 @@ export default function ProductDetailActions({ product }: ProductDetailActionsPr
         <button 
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="py-3.5 px-4 rounded-xl bg-brand hover:bg-red-700 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95"
+          className="py-3 px-4 rounded-md bg-brand hover:bg-red-700 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
         >
-          <ShoppingCart size={17} />
+          <ShoppingCart size={16} />
           <span>Báo Giá Zalo 1-Click</span>
         </button>
 
         <button 
           type="button"
           onClick={handleAddToCart}
-          className={`py-3.5 px-4 rounded-xl border font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 ${
+          className={`py-3 px-4 rounded-md border font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98 ${
             isAdded
               ? "bg-emerald-600 border-emerald-600 text-white"
               : "bg-slate-900 hover:bg-slate-800 border-slate-900 text-white"
@@ -51,11 +51,11 @@ export default function ProductDetailActions({ product }: ProductDetailActionsPr
         >
           {isAdded ? (
             <>
-              <Check size={17} /> <span>Đã Thêm Báo Giá</span>
+              <Check size={16} /> <span>Đã Thêm Báo Giá</span>
             </>
           ) : (
             <>
-              <PlusCircle size={17} /> <span>Thêm Vào Danh Sách</span>
+              <PlusCircle size={16} /> <span>Thêm Vào Danh Sách</span>
             </>
           )}
         </button>
@@ -65,10 +65,10 @@ export default function ProductDetailActions({ product }: ProductDetailActionsPr
       <div>
         <a 
           href={`tel:${rawPhone}`}
-          className="w-full py-3 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 text-emerald-800 font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
+          className="w-full py-2.5 px-4 rounded-md bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 text-emerald-800 font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
         >
-          <Phone size={15} className="text-emerald-600 animate-pulse shrink-0" />
-          <span>Gọi Hotline Tư Vấn: {phoneText}</span>
+          <Phone size={14} className="text-emerald-600 animate-pulse shrink-0" />
+          <span>Hotline Tư Vấn Nhanh: {phoneText}</span>
         </a>
       </div>
 

@@ -12,6 +12,7 @@ import StockAdjustmentModal from '@/components/admin/StockAdjustmentModal';
 import ImagePreviewModal from '@/components/ui/ImagePreviewModal';
 import { AdminApiService } from '@/services/adminApiService';
 import { Table, Tag as AntTag, Popconfirm, ConfigProvider } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import {
   Search,
   Plus,
@@ -27,6 +28,7 @@ import {
   ZoomIn,
   Copy,
   Check,
+  RotateCcw,
 } from 'lucide-react';
 
 interface ProductItem {
@@ -70,10 +72,12 @@ export default function AdminProductsPage() {
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>(initialSubCategorySlug);
   const [selectedBrand, setSelectedBrand] = useState<string>('ALL');
 
-  // Dynamic Server-Side Pagination States
+  // Dynamic Server-Side Pagination & Sorting States
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(7); // Default 7 products per page
+  const [limit, setLimit] = useState<number>(10); // Default 10 products per page (Hàng chục)
   const [totalProducts, setTotalProducts] = useState<number>(0);
+  const [sortField, setSortField] = useState<string | undefined>(undefined);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | undefined>(undefined);
 
   // Real-Time Data States from Backend Database
   const [productsList, setProductsList] = useState<ProductItem[]>([]);
@@ -97,7 +101,7 @@ export default function AdminProductsPage() {
   // Quick 1-Click Code Copy State & Handler
   const [copiedCodeKey, setCopiedCodeKey] = useState<string | null>(null);
 
-  const handleCopyCode = (e: React.MouseEvent, codeText: string, label: string, keyId: string) => {
+  const handleCopyCode = useCallback((e: React.MouseEvent, codeText: string, label: string, keyId: string) => {
     e.stopPropagation();
     e.preventDefault();
     if (!codeText || codeText === '—') return;
@@ -122,7 +126,7 @@ export default function AdminProductsPage() {
       title: 'Đã Sao Chép Mã!',
       message: `Đã sao chép ${label} [${codeText}] vào bộ nhớ tạm!`,
     });
-  };
+  }, []);
 
   // Load Metadata (Category Tree & Brands) on Mount
   useEffect(() => {
@@ -158,7 +162,7 @@ export default function AdminProductsPage() {
         if (partnerBrandsRes && partnerBrandsRes.data && Array.isArray(partnerBrandsRes.data)) {
           setBrandsList(partnerBrandsRes.data.map((b: any) => ({ id: b.id, name: b.name })));
         }
-      } catch {}
+      } catch { }
     }
     loadMetadata();
   }, []);
@@ -194,6 +198,8 @@ export default function AdminProductsPage() {
         search: searchQuery.trim() || undefined,
         categoryId: categoryIdParam,
         brandId: brandIdParam,
+        sortBy: sortField,
+        sortOrder,
       });
 
       if (prodRes.ok && prodRes.data) {
@@ -237,14 +243,14 @@ export default function AdminProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, searchQuery, selectedSubCategory, selectedBrand, categoryGroups, brandsList]);
+  }, [page, limit, searchQuery, selectedSubCategory, selectedBrand, categoryGroups, brandsList, sortField, sortOrder]);
 
   useEffect(() => {
     fetchRealtimeProducts();
   }, [fetchRealtimeProducts]);
 
   // Open Edit Modal for Product
-  const handleOpenEditProduct = (prod: ProductItem) => {
+  const handleOpenEditProduct = useCallback((prod: ProductItem) => {
     const raw = prod.rawProduct;
     setEditingProduct({
       id: prod.id,
@@ -268,10 +274,10 @@ export default function AdminProductsPage() {
       slug: prod.subCategorySlug,
     });
     setShowProductModal(true);
-  };
+  }, []);
 
   // Open Add Product Modal
-  const handleOpenAddProduct = () => {
+  const handleOpenAddProduct = useCallback(() => {
     setEditingProduct(null);
     let defaultSub = { id: 1, name: 'Bộ Piston & Xéc Măng', slug: 'piston-xec-mang' };
     if (categoryGroups.length > 0 && categoryGroups[0].subs.length > 0) {
@@ -280,10 +286,10 @@ export default function AdminProductsPage() {
     }
     setActiveSubModal(defaultSub);
     setShowProductModal(true);
-  };
+  }, [categoryGroups]);
 
   // Execute Delete Product via Backend API
-  const executeDeleteProduct = async (productId: number, productSku: string, productName: string) => {
+  const executeDeleteProduct = useCallback(async (productId: number, productSku: string, productName: string) => {
     try {
       const res = await AdminApiService.deleteProduct(productId);
       if (res.ok) {
@@ -310,260 +316,292 @@ export default function AdminProductsPage() {
         message: 'Không thể kết nối đến máy chủ Express backend.',
       });
     }
-  };
+  }, [fetchRealtimeProducts]);
 
-  // Filtered Products List
-  const filteredProducts = useMemo(() => {
-    return productsList.filter((p) => {
-      const q = searchQuery.toLowerCase().trim();
-      const matchesSearch =
-        !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.partNumber.toLowerCase().includes(q) ||
-        p.internalCode.toLowerCase().includes(q) ||
-        p.internalName.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q);
+  // Check if any filter or search or sort is active
+  const isFiltered = useMemo(() => {
+    return Boolean(
+      searchQuery.trim() ||
+      selectedSubCategory !== 'ALL' ||
+      selectedBrand !== 'ALL' ||
+      sortField ||
+      sortOrder
+    );
+  }, [searchQuery, selectedSubCategory, selectedBrand, sortField, sortOrder]);
 
-      const matchesCategory =
-        selectedSubCategory === 'ALL' ||
-        p.subCategorySlug === selectedSubCategory ||
-        p.subCategory === selectedSubCategory ||
-        p.mainCategorySlug === selectedSubCategory ||
-        p.mainCategory === selectedSubCategory;
+  // Reset All Filters & Search Handler
+  const handleResetFilters = useCallback(() => {
+    setSearchQuery('');
+    setSelectedSubCategory('ALL');
+    setSelectedBrand('ALL');
+    setSortField(undefined);
+    setSortOrder(undefined);
+    setPage(1);
+  }, []);
 
-      const matchesBrand = selectedBrand === 'ALL' || p.brand === selectedBrand;
+  // Ant Design Table Change Event Handler
+  const handleTableChange = useCallback((pagination: any, filters: any, sorter: any) => {
+    if (pagination.current && pagination.current !== page) {
+      setPage(pagination.current);
+    }
+    if (pagination.pageSize && pagination.pageSize !== limit) {
+      setLimit(pagination.pageSize);
+      setPage(1);
+    }
 
-      return matchesSearch && matchesCategory && matchesBrand;
-    });
-  }, [productsList, searchQuery, selectedSubCategory, selectedBrand]);
+    // Server-Side Brand Filter Handling from Table Header
+    if (filters && filters.brand && filters.brand.length > 0) {
+      const brandFromFilter = filters.brand[0];
+      if (brandFromFilter !== selectedBrand) {
+        setSelectedBrand(brandFromFilter);
+        setPage(1);
+      }
+    } else if (filters && (filters.brand === null || (Array.isArray(filters.brand) && filters.brand.length === 0))) {
+      if (selectedBrand !== 'ALL') {
+        setSelectedBrand('ALL');
+        setPage(1);
+      }
+    }
 
-  // Ant Design Table Columns Configuration
-  const columns = [
-    {
-      title: 'Ảnh SEO',
-      key: 'image',
-      width: 70,
-      render: (_: any, record: ProductItem) => {
-        const fullImgUrl = formatImageUrl(record.image);
-        return (
-          <div
-            onClick={() => setPreviewImage({ url: fullImgUrl, title: `${record.name} (Mã: ${record.partNumber})` })}
-            className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 relative overflow-hidden flex-shrink-0 shadow-2xs cursor-pointer hover:scale-105 hover:ring-2 hover:ring-red-500 transition-all group"
-            title="Bấm vào hình để phóng to ảnh sản phẩm"
-          >
-            <Image
-              src={fullImgUrl}
-              alt={record.name}
-              fill
-              unoptimized
-              sizes="48px"
-              className="object-contain p-0.5 group-hover:opacity-90"
-            />
-            <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <ZoomIn className="w-4 h-4 text-white drop-shadow-md" />
+    if (sorter && sorter.field && sorter.order) {
+      const field = Array.isArray(sorter.field) ? sorter.field[0] : sorter.field;
+      const order = sorter.order === 'ascend' ? 'asc' : 'desc';
+      setSortField(field);
+      setSortOrder(order);
+      setPage(1);
+    } else if (sorter && !sorter.order) {
+      setSortField(undefined);
+      setSortOrder(undefined);
+    }
+  }, [page, limit, selectedBrand]);
+
+  // Ant Design Table Columns Configuration (Server-Side Sorted & Filtered across Database)
+  const columns: ColumnsType<ProductItem> = useMemo(
+    () => [
+      {
+        title: 'Sản Phẩm & Mã Phụ Tùng',
+        key: 'name',
+        dataIndex: 'name',
+        width: '38%',
+        sorter: true,
+        sortOrder: (sortField === 'name' || sortField === 'internalCode' || sortField === 'partNumber')
+          ? (sortOrder === 'asc' ? 'ascend' : sortOrder === 'desc' ? 'descend' : undefined)
+          : undefined,
+        render: (_: any, record: ProductItem) => {
+          const fullImgUrl = formatImageUrl(record.image);
+          const isSkuCopied = copiedCodeKey === `sku-${record.id}`;
+          const isOeCopied = copiedCodeKey === `oe-${record.id}`;
+          const hasPartNo = Boolean(record.partNumber && record.partNumber.trim());
+
+          return (
+            <div className="flex items-center gap-3 py-0.5">
+              {/* Thumbnail Image */}
+              <div
+                onClick={() => setPreviewImage({ url: fullImgUrl, title: `${record.name} (Mã: ${record.partNumber})` })}
+                className="w-10 h-10 rounded-md bg-slate-100 border border-slate-200/80 relative overflow-hidden flex-shrink-0 shadow-2xs cursor-pointer hover:scale-105 hover:ring-2 hover:ring-red-500 transition-all group"
+                title="Phóng to ảnh sản phẩm"
+              >
+                <Image
+                  src={fullImgUrl}
+                  alt={record.name}
+                  fill
+                  unoptimized
+                  sizes="40px"
+                  className="object-contain p-0.5 group-hover:opacity-90"
+                />
+                <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <ZoomIn className="w-3.5 h-3.5 text-white drop-shadow-md" />
+                </div>
+              </div>
+
+              {/* Names & Codes */}
+              <div className="min-w-0 flex-1 max-w-[240px] sm:max-w-[320px]">
+                <div className="font-extrabold text-slate-900 text-xs truncate" title={record.name}>
+                  {record.name}
+                </div>
+
+                {Boolean(record.internalName) && (
+                  <div className="text-[11px] text-slate-500 truncate mt-0.5 flex items-center gap-1" title={`Nội bộ: ${record.internalName}`}>
+                    <Lock className="w-3 h-3 text-slate-400 shrink-0 inline" />
+                    <span className="truncate">Nội bộ: {record.internalName}</span>
+                  </div>
+                )}
+
+                {/* SKU & OE Codes Row */}
+                <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                  {/* SKU Pill */}
+                  <button
+                    type="button"
+                    onClick={(e) => handleCopyCode(e, record.internalCode, 'Mã SKU Kho', `sku-${record.id}`)}
+                    className="group/sku inline-flex items-center gap-1 font-mono text-[11px] font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded border border-slate-200/80 transition-all cursor-pointer"
+                    title={`Copy SKU: ${record.internalCode}`}
+                  >
+                    <span>SKU: {record.internalCode || '—'}</span>
+                    {isSkuCopied ? (
+                      <Check size={11} className="text-emerald-600 shrink-0" />
+                    ) : (
+                      <Copy size={10} className="text-slate-400 opacity-0 group-hover/sku:opacity-100 transition-opacity shrink-0" />
+                    )}
+                  </button>
+
+                  {/* OE Pill */}
+                  {hasPartNo ? (
+                    <button
+                      type="button"
+                      onClick={(e) => handleCopyCode(e, record.partNumber, 'Mã OE / Part No', `oe-${record.id}`)}
+                      className="group/oe inline-flex items-center gap-1 font-mono font-extrabold text-red-600 text-[11px] bg-red-50 hover:bg-red-100 px-1.5 py-0.5 rounded transition-all cursor-pointer"
+                      title={`Copy OE: ${record.partNumber}`}
+                    >
+                      <span>OE: {record.partNumber}</span>
+                      {isOeCopied ? (
+                        <Check size={11} className="text-emerald-600 shrink-0" />
+                      ) : (
+                        <Copy size={10} className="text-red-400 opacity-0 group-hover/oe:opacity-100 transition-opacity shrink-0" />
+                      )}
+                    </button>
+                  ) : (
+                    <span className="italic text-slate-400 text-[10px]">(Chưa có mã OE)</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        title: 'Phân Loại & Thương Hiệu',
+        key: 'brand',
+        dataIndex: 'brand',
+        width: '22%',
+        sorter: true,
+        sortOrder: (sortField === 'brand' ? (sortOrder === 'asc' ? 'ascend' : sortOrder === 'desc' ? 'descend' : undefined) : undefined),
+        filters: brandsList.map((b) => ({ text: b.name, value: b.name })),
+        filterMultiple: false,
+        filteredValue: selectedBrand !== 'ALL' ? [selectedBrand] : null,
+        render: (brand: string, record: ProductItem) => (
+          <div className="space-y-1">
+            <div className="font-bold text-slate-800 text-[11px] truncate">
+              {record.mainCategory} &gt; <span className="text-red-600 font-semibold">{record.subCategory}</span>
+            </div>
+            <div>
+              {!brand || brand === 'Chưa Phân Loại' || brand === 'Chưa phân loại' || brand === 'Không' || brand === 'Không có thương hiệu' ? (
+                <span className="text-slate-400 text-[11px] font-normal italic">-</span>
+              ) : (
+                <AntTag color="red" className="font-bold text-[10px] rounded-md px-1.5 py-0">
+                  {brand}
+                </AntTag>
+              )}
             </div>
           </div>
-        );
+        ),
       },
-    },
-    {
-      title: 'Mã SKU Kho (*)',
-      key: 'internalCode',
-      sorter: (a: ProductItem, b: ProductItem) => a.internalCode.localeCompare(b.internalCode),
-      render: (_: any, record: ProductItem) => {
-        const isSkuCopied = copiedCodeKey === `sku-${record.id}`;
-        return (
-          <button
-            type="button"
-            onClick={(e) => handleCopyCode(e, record.internalCode, 'Mã SKU Kho', `sku-${record.id}`)}
-            className="group/sku flex items-center gap-1 font-mono text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border border-slate-200/80 transition-all cursor-pointer text-left"
-            title={`Bấm vào để copy nhanh mã SKU Kho [${record.internalCode}]`}
-          >
-            <span className="group-hover/sku:underline">{record.internalCode || '—'}</span>
-            {isSkuCopied ? (
-              <Check size={12} className="text-emerald-600 shrink-0" />
-            ) : (
-              <Copy size={11} className="text-slate-400 opacity-0 group-hover/sku:opacity-100 transition-opacity shrink-0" />
-            )}
-          </button>
-        );
-      },
-    },
-    {
-      title: 'Mã OE / Part No',
-      dataIndex: 'partNumber',
-      key: 'partNumber',
-      sorter: (a: ProductItem, b: ProductItem) => a.partNumber.localeCompare(b.partNumber),
-      render: (_: any, record: ProductItem) => {
-        const hasPartNo = Boolean(record.partNumber && record.partNumber.trim());
-        const isOeCopied = copiedCodeKey === `oe-${record.id}`;
-
-        if (!hasPartNo) {
-          return <span className="italic text-slate-400 font-sans text-[11px]">(Chưa có mã)</span>;
-        }
-
-        return (
-          <button
-            type="button"
-            onClick={(e) => handleCopyCode(e, record.partNumber, 'Mã OE / Part No', `oe-${record.id}`)}
-            className="group/oe flex items-center gap-1 font-mono font-extrabold text-red-600 text-xs leading-snug hover:bg-red-50 px-1.5 py-0.5 rounded transition-all cursor-pointer text-left"
-            title={`Bấm vào để copy nhanh mã OE / Part No [${record.partNumber}]`}
-          >
-            <span className="group-hover/oe:underline">{record.partNumber}</span>
-            {isOeCopied ? (
-              <Check size={12} className="text-emerald-600 shrink-0" />
-            ) : (
-              <Copy size={11} className="text-red-400 opacity-0 group-hover/oe:opacity-100 transition-opacity shrink-0" />
-            )}
-          </button>
-        );
-      },
-    },
-    {
-      title: 'Tên Công Khai & Nội Bộ',
-      key: 'names',
-      sorter: (a: ProductItem, b: ProductItem) => a.name.localeCompare(b.name),
-      render: (_: any, record: ProductItem) => (
-        <div className="max-w-xs">
-          <div className="font-extrabold text-slate-900 text-xs line-clamp-1">{record.name}</div>
-          <div className="text-[11px] text-slate-400 line-clamp-1 mt-0.5 flex items-center gap-1">
-            <Lock className="w-3 h-3 text-slate-400 inline shrink-0" />
-            <span>Nội bộ: {record.internalName}</span>
+      {
+        title: 'Tồn Kho & Trạng Thái',
+        key: 'stock',
+        dataIndex: 'stock',
+        width: '14%',
+        sorter: true,
+        sortOrder: (sortField === 'stock' || sortField === 'status')
+          ? (sortOrder === 'asc' ? 'ascend' : sortOrder === 'desc' ? 'descend' : undefined)
+          : undefined,
+        render: (stock: number, record: ProductItem) => (
+          <div className="space-y-1">
+            <div className="font-extrabold text-slate-900 text-xs">
+              {stock} cái
+            </div>
+            <div>
+              <AntTag
+                color={record.status === 'CÒN HÀNG' ? 'green' : record.status === 'SẮP HẾT HÀNG' ? 'gold' : 'volcano'}
+                className="font-extrabold text-[10px] rounded-md px-1.5 py-0"
+              >
+                {record.status}
+              </AntTag>
+            </div>
           </div>
-        </div>
-      ),
-    },
-    {
-      title: 'Danh Mục Phân Cấp',
-      key: 'category',
-      render: (_: any, record: ProductItem) => (
-        <div>
-          <div className="font-bold text-slate-800 text-[11px]">{record.mainCategory}</div>
-          <div className="text-[10px] text-red-600 font-semibold mt-0.5">
-            - {record.subCategory}
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: 'Thương Hiệu',
-      dataIndex: 'brand',
-      key: 'brand',
-      filters: brandsList.map((b) => ({ text: b.name, value: b.name })),
-      onFilter: (value: any, record: ProductItem) => record.brand === value,
-      render: (brand: string) => {
-        if (!brand || brand === 'Chưa Phân Loại' || brand === 'Chưa phân loại' || brand === 'Không' || brand === 'Không có thương hiệu') {
-          return <span className="text-slate-400 font-normal italic text-xs">-</span>;
-        }
-        return (
-          <AntTag color="red" className="font-bold text-xs">
-            {brand}
-          </AntTag>
-        );
+        ),
       },
-    },
-    {
-      title: 'Tồn Kho',
-      dataIndex: 'stock',
-      key: 'stock',
-      sorter: (a: ProductItem, b: ProductItem) => a.stock - b.stock,
-      render: (stock: number) => (
-        <AntTag color={stock === 0 ? 'volcano' : stock <= 5 ? 'gold' : 'blue'} className="font-extrabold text-xs">
-          {stock} cái
-        </AntTag>
-      ),
-    },
-    {
-      title: 'Đơn Giá / Giá Vốn',
-      key: 'pricing',
-      render: (_: any, record: ProductItem) => (
-        <div>
-          <div className="font-extrabold text-slate-900 text-xs">{record.price}</div>
-          <div className="text-[10px] text-slate-400">Vốn: {record.costPrice}</div>
-        </div>
-      ),
-    },
-    {
-      title: 'Trạng Thái',
-      dataIndex: 'status',
-      key: 'status',
-      filters: [
-        { text: 'Còn hàng', value: 'CÒN HÀNG' },
-        { text: 'Sắp hết hàng', value: 'SẮP HẾT HÀNG' },
-        { text: 'Hết hàng', value: 'HẾT HÀNG' },
-      ],
-      onFilter: (value: any, record: ProductItem) => record.status === value,
-      render: (status: string) => (
-        <AntTag color={status === 'CÒN HÀNG' ? 'green' : status === 'SẮP HẾT HÀNG' ? 'gold' : 'volcano'} className="font-extrabold text-xs">
-          {status}
-        </AntTag>
-      ),
-    },
-    {
-      title: 'Thao Tác Hỏa Tốc',
-      key: 'actions',
-      align: 'right' as const,
-      render: (_: any, record: ProductItem) => (
-        <div className="flex items-center justify-end gap-1.5">
-          <button
-            onClick={() => setStockModalProduct(record)}
-            className="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white font-extrabold transition-all cursor-pointer flex items-center gap-1 text-[10px]"
-            title="Nhập kho / Quản lý tồn kho & Giá"
-          >
-            <Package className="w-3.5 h-3.5 text-emerald-600 group-hover:text-white" />
-            <span>Kho ({record.stock})</span>
-          </button>
-
-          <Link
-            href={getProductUrl(record)}
-            target="_blank"
-            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all"
-            title="Xem công khai trên website"
-          >
-            <Eye className="w-3.5 h-3.5" />
-          </Link>
-
-          <button
-            onClick={() => handleOpenEditProduct(record)}
-            className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all cursor-pointer"
-            title="Chỉnh sửa sản phẩm"
-          >
-            <Edit className="w-3.5 h-3.5" />
-          </button>
-
-          <Popconfirm
-            title="Xóa sản phẩm này?"
-            description={`Bạn có chắc muốn xóa [${record.partNumber} - ${record.name}] khỏi hệ thống kho?`}
-            onConfirm={() => executeDeleteProduct(record.id, record.partNumber, record.name)}
-            okText="Xóa"
-            cancelText="Hủy"
-            okButtonProps={{ danger: true }}
-          >
+      {
+        title: 'Đơn Giá / Giá Vốn',
+        key: 'price',
+        dataIndex: 'price',
+        width: '14%',
+        sorter: true,
+        sortOrder: (sortField === 'price' ? (sortOrder === 'asc' ? 'ascend' : sortOrder === 'desc' ? 'descend' : undefined) : undefined),
+        render: (_: any, record: ProductItem) => (
+          <div className="space-y-0.5">
+            <div className="font-extrabold text-slate-900 text-xs sm:text-sm">{record.price}</div>
+            <div className="text-[10px] text-slate-400 font-medium">Vốn: {record.costPrice}</div>
+          </div>
+        ),
+      },
+      {
+        title: 'Thao Tác',
+        key: 'actions',
+        align: 'left' as const,
+        width: '12%',
+        render: (_: any, record: ProductItem) => (
+          <div className="flex items-center justify-end gap-1.5">
             <button
-              className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all cursor-pointer"
-              title="Xoá sản phẩm"
+              onClick={() => setStockModalProduct(record)}
+              className="px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white font-extrabold transition-colors cursor-pointer flex items-center gap-1 text-[10px]"
+              title="Quản lý tồn kho & Giá"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Package className="w-3.5 h-3.5 text-emerald-600 group-hover:text-white" />
+              <span>Kho ({record.stock})</span>
             </button>
-          </Popconfirm>
-        </div>
-      ),
-    },
-  ];
+
+            <Link
+              href={getProductUrl(record)}
+              target="_blank"
+              className="p-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+              title="Xem công khai"
+            >
+              <Eye className="w-3.5 h-3.5" />
+            </Link>
+
+            <button
+              onClick={() => handleOpenEditProduct(record)}
+              className="p-1.5 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
+              title="Chỉnh sửa"
+            >
+              <Edit className="w-3.5 h-3.5" />
+            </button>
+
+            <Popconfirm
+              title="Xóa sản phẩm này?"
+              description={`Bạn có chắc muốn xóa [${record.partNumber} - ${record.name}] khỏi hệ thống kho?`}
+              onConfirm={() => executeDeleteProduct(record.id, record.partNumber, record.name)}
+              okText="Xóa"
+              cancelText="Hủy"
+              okButtonProps={{ danger: true }}
+            >
+              <button
+                className="p-1.5 rounded-md bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+                title="Xoá"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </Popconfirm>
+          </div>
+        ),
+      },
+    ],
+    [copiedCodeKey, sortField, sortOrder, brandsList, handleCopyCode, handleOpenEditProduct, executeDeleteProduct]
+  );
 
   return (
     <ConfigProvider
       theme={{
         token: {
           colorPrimary: '#dc2626',
-          borderRadius: 12,
+          borderRadius: 6,
           fontFamily: 'var(--font-inter), sans-serif',
         },
       }}
     >
-      <div className="space-y-6 pb-12 w-full max-w-full overflow-x-hidden">
-        {/* Header Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs w-full max-w-full">
+      <div className="space-y-4 pb-6 w-full max-w-full overflow-x-hidden">
+        {/* Header Bar (Standardized rounded-lg, p-4 sm:p-5 to match /admin/categories) */}
+        <div className="bg-white p-4 sm:p-5 rounded-lg border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full max-w-full">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
@@ -589,7 +627,7 @@ export default function AdminProductsPage() {
                   message: `Đã xuất danh sách ${totalProducts} sản phẩm kho ra file Excel!`,
                 });
               }}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer"
+              className="px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer border border-slate-200/80"
             >
               <Download className="w-4 h-4 text-emerald-600" />
               <span>Xuất Excel Kho</span>
@@ -597,7 +635,7 @@ export default function AdminProductsPage() {
 
             <button
               onClick={handleOpenAddProduct}
-              className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+              className="px-3.5 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Thêm Sản Phẩm Mới</span>
@@ -605,99 +643,109 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        {/* Toolbar Search & Filter Dropdowns */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 w-full max-w-full">
-          {/* Search Input */}
-          <div className="relative flex-1 max-w-md w-full">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1);
+        {/* Cohesive Toolbar & Table Container (Matches /admin/categories format) */}
+        <div className="bg-white rounded-lg border border-slate-200/80 shadow-xs overflow-hidden w-full max-w-full">
+          {/* Toolbar Search & Filter Header Bar */}
+          <div className="p-3.5 sm:p-4 border-b border-slate-200/80 bg-slate-50/70 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-md w-full">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Tìm theo Mã Phụ Tùng, Mã Nội Bộ, Tên công khai hoặc tên nội bộ..."
+                className="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 font-medium"
+              />
+            </div>
+
+            {/* Filter Dropdowns Container */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Category Filter Dropdown */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+                <FolderTree className="w-4 h-4 text-red-600 shrink-0" />
+                <select
+                  value={selectedSubCategory}
+                  onChange={(e) => {
+                    setSelectedSubCategory(e.target.value);
+                    setPage(1);
+                  }}
+                  className="px-2.5 py-1.5 text-xs font-semibold border border-slate-200 rounded-md bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500/20 max-w-xs"
+                >
+                  <option value="ALL">Tất cả danh mục sản phẩm</option>
+                  {categoryGroups.map((group) => (
+                    <optgroup key={`cat-grp-${group.id}`} label={`📂 ${group.main}`}>
+                      <option value={group.mainSlug || group.main}>
+                        📁 [Tất cả mã thuộc: {group.main}]
+                      </option>
+                      {group.subs.map((sub) => (
+                        <option key={`sub-opt-${sub.id}`} value={sub.slug}>
+                          -- {sub.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+
+              {/* Brand Filter Dropdown */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+                <Tag className="w-4 h-4 text-red-600 shrink-0" />
+                <select
+                  value={selectedBrand}
+                  onChange={(e) => {
+                    setSelectedBrand(e.target.value);
+                    setPage(1);
+                  }}
+                  className="px-2.5 py-1.5 text-xs font-semibold border border-slate-200 rounded-md bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                >
+                  <option value="ALL">Tất cả thương hiệu</option>
+                  {brandsList.map((b) => (
+                    <option key={`b-opt-${b.id}`} value={b.name}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Reset Filters Button */}
+              {isFiltered && (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="px-2.5 py-1.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs transition-colors flex items-center gap-1.5 border border-red-200/80 cursor-pointer shadow-2xs"
+                  title="Đặt lại tất cả bộ lọc, sắp xếp và tìm kiếm"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-red-600" />
+                  <span>Đặt lại bộ lọc</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Table Container with Inner Padding to Prevent Border Sticking */}
+          <div className="p-3.5 sm:p-4">
+            <Table
+              columns={columns}
+              dataSource={productsList}
+              rowKey="id"
+              loading={loading}
+              onChange={handleTableChange}
+              pagination={{
+                current: page,
+                pageSize: limit,
+                total: totalProducts,
+                pageSizeOptions: ['10', '20', '30', '40', '50', '100'],
+                showSizeChanger: true,
+                showTotal: (total, range) => `${range[0]}-${range[1]} / Tổng ${total} sản phẩm kho Q.BA`,
               }}
-              placeholder="Tìm theo Mã Phụ Tùng, Mã Nội Bộ, Tên công khai hoặc tên nội bộ..."
-              className="w-full pl-10 pr-4 py-2 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 text-slate-800 font-medium"
+              scroll={{ x: 'max-content' }}
+              size="middle"
             />
           </div>
-
-          {/* Filter Dropdowns Container */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Category Filter Dropdown */}
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-              <FolderTree className="w-4 h-4 text-red-600 shrink-0" />
-              <select
-                value={selectedSubCategory}
-                onChange={(e) => {
-                  setSelectedSubCategory(e.target.value);
-                  setPage(1);
-                }}
-                className="px-3 py-2 text-xs font-semibold border border-slate-200 rounded-xl bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500/20 max-w-xs"
-              >
-                <option value="ALL">Tất cả danh mục sản phẩm</option>
-                {categoryGroups.map((group) => (
-                  <optgroup key={`cat-grp-${group.id}`} label={`📂 ${group.main}`}>
-                    <option value={group.mainSlug || group.main}>
-                      📁 [Tất cả mã thuộc: {group.main}]
-                    </option>
-                    {group.subs.map((sub) => (
-                      <option key={`sub-opt-${sub.id}`} value={sub.slug}>
-                        -- {sub.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </div>
-
-            {/* Brand Filter Dropdown */}
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-              <Tag className="w-4 h-4 text-red-600 shrink-0" />
-              <select
-                value={selectedBrand}
-                onChange={(e) => {
-                  setSelectedBrand(e.target.value);
-                  setPage(1);
-                }}
-                className="px-3 py-2 text-xs font-semibold border border-slate-200 rounded-xl bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500/20"
-              >
-                <option value="ALL">Tất cả thương hiệu</option>
-                {brandsList.map((b) => (
-                  <option key={`b-opt-${b.id}`} value={b.name}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* ENTERPRISE ANT DESIGN DATA TABLE (Server-Side Paginated) */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden p-2 w-full max-w-full">
-          <Table
-            columns={columns}
-            dataSource={productsList}
-            rowKey="id"
-            loading={loading}
-            pagination={{
-              current: page,
-              pageSize: limit,
-              total: totalProducts,
-              pageSizeOptions: ['7', '14', '21', '50'],
-              showSizeChanger: true,
-              onChange: (newPage, newPageSize) => {
-                setPage(newPage);
-                if (newPageSize && newPageSize !== limit) {
-                  setLimit(newPageSize);
-                  setPage(1);
-                }
-              },
-              showTotal: (total, range) => `${range[0]}-${range[1]} / Tổng ${total} sản phẩm kho Q.BA`,
-            }}
-            scroll={{ x: 'max-content' }}
-            size="middle"
-          />
         </div>
 
         {/* STOCK ADJUSTMENT MODAL */}

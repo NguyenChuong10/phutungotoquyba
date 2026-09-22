@@ -183,6 +183,8 @@ export class ProductService {
     brandId?: number;
     page?: number;
     limit?: number;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
   }) {
     const page = Math.max(query.page || 1, 1);
     const limit = Math.min(query.limit || 10, 5000);
@@ -222,13 +224,50 @@ export class ProductService {
       whereCondition.AND = andConditions;
     }
 
+    // Dynamic Server-Side Sorting Order
+    let orderByCondition: any = { createdAt: "desc" };
+    if (query.sortBy) {
+      const order = query.sortOrder === "asc" ? "asc" : "desc";
+      switch (query.sortBy) {
+        case "internalCode":
+          orderByCondition = { internalCode: order };
+          break;
+        case "partNumber":
+          orderByCondition = { partNumber: order };
+          break;
+        case "name":
+          orderByCondition = { name: order };
+          break;
+        case "brand":
+          orderByCondition = [
+            { brand: { name: order } },
+            { name: "asc" },
+          ];
+          break;
+        case "stock":
+          orderByCondition = { stockQuantity: order };
+          break;
+        case "price":
+          orderByCondition = { price: order };
+          break;
+        case "status":
+          orderByCondition = { stockQuantity: order };
+          break;
+        case "createdAt":
+          orderByCondition = { createdAt: order };
+          break;
+        default:
+          orderByCondition = { createdAt: "desc" };
+      }
+    }
+
     const [total, products] = await Promise.all([
       prisma.product.count({ where: whereCondition }),
       prisma.product.findMany({
         where: whereCondition,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: orderByCondition,
         include: {
           category: {
             select: { id: true, name: true, slug: true, parent: { select: { id: true, name: true, slug: true } } },

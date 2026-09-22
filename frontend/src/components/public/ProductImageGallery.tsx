@@ -40,7 +40,7 @@ export default function ProductImageGallery({
       {/* Main Image Container */}
       <div 
         onClick={() => setIsPreviewOpen(true)}
-        className="relative w-full h-[360px] sm:h-[440px] bg-slate-50 rounded-2xl overflow-hidden border border-slate-200/90 shadow-xs group cursor-zoom-in"
+        className="relative w-full h-[360px] sm:h-[440px] bg-slate-50 rounded-md overflow-hidden border border-slate-200 shadow-xs group cursor-zoom-in"
       >
         <Image
           key={`active-img-${selectedIdx}`}
@@ -54,25 +54,27 @@ export default function ProductImageGallery({
 
         {/* Quality Standard Badge */}
         {qualityStandard && qualityStandard.trim() && (
-          <div className="absolute top-3 left-3 px-3 py-1 rounded-lg bg-brand text-white text-[11px] font-black uppercase shadow-xs z-10">
+          <div className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-brand text-white text-[11px] font-black uppercase shadow-xs z-10">
             {qualityStandard}
           </div>
         )}
 
         {/* Brand Badge */}
-        <div className="absolute top-3 right-3 px-3 py-1 rounded-lg bg-slate-900/90 text-white text-[11px] font-bold uppercase backdrop-blur-xs z-10">
-          {brandName}
-        </div>
+        {brandName && brandName.trim() !== '' && brandName !== 'Không' && (
+          <div className="absolute top-3 right-3 px-2.5 py-1 rounded-md bg-slate-900 text-white text-[11px] font-bold uppercase z-10">
+            {brandName}
+          </div>
+        )}
 
         {/* Image Zoom Hint Pill */}
-        <div className="absolute bottom-3 left-3 px-3 py-1 rounded-xl bg-slate-900/80 text-white text-xs font-bold backdrop-blur-xs flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+        <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-md bg-slate-900/90 text-white text-xs font-bold flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
           <ZoomIn className="w-4 h-4 text-brand" />
-          <span>Click để phóng to ảnh sắc nét</span>
+          <span>Click để phóng to ảnh</span>
         </div>
 
         {/* Image Counter Pill */}
         {safeImages.length > 1 && (
-          <div className="absolute bottom-3 right-3 px-2.5 py-0.5 rounded-full bg-slate-900/70 text-white text-[10px] font-mono font-bold backdrop-blur-xs z-10">
+          <div className="absolute bottom-3 right-3 px-2 py-0.5 rounded-md bg-slate-900/80 text-white text-[10px] font-mono font-bold z-10">
             {selectedIdx + 1} / {safeImages.length}
           </div>
         )}
@@ -84,7 +86,7 @@ export default function ProductImageGallery({
               type="button"
               onClick={handlePrev}
               aria-label="Ảnh trước"
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow-md transition-all hover:scale-110 cursor-pointer z-20 border border-slate-200"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-md bg-white hover:bg-slate-100 text-slate-800 flex items-center justify-center shadow-md transition-all cursor-pointer z-20 border border-slate-200"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -93,7 +95,7 @@ export default function ProductImageGallery({
               type="button"
               onClick={handleNext}
               aria-label="Ảnh tiếp theo"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow-md transition-all hover:scale-110 cursor-pointer z-20 border border-slate-200"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-md bg-white hover:bg-slate-100 text-slate-800 flex items-center justify-center shadow-md transition-all cursor-pointer z-20 border border-slate-200"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -103,7 +105,7 @@ export default function ProductImageGallery({
 
       {/* Gallery Thumbnails List */}
       {safeImages.length > 1 && (
-        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5 pt-1">
+        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 pt-0.5">
           {safeImages.map((img: string, idx: number) => {
             const isSelected = idx === selectedIdx;
             return (
@@ -111,10 +113,10 @@ export default function ProductImageGallery({
                 key={`gallery-thumb-${idx}`}
                 type="button"
                 onClick={() => setSelectedIdx(idx)}
-                className={`relative h-20 rounded-xl bg-slate-100 overflow-hidden border-2 transition-all cursor-pointer ${
+                className={`relative h-18 rounded-md bg-slate-100 overflow-hidden border-2 transition-all cursor-pointer ${
                   isSelected
-                    ? "border-brand ring-2 ring-brand/20 opacity-100"
-                    : "border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100"
+                    ? "border-brand ring-1 ring-brand/30 opacity-100"
+                    : "border-slate-200 hover:border-slate-400 opacity-70 hover:opacity-100"
                 }`}
               >
                 <Image
@@ -130,7 +132,7 @@ export default function ProductImageGallery({
         </div>
       )}
 
-      {/* Lightbox Zoom Modal for High-Res Original Image Inspection */}
+      {/* Lightbox Zoom Modal */}
       <ImagePreviewModal
         isOpen={isPreviewOpen}
         imageUrl={formatImageUrl(activeImage)}

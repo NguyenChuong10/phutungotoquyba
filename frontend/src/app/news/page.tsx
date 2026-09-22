@@ -23,6 +23,7 @@ import {
   Filter
 } from "lucide-react";
 import { AdminApiService } from "@/services/adminApiService";
+import { fetchApi } from "@/config/api";
 
 interface ArticleUIItem {
   id: number | string;
@@ -112,9 +113,9 @@ export default function NewsIndexPage() {
     async function loadNews() {
       setLoading(true);
       try {
-        const res = await AdminApiService.getNewsList();
+        const res = await fetchApi('/news');
         if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
-          const publishedArticles = res.data.filter((art: any) => art.isPublished !== false);
+          const publishedArticles = res.data;
           const mapped: ArticleUIItem[] = publishedArticles.map((art: any) => ({
             id: art.id,
             title: art.title,
