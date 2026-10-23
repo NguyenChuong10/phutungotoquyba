@@ -23,6 +23,7 @@ import {
   ShoppingBag,
   Megaphone,
   Cog,
+  Cpu,
 } from 'lucide-react';
 import { useAdminSidebar } from './AdminSidebarContext';
 import { useAdminNotification } from '@/context/AdminNotificationContext';
@@ -69,6 +70,13 @@ const MENU_SECTIONS: MenuSection[] = [
         href: '/admin/categories',
         icon: Layers,
         badge: null,
+      },
+      {
+        name: 'Tích Hợp Odoo ERP',
+        href: '/admin/odoo',
+        icon: Cpu,
+        badge: null,
+
       },
     ],
   },

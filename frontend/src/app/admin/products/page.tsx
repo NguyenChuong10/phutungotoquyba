@@ -29,6 +29,8 @@ import {
   Copy,
   Check,
   RotateCcw,
+  Globe,
+  Cpu,
 } from 'lucide-react';
 
 interface ProductItem {
@@ -50,6 +52,8 @@ interface ProductItem {
   status: 'CÒN HÀNG' | 'SẮP HẾT HÀNG' | 'HẾT HÀNG';
   image: string;
   rawProduct: any;
+  isOdooLinked?: boolean;
+  odooProductId?: number | null;
 }
 
 interface CategoryOptionGroup {
@@ -71,6 +75,7 @@ export default function AdminProductsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>(initialSubCategorySlug);
   const [selectedBrand, setSelectedBrand] = useState<string>('ALL');
+  const [selectedLinkFilter, setSelectedLinkFilter] = useState<'ALL' | 'LINKED' | 'UNLINKED'>('ALL');
 
   // Dynamic Server-Side Pagination & Sorting States
   const [page, setPage] = useState<number>(1);
@@ -192,6 +197,10 @@ export default function AdminProductsPage() {
         if (matchedBrand) brandIdParam = matchedBrand.id;
       }
 
+      let isOdooLinkedParam: boolean | undefined = undefined;
+      if (selectedLinkFilter === 'LINKED') isOdooLinkedParam = true;
+      else if (selectedLinkFilter === 'UNLINKED') isOdooLinkedParam = false;
+
       const prodRes = await AdminApiService.getAdminProducts({
         page,
         limit,
@@ -200,6 +209,7 @@ export default function AdminProductsPage() {
         brandId: brandIdParam,
         sortBy: sortField,
         sortOrder,
+        isOdooLinked: isOdooLinkedParam,
       });
 
       if (prodRes.ok && prodRes.data) {
@@ -232,6 +242,8 @@ export default function AdminProductsPage() {
             status: statusStr,
             image: primaryImg,
             rawProduct: p,
+            isOdooLinked: Boolean(p.isOdooLinked || p.odooProductId),
+            odooProductId: p.odooProductId,
           };
         });
 
@@ -243,7 +255,7 @@ export default function AdminProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, searchQuery, selectedSubCategory, selectedBrand, categoryGroups, brandsList, sortField, sortOrder]);
+  }, [page, limit, searchQuery, selectedSubCategory, selectedBrand, selectedLinkFilter, categoryGroups, brandsList, sortField, sortOrder]);
 
   useEffect(() => {
     fetchRealtimeProducts();
@@ -324,16 +336,18 @@ export default function AdminProductsPage() {
       searchQuery.trim() ||
       selectedSubCategory !== 'ALL' ||
       selectedBrand !== 'ALL' ||
+      selectedLinkFilter !== 'ALL' ||
       sortField ||
       sortOrder
     );
-  }, [searchQuery, selectedSubCategory, selectedBrand, sortField, sortOrder]);
+  }, [searchQuery, selectedSubCategory, selectedBrand, selectedLinkFilter, sortField, sortOrder]);
 
   // Reset All Filters & Search Handler
   const handleResetFilters = useCallback(() => {
     setSearchQuery('');
     setSelectedSubCategory('ALL');
     setSelectedBrand('ALL');
+    setSelectedLinkFilter('ALL');
     setSortField(undefined);
     setSortOrder(undefined);
     setPage(1);
@@ -415,11 +429,13 @@ export default function AdminProductsPage() {
               </div>
 
               {/* Names & Codes */}
-              <div className="min-w-0 flex-1 max-w-[240px] sm:max-w-[320px]">
-                <div className="font-extrabold text-slate-900 text-xs truncate" title={record.name}>
+              <div className="min-w-0 flex-1">
+                {/* Dòng 1: Tên sản phẩm */}
+                <div className="font-extrabold text-slate-900 text-xs sm:text-[13px] leading-snug truncate" title={record.name}>
                   {record.name}
                 </div>
 
+                {/* Dòng 2: Tên nội bộ (nếu có) */}
                 {Boolean(record.internalName) && (
                   <div className="text-[11px] text-slate-500 truncate mt-0.5 flex items-center gap-1" title={`Nội bộ: ${record.internalName}`}>
                     <Lock className="w-3 h-3 text-slate-400 shrink-0 inline" />
@@ -427,8 +443,8 @@ export default function AdminProductsPage() {
                   </div>
                 )}
 
-                {/* SKU & OE Codes Row */}
-                <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                {/* Dòng 3: Mã SKU & OE Codes Row */}
+                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                   {/* SKU Pill */}
                   <button
                     type="button"
@@ -516,6 +532,25 @@ export default function AdminProductsPage() {
               >
                 {record.status}
               </AntTag>
+              <div className="flex items-center gap-1.5 mb-1 mt-1">
+                  {record.isOdooLinked ? (
+                    <span
+                      className="inline-flex items-center gap-1.5 font-sans text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-300 shadow-2xs"
+                      title={`Đã liên kết Odoo ERP (ID: ${record.odooProductId || ''})`}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Kho Q.BA (ERP)
+                    </span>
+                  ) : (
+                    <span
+                      className="inline-flex items-center gap-1.5 font-sans text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-300"
+                      title="Sản phẩm F tự thêm để làm SEO, chưa liên kết ERP"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      Bài viết SEO
+                    </span>
+                  )}
+                </div>
             </div>
           </div>
         ),
@@ -633,6 +668,14 @@ export default function AdminProductsPage() {
               <span>Xuất Excel Kho</span>
             </button>
 
+            <Link
+              href="/admin/odoo"
+              className="px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer border border-slate-200/80"
+            >
+              <Cpu className="w-4 h-4 text-slate-600" />
+              <span>Cấu Hình Odoo ERP</span>
+            </Link>
+
             <button
               onClick={handleOpenAddProduct}
               className="px-3.5 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
@@ -677,9 +720,9 @@ export default function AdminProductsPage() {
                 >
                   <option value="ALL">Tất cả danh mục sản phẩm</option>
                   {categoryGroups.map((group) => (
-                    <optgroup key={`cat-grp-${group.id}`} label={`📂 ${group.main}`}>
+                    <optgroup key={`cat-grp-${group.id}`} label={group.main}>
                       <option value={group.mainSlug || group.main}>
-                        📁 [Tất cả mã thuộc: {group.main}]
+                        [Tất cả mã thuộc: {group.main}]
                       </option>
                       {group.subs.map((sub) => (
                         <option key={`sub-opt-${sub.id}`} value={sub.slug}>
@@ -708,6 +751,23 @@ export default function AdminProductsPage() {
                       {b.name}
                     </option>
                   ))}
+                </select>
+              </div>
+
+              {/* Odoo ERP Linked Filter Dropdown */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+                <Globe className="w-4 h-4 text-emerald-600 shrink-0" />
+                <select
+                  value={selectedLinkFilter}
+                  onChange={(e) => {
+                    setSelectedLinkFilter(e.target.value as 'ALL' | 'LINKED' | 'UNLINKED');
+                    setPage(1);
+                  }}
+                  className="px-2.5 py-1.5 text-xs font-semibold border border-slate-200 rounded-md bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                >
+                  <option value="ALL">Tất cả nguồn sản phẩm</option>
+                  <option value="LINKED">Kho Q.BA (Đã link ERP)</option>
+                  <option value="UNLINKED">Bài viết SEO (Chưa link ERP)</option>
                 </select>
               </div>
 

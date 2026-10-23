@@ -1,6 +1,7 @@
 import prisma from "../config/db";
 import { AppError } from "../utils/AppError";
 import { CreateProductInput, UpdateProductInput } from "../validators/productValidator";
+import { OdooIntegrationService } from "./odooIntegrationService";
 
 export class ProductService {
   private static slugify(text: string): string {
@@ -107,6 +108,8 @@ export class ProductService {
             orderBy: { isPrimary: "desc" },
             select: { id: true, imageUrl: true, isPrimary: true },
           },
+          isOdooLinked: true,
+          odooProductId: true,
           // CRITICAL SECURITY PRIVACY CONTRACT: internalCode, internalName, costPrice, stockQuantity are NOT selected
         },
       }),
@@ -127,45 +130,73 @@ export class ProductService {
    * Public Get Product Detail by ID or Slug (Data Privacy Masking)
    */
   static async getPublicProductByIdOrSlug(identifier: string) {
-    let numericId: number | null = !isNaN(Number(identifier)) ? Number(identifier) : null;
-    if (numericId === null) {
-      const match = String(identifier).trim().match(/(?:^|-)(\d+)$/);
+    const cleanIdentifier = String(identifier || "").trim();
+    const MAX_PG_INT = 2147483647;
+    let numericId: number | null = null;
+
+    if (/^\d+$/.test(cleanIdentifier)) {
+      const parsed = Number(cleanIdentifier);
+      if (!isNaN(parsed) && parsed > 0 && parsed <= MAX_PG_INT) {
+        numericId = parsed;
+      }
+    } else {
+      const match = cleanIdentifier.match(/-(\d+)$/);
       if (match && match[1]) {
-        const parsed = parseInt(match[1], 10);
-        if (!isNaN(parsed) && parsed > 0) {
+        const parsed = Number(match[1]);
+        if (!isNaN(parsed) && parsed > 0 && parsed <= MAX_PG_INT) {
           numericId = parsed;
         }
       }
     }
 
-    const product = await prisma.product.findUnique({
-      where: numericId !== null ? { id: numericId } : { slug: identifier },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        partNumber: true,
-        internalCode: true,
-        internalName: true,
-        price: true,
-        inStock: true,
-        qualityStandard: true,
-        description: true,
-        specifications: true,
-        compatibility: true,
-        category: {
-          select: { id: true, name: true, slug: true, parent: { select: { id: true, name: true, slug: true } } },
-        },
-        brand: {
-          select: { id: true, name: true, slug: true },
-        },
-        images: {
-          orderBy: { isPrimary: "desc" },
-          select: { id: true, imageUrl: true, isPrimary: true },
-        },
-        // PRIVACY ENFORCEMENT
+    const selectFields = {
+      id: true,
+      name: true,
+      slug: true,
+      partNumber: true,
+      internalCode: true,
+      internalName: true,
+      price: true,
+      inStock: true,
+      qualityStandard: true,
+      description: true,
+      specifications: true,
+      compatibility: true,
+      category: {
+        select: { id: true, name: true, slug: true, parent: { select: { id: true, name: true, slug: true } } },
       },
-    });
+      brand: {
+        select: { id: true, name: true, slug: true },
+      },
+      images: {
+        orderBy: { isPrimary: "desc" as const },
+        select: { id: true, imageUrl: true, isPrimary: true },
+      },
+      isOdooLinked: true,
+      odooProductId: true,
+    };
+
+    let product = null;
+    if (numericId !== null) {
+      product = await prisma.product.findUnique({
+        where: { id: numericId },
+        select: selectFields,
+      });
+    }
+
+    if (!product && cleanIdentifier) {
+      product = await prisma.product.findUnique({
+        where: { slug: cleanIdentifier },
+        select: selectFields,
+      });
+    }
+
+    if (!product && cleanIdentifier) {
+      product = await prisma.product.findFirst({
+        where: { slug: { equals: cleanIdentifier, mode: "insensitive" } },
+        select: selectFields,
+      });
+    }
 
     if (!product) {
       throw new AppError("Không tìm thấy sản phẩm phụ tùng yêu cầu", 404);
@@ -185,6 +216,7 @@ export class ProductService {
     limit?: number;
     sortBy?: string;
     sortOrder?: "asc" | "desc";
+    isOdooLinked?: boolean;
   }) {
     const page = Math.max(query.page || 1, 1);
     const limit = Math.min(query.limit || 10, 5000);
@@ -192,6 +224,10 @@ export class ProductService {
 
     const whereCondition: any = {};
     const andConditions: any[] = [];
+
+    if (typeof query.isOdooLinked === "boolean") {
+      andConditions.push({ isOdooLinked: query.isOdooLinked });
+    }
 
     if (query.categoryId) {
       andConditions.push({
@@ -252,6 +288,9 @@ export class ProductService {
           break;
         case "status":
           orderByCondition = { stockQuantity: order };
+          break;
+        case "isOdooLinked":
+          orderByCondition = { isOdooLinked: order };
           break;
         case "createdAt":
           orderByCondition = { createdAt: order };
@@ -549,5 +588,197 @@ export class ProductService {
     });
 
     return updated;
+  }
+
+  /**
+   * Link or Unlink Product with Odoo ERP
+   */
+  static async linkOdooProduct(productId: number, odooProductId: number | null) {
+    const existing = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!existing) {
+      throw new AppError("Không tìm thấy sản phẩm trên website", 404);
+    }
+
+    const updated = await prisma.product.update({
+      where: { id: productId },
+      data: {
+        odooProductId: odooProductId ? Number(odooProductId) : null,
+        isOdooLinked: Boolean(odooProductId),
+        odooLinkedAt: odooProductId ? new Date() : null,
+      },
+    });
+
+    return updated;
+  }
+
+  /**
+   * Batch sync products with Odoo ERP by matching SKU (internalCode <-> default_code)
+   */
+  static async syncOdooBySku(
+    items: Array<{ odooId: number; sku: string }>,
+    publicBaseUrl?: string
+  ) {
+    if (!Array.isArray(items) || items.length === 0) {
+      return {
+        matched: [],
+        unmatched: [],
+        totalMatched: 0,
+        totalUnmatched: 0,
+      };
+    }
+
+    const host = (publicBaseUrl || process.env.PUBLIC_SITE_URL || "https://phutungotoquyba.com").replace(/\/+$/, "");
+
+    // Prepare map of normalized SKU -> odooId
+    const odooMap = new Map<string, number>();
+    for (const item of items) {
+      if (item && item.sku && typeof item.sku === "string" && item.odooId) {
+        const cleanSku = item.sku.trim().toUpperCase();
+        if (cleanSku) {
+          odooMap.set(cleanSku, Number(item.odooId));
+        }
+      }
+    }
+
+    if (odooMap.size === 0) {
+      return {
+        matched: [],
+        unmatched: items,
+        totalMatched: 0,
+        totalUnmatched: items.length,
+      };
+    }
+
+    // Reset any existing stale links for incoming odooIds to guarantee no unique constraint clash
+    const incomingOdooIds = Array.from(odooMap.values());
+    if (incomingOdooIds.length > 0) {
+      await prisma.product.updateMany({
+        where: { odooProductId: { in: incomingOdooIds } },
+        data: { odooProductId: null, isOdooLinked: false, odooLinkedAt: null },
+      });
+    }
+
+    // Retrieve web products with non-empty internalCode
+    const webProducts = await prisma.product.findMany({
+      where: {
+        internalCode: { not: "" },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        internalCode: true,
+        partNumber: true,
+        isOdooLinked: true,
+        odooProductId: true,
+      },
+    });
+
+    const matched: Array<{
+      odooId: number;
+      webId: number;
+      name: string;
+      slug: string;
+      sku: string;
+      partNumber: string;
+      webUrl: string;
+    }> = [];
+
+    const matchedOdooIds = new Set<number>();
+    const updatePromises: Promise<any>[] = [];
+
+    for (const wp of webProducts) {
+      const cleanWebSku = (wp.internalCode || "").trim().toUpperCase();
+      if (cleanWebSku && odooMap.has(cleanWebSku)) {
+        const odooId = odooMap.get(cleanWebSku)!;
+        const webUrl = `${host}/products/${wp.slug}-${wp.id}`;
+
+        matched.push({
+          odooId,
+          webId: wp.id,
+          name: wp.name,
+          slug: wp.slug,
+          sku: wp.internalCode,
+          partNumber: wp.partNumber || "",
+          webUrl,
+        });
+
+        matchedOdooIds.add(odooId);
+
+        updatePromises.push(
+          prisma.product.update({
+            where: { id: wp.id },
+            data: {
+              odooProductId: odooId,
+              isOdooLinked: true,
+              odooLinkedAt: new Date(),
+            },
+          })
+        );
+      }
+    }
+
+    if (updatePromises.length > 0) {
+      await Promise.all(updatePromises);
+    }
+
+    const unmatched = items.filter((item) => !matchedOdooIds.has(Number(item.odooId)));
+
+    // Record last sync result to database for Admin UI
+    await OdooIntegrationService.recordSyncResult({
+      matchedCount: matched.length,
+      unmatchedCount: unmatched.length,
+      status: "success",
+    });
+
+    return {
+      matched,
+      unmatched,
+      totalMatched: matched.length,
+      totalUnmatched: unmatched.length,
+    };
+  }
+
+  /**
+   * Batch Unlink Products from Odoo ERP
+   */
+  static async batchUnlinkOdooProducts(input: {
+    odooProductIds?: number[];
+    webProductIds?: number[];
+  }) {
+    const odooIds = Array.isArray(input.odooProductIds)
+      ? input.odooProductIds.map(Number).filter((n) => !isNaN(n) && n > 0)
+      : [];
+    const webIds = Array.isArray(input.webProductIds)
+      ? input.webProductIds.map(Number).filter((n) => !isNaN(n) && n > 0)
+      : [];
+
+    const orConditions: any[] = [];
+    if (odooIds.length > 0) {
+      orConditions.push({ odooProductId: { in: odooIds } });
+    }
+    if (webIds.length > 0) {
+      orConditions.push({ id: { in: webIds } });
+    }
+
+    if (orConditions.length === 0) {
+      return { count: 0 };
+    }
+
+    const result = await prisma.product.updateMany({
+      where: {
+        OR: orConditions,
+      },
+      data: {
+        odooProductId: null,
+        isOdooLinked: false,
+        odooLinkedAt: null,
+      },
+    });
+
+    return result;
   }
 }

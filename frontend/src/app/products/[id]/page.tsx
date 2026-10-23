@@ -71,6 +71,7 @@ async function getProductDetail(id: string) {
           description: p.description || '',
           specifications: (p.specifications as Record<string, string>) || {},
           compatibility: (p.compatibility as string[]) || ["Xe Tải Nặng HOWO", "Shacman", "FAW"],
+          isOdooLinked: Boolean(p.isOdooLinked || p.odooProductId),
         };
       }
     }
@@ -367,6 +368,12 @@ export default async function ProductDetailPage({ params }: PageProps) {
               {product.partNumber && (
                 <div className="px-2.5 py-1 rounded-md bg-red-50 border border-red-200/80 text-red-600 font-extrabold">
                   OE: {product.partNumber}
+                </div>
+              )}
+              {product.isOdooLinked && (
+                <div className="px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold flex items-center gap-1 font-sans">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Sẵn hàng tại kho Q.BA</span>
                 </div>
               )}
             </div>

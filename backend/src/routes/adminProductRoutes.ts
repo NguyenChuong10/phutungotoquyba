@@ -22,4 +22,8 @@ router.delete("/:id", ProductController.deleteProduct);
 // PATCH /api/v1/admin/products/:id/stock - Admin Adjust Stock & Prices
 router.patch("/:id/stock", ProductController.adjustProductStockAndPrice);
 
+// POST /api/v1/admin/products/:id/link-odoo - Admin Link/Unlink Odoo ERP
+router.post("/:id/link-odoo", ProductController.linkOdooProduct);
+router.delete("/:id/link-odoo", ProductController.unlinkOdooProduct);
+
 export default router;

@@ -264,6 +264,7 @@ export class AdminApiService {
     limit?: number;
     sortBy?: string;
     sortOrder?: "asc" | "desc";
+    isOdooLinked?: boolean | string;
   }) {
     const query = new URLSearchParams();
     if (params?.categoryId) query.append("categoryId", String(params.categoryId));
@@ -273,6 +274,7 @@ export class AdminApiService {
     if (params?.limit) query.append("limit", String(params.limit));
     if (params?.sortBy) query.append("sortBy", params.sortBy);
     if (params?.sortOrder) query.append("sortOrder", params.sortOrder);
+    if (params?.isOdooLinked !== undefined) query.append("isOdooLinked", String(params.isOdooLinked));
 
     const endpoint = `/admin/products?${query.toString()}`;
     return await fetchApi(endpoint);
@@ -706,6 +708,41 @@ export class AdminApiService {
   /**
    * Delete Job Posting
    */
+  /**
+   * Get Odoo ERP Integration Settings & API Key
+   */
+  static async getOdooSettings() {
+    return await fetchApi("/admin/odoo/settings");
+  }
+
+  /**
+   * Update Odoo ERP Settings (toggle sync or custom key)
+   */
+  static async updateOdooSettings(data: { apiKey?: string; syncEnabled?: boolean }) {
+    return await fetchApi("/admin/odoo/settings", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
+   * Regenerate Odoo API Key
+   */
+  static async regenerateOdooApiKey() {
+    return await fetchApi("/admin/odoo/regenerate-key", {
+      method: "POST",
+    });
+  }
+
+  /**
+   * Test Odoo ERP Connection & HMAC signatures
+   */
+  static async testOdooConnection() {
+    return await fetchApi("/admin/odoo/test-connection", {
+      method: "POST",
+    });
+  }
+
   static async deleteJob(id: number) {
     return await fetchApi(`/jobs/admin/${id}`, {
       method: "DELETE",

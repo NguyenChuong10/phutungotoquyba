@@ -50,3 +50,6 @@ Thumbs.db
 *.sqlite
 database/postgresql-data/
 postgres/
+database/phutungotoquyba_*/
+database/*.tar.gz
+*.tsbuildinfo

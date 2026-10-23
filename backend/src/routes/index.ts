@@ -15,6 +15,7 @@ import partnerBrandRoutes from "./partnerBrandRoutes";
 import jobPostingRoutes from "./jobPostingRoutes";
 import categoryBannerRoutes from "./categoryBannerRoutes";
 import heroSlideRoutes from "./heroSlideRoutes";
+import adminOdooRoutes from "./adminOdooRoutes";
 
 const router = Router();
 
@@ -48,5 +49,6 @@ router.use("/admin/categories", adminCategoryRoutes);
 router.use("/admin/brands", adminBrandRoutes);
 router.use("/admin/products", adminProductRoutes);
 router.use("/admin/upload", uploadRoutes);
+router.use("/admin/odoo", adminOdooRoutes);
 
 export default router;
