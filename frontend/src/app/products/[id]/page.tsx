@@ -258,7 +258,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
         "@type": "ListItem",
         "position": 3,
         "name": product.categoryName,
-        "item": `${baseUrl}/products?categorySlug=${product.categorySlug}`,
+        "item": `${baseUrl}/products?category=${product.categorySlug}`,
       },
       {
         "@type": "ListItem",
@@ -525,7 +525,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 <span>PHỤ TÙNG CÙNG DANH MỤC</span>
               </h3>
               <Link
-                href={`/products?categorySlug=${product.categorySlug}`}
+                href={`/products?category=${product.categorySlug}`}
                 className="text-xs font-bold text-slate-600 hover:text-brand transition-colors uppercase flex items-center gap-1"
               >
                 <span>Xem tất cả</span>

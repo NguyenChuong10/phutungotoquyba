@@ -118,22 +118,11 @@ function ProductsContent() {
     "hop-so-bo-dong-toc": true,
   });
 
-  const cachedData = getCachedProductsData();
-  const hasCachedProducts = !!(cachedData.products && cachedData.products.length > 0);
-
-  // Dynamic Categories, Products & Brands List - INITIALIZED WITH CACHE IF AVAILABLE
-  const [categories, setCategories] = useState<CategoryData[]>(
-    cachedData.categories && cachedData.categories.length > 0
-      ? cachedData.categories
-      : [{ slug: "all", name: "Tất cả danh mục" }]
-  );
-  const [products, setProducts] = useState<Product[]>(cachedData.products || []);
-  const [brands, setBrands] = useState<string[]>(
-    cachedData.brands && cachedData.brands.length > 0
-      ? cachedData.brands
-      : ["Tất cả thương hiệu"]
-  );
-  const [isLoading, setIsLoading] = useState<boolean>(!hasCachedProducts);
+  // Dynamic Categories, Products & Brands List - SSR clean default state to prevent hydration mismatch
+  const [categories, setCategories] = useState<CategoryData[]>([{ slug: "all", name: "Tất cả danh mục" }]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [brands, setBrands] = useState<string[]>(["Tất cả thương hiệu"]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Quotation Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -211,21 +200,24 @@ function ProductsContent() {
     }
 
     async function initAll() {
+      // 1. Immediately hydrate with cached data on client mount if available
+      const cached = getCachedProductsData();
       const now = Date.now();
       const isCacheValid =
-        globalProductsCache.products &&
-        globalProductsCache.products.length > 0 &&
-        now - globalProductsCache.timestamp < PRODUCTS_CACHE_TTL;
+        cached.products &&
+        cached.products.length > 0 &&
+        now - cached.timestamp < PRODUCTS_CACHE_TTL;
+
+      if (cached.products && cached.products.length > 0 && isMounted) {
+        if (cached.categories) setCategories(cached.categories);
+        if (cached.products) setProducts(cached.products);
+        if (cached.brands) setBrands(cached.brands);
+        setIsLoading(false);
+      }
 
       // If we already have fresh cached data, skip network calls completely
       if (isCacheValid) {
-        if (isMounted) setIsLoading(false);
         return;
-      }
-
-      // Only show skeleton if we have NO cached products at all
-      if (!globalProductsCache.products || globalProductsCache.products.length === 0) {
-        setIsLoading(true);
       }
 
       await Promise.allSettled([
