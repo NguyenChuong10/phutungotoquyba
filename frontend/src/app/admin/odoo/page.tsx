@@ -166,7 +166,7 @@ export default function AdminOdooPage() {
     if (!apiKeyInput.trim()) {
       setToastState({
         id: String(Date.now()),
-        type: 'warning',
+        type: 'error',
         title: 'Khóa Không Hợp Lệ',
         message: 'Vui lòng không để trống API Key',
       });

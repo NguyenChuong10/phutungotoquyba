@@ -62,7 +62,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-18 md:h-20">
             {/* Left Area: Logo & Inline Search Input */}
             <div className="flex items-center gap-4 lg:gap-6">
-              {/* Logo */}
+              {/* Logo with explicit responsive width & aspect-ratio to prevent CLS */}
               <Link href="/" className="flex items-center shrink-0">
                 <Image
                   src="/images/logo/logonen.png"
@@ -73,6 +73,7 @@ export default function Navbar() {
                     isTransparent ? "brightness-0 invert drop-shadow-md" : "brightness-100"
                   }`}
                   priority
+                  unoptimized
                 />
               </Link>
 
@@ -112,7 +113,7 @@ export default function Navbar() {
                     className={`font-heading font-extrabold text-xs uppercase tracking-wider transition-colors duration-300 py-1 relative ${
                       isActive
                         ? isTransparent
-                          ? "text-red-500 after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:bg-red-500"
+                          ? "text-amber-400 after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:bg-amber-400"
                           : "text-red-600 after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:bg-red-600"
                         : isTransparent
                         ? "text-white/90 hover:text-red-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"

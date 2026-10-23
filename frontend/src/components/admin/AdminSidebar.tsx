@@ -192,6 +192,7 @@ function SidebarInner({ onNavItemClick }: { onNavItemClick?: () => void }) {
               alt="Logo Phụ Tùng Ô Tô Q.BA"
               fill
               sizes="36px"
+              unoptimized
               className="object-contain"
             />
           </div>

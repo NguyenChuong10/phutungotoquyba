@@ -23,10 +23,20 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.resolve(process.cwd(), "../"),
   images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2592000, // Cache Next.js optimized images for 30 days
     remotePatterns: [
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "phutungqba.io.vn",
+      },
+      {
+        protocol: "http",
+        hostname: "phutungqba.io.vn",
       },
       // Cho phép load ảnh từ Docker Container Backend
       {
@@ -60,6 +70,15 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders,
+      },
+      {
+        source: "/uploads/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=2592000, immutable",
+          },
+        ],
       },
     ];
   },

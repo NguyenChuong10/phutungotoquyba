@@ -206,9 +206,9 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         src={formatImageUrl(product.imageSrc)}
                         alt={product.name}
                         fill
-                        unoptimized
                         className="object-cover group-hover:scale-110 transition-transform duration-300"
                         sizes="64px"
+                        unoptimized
                       />
                     </div>
 

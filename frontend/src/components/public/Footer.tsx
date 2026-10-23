@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Mail, Phone, ArrowUpRight } from "lucide-react";
@@ -9,6 +11,24 @@ import NoticeBar from "@/components/public/NoticeBar";
 export default function Footer() {
   const { settings } = useSiteSettings();
   const mapSrc = getGoogleMapSrc(settings.warehouseAddress || siteConfig.address, settings.googleMapEmbedUrl);
+
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const [shouldLoadMap, setShouldLoadMap] = useState(false);
+
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setShouldLoadMap(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" } // Preload when within 300px of viewport
+    );
+    observer.observe(mapContainerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <footer id="contact" className="bg-[#0B0F19] text-gray-300 pt-16 pb-0 border-t-4 border-brand relative overflow-hidden">
@@ -25,7 +45,8 @@ export default function Footer() {
                 src="/images/logo/logonen.png" 
                 alt="Q.BA Auto Parts Logo" 
                 width={260} 
-                height={60} 
+                height={60}
+                unoptimized 
                 className="w-auto h-14 object-contain"
               />
             </div>
@@ -68,7 +89,7 @@ export default function Footer() {
                   href={siteConfig.socialLinks.facebook} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="w-10 h-10 bg-slate-800 hover:bg-brand text-white rounded-xl flex items-center justify-center transition-all duration-300 shadow-md hover:scale-105"
+                  className="w-10 h-10 bg-slate-800 hover:bg-brand text-white rounded-xl flex items-center justify-center transition-colors duration-300 shadow-md hover:scale-105"
                   aria-label="Facebook Q.BA"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -81,7 +102,7 @@ export default function Footer() {
                   href={siteConfig.zaloLink} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="w-10 h-10 bg-slate-800 hover:bg-blue-600 text-white rounded-xl flex items-center justify-center transition-all duration-300 shadow-md hover:scale-105"
+                  className="w-10 h-10 bg-slate-800 hover:bg-blue-600 text-white rounded-xl flex items-center justify-center transition-colors duration-300 shadow-md hover:scale-105"
                   aria-label="Zalo Q.BA"
                 >
                   <span className="text-xs font-black tracking-tighter">Zalo</span>
@@ -130,31 +151,44 @@ export default function Footer() {
             </ul>
 
             <div className="pt-4">
-              <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-brand to-red-700 text-white font-bold py-3 px-6 rounded-xl hover:shadow-[0_0_20px_rgba(217,4,41,0.4)] transition-all duration-300 text-xs tracking-wider uppercase cursor-pointer">
+              <Link
+                href="/products"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-brand to-red-700 text-white font-bold py-3 px-6 rounded-xl hover:shadow-[0_0_20px_rgba(217,4,41,0.4)] transition-all duration-300 text-xs tracking-wider uppercase cursor-pointer"
+              >
                 E-CATALOGUE
                 <ArrowUpRight size={16} />
-              </button>
+              </Link>
             </div>
           </div>
 
-          {/* Col 3: Google Maps Embed (4 Cols) */}
+          {/* Col 3: Google Maps Embed (Deferred lazy load via IntersectionObserver) */}
           <div className="md:col-span-4 space-y-6">
             <h3 className="text-base font-black uppercase tracking-wider text-white border-l-4 border-brand pl-3">
               GOOGLE MAPS - Q.BA
             </h3>
 
-            <div className="w-full h-52 bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-xl relative group">
-              <iframe 
-                src={mapSrc} 
-                width="100%" 
-                height="100%" 
-                style={{ border: 0 }} 
-                allowFullScreen={false} 
-                loading="lazy" 
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Q.Ba Auto Parts Map"
-                className="w-full h-full border-0"
-              ></iframe>
+            <div
+              ref={mapContainerRef}
+              className="w-full h-52 bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-xl relative group"
+            >
+              {shouldLoadMap ? (
+                <iframe 
+                  src={mapSrc} 
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 0 }} 
+                  allowFullScreen={false} 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Q.Ba Auto Parts Map"
+                  className="w-full h-full border-0"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 bg-slate-950/80 p-4 text-center">
+                  <MapPin className="w-8 h-8 text-brand mb-2 animate-bounce" />
+                  <span className="text-xs font-semibold text-slate-400">Bản đồ vị trí Q.BA Đà Nẵng</span>
+                </div>
+              )}
             </div>
           </div>
 

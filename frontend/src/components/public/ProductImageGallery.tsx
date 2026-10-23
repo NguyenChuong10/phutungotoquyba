@@ -123,6 +123,7 @@ export default function ProductImageGallery({
                   src={formatImageUrl(img)}
                   alt={`${productName} thumbnail ${idx + 1}`}
                   fill
+                  sizes="80px"
                   unoptimized
                   className="object-contain p-1 bg-slate-50"
                 />
