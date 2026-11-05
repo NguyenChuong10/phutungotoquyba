@@ -27,6 +27,9 @@ router.post("/batch-unlink-odoo", verifyOdooOrAdmin, ProductController.batchUnli
 // POST /api/v1/products/:id/link-odoo - Link or Unlink Product with Odoo ERP (Protected by HMAC / Admin JWT)
 router.post("/:id/link-odoo", verifyOdooOrAdmin, ProductController.linkOdooProduct);
 
+// POST /api/v1/products/:webProductId/link-odoo - Alias compatible with :webProductId spec
+router.post("/:webProductId/link-odoo", verifyOdooOrAdmin, ProductController.linkOdooProduct);
+
 // DELETE /api/v1/products/:id/link-odoo - Unlink Product from Odoo ERP (Protected by HMAC / Admin JWT)
 router.delete("/:id/link-odoo", verifyOdooOrAdmin, ProductController.unlinkOdooProduct);
 

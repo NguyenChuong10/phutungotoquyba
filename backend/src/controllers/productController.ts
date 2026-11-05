@@ -167,11 +167,25 @@ export class ProductController {
   static async linkOdooProduct(req: Request, res: Response, next: NextFunction) {
     try {
       const id = Number(req.params.id);
-      const odooProductId = req.body && req.body.odooProductId ? Number(req.body.odooProductId) : null;
-      const updated = await ProductService.linkOdooProduct(id, odooProductId);
+      const odooProductId =
+        req.body && req.body.odooProductId !== undefined && req.body.odooProductId !== null
+          ? Number(req.body.odooProductId)
+          : null;
+      const showPrice = req.body && typeof req.body.showPrice === "boolean" ? req.body.showPrice : undefined;
+      const price =
+        req.body && req.body.price !== undefined && req.body.price !== null
+          ? Number(req.body.price)
+          : undefined;
+
+      const updated = await ProductService.linkOdooProduct(id, {
+        odooProductId,
+        showPrice,
+        price,
+      });
+
       return res.status(200).json({
         success: true,
-        message: odooProductId ? "Đã liên kết sản phẩm với Odoo ERP thành công" : "Đã hủy liên kết sản phẩm với Odoo ERP",
+        message: odooProductId ? "Linked successfully" : "Đã hủy liên kết sản phẩm với Odoo ERP",
         data: updated,
       });
     } catch (error) {

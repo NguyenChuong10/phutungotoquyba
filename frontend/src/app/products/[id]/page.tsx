@@ -64,7 +64,11 @@ async function getProductDetail(id: string) {
           categoryName: parentCategoryName,
           brand: validBrand,
           qualityStandard: p.qualityStandard || "",
-          price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString('vi-VN')} ₫` : "Liên hệ Báo Giá",
+          price: p.showPrice === false
+            ? "Liên hệ Báo Giá"
+            : p.price && Number(p.price) > 0
+            ? `${Number(p.price).toLocaleString('vi-VN')} ₫`
+            : "Liên hệ Báo Giá",
           inStock: p.inStock,
           imageSrc: formatImageUrl(p.images?.[0]?.imageUrl),
           gallery: p.images?.map((img: { imageUrl: string }) => formatImageUrl(img.imageUrl)) || [formatImageUrl(null)],
@@ -72,6 +76,7 @@ async function getProductDetail(id: string) {
           specifications: (p.specifications as Record<string, string>) || {},
           compatibility: (p.compatibility as string[]) || ["Xe Tải Nặng HOWO", "Shacman", "FAW"],
           isOdooLinked: Boolean(p.isOdooLinked || p.odooProductId),
+          showPrice: p.showPrice,
         };
       }
     }
@@ -169,7 +174,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
           brand: (p.brand?.name && p.brand.name !== 'Chưa Phân Loại' && p.brand.name !== 'Chưa phân loại' && p.brand.name !== 'Không có thương hiệu' && p.brand.name !== 'Không') ? p.brand.name : '',
           categorySlug: p.category?.parent?.slug || p.category?.slug || "dong-co-may-phat",
           imageSrc: formatImageUrl(p.images?.[0]?.imageUrl),
-          price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString('vi-VN')} ₫` : 'Liên Hệ Báo Giá',
+          price: p.showPrice === false
+            ? 'Liên hệ Báo Giá'
+            : p.price && Number(p.price) > 0
+            ? `${Number(p.price).toLocaleString('vi-VN')} ₫`
+            : 'Liên Hệ Báo Giá',
         }));
       }
     }

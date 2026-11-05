@@ -98,6 +98,7 @@ model Product {
   odooProductId   Int?      @unique @map("odoo_product_id")
   isOdooLinked    Boolean   @default(false) @map("is_odoo_linked")
   odooLinkedAt    DateTime? @map("odoo_linked_at")
+  showPrice       Boolean   @default(true) @map("show_price")
 
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")

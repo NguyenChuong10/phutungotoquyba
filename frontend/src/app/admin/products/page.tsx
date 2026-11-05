@@ -54,6 +54,7 @@ interface ProductItem {
   rawProduct: any;
   isOdooLinked?: boolean;
   odooProductId?: number | null;
+  showPrice?: boolean;
 }
 
 interface CategoryOptionGroup {
@@ -237,13 +238,18 @@ export default function AdminProductsPage() {
             brand: p.brand?.name || 'Không',
             brandId: p.brandId,
             stock: p.stockQuantity ?? 0,
-            price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString('vi-VN')} ₫` : 'Liên hệ Báo Giá',
+            price: p.showPrice === false
+              ? 'Liên hệ Báo Giá'
+              : p.price && Number(p.price) > 0
+              ? `${Number(p.price).toLocaleString('vi-VN')} ₫`
+              : 'Liên hệ Báo Giá',
             costPrice: p.costPrice && Number(p.costPrice) > 0 ? `${Number(p.costPrice).toLocaleString('vi-VN')} ₫` : '0 ₫',
             status: statusStr,
             image: primaryImg,
             rawProduct: p,
             isOdooLinked: Boolean(p.isOdooLinked || p.odooProductId),
             odooProductId: p.odooProductId,
+            showPrice: p.showPrice,
           };
         });
 

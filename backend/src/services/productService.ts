@@ -110,6 +110,7 @@ export class ProductService {
           },
           isOdooLinked: true,
           odooProductId: true,
+          showPrice: true,
           // CRITICAL SECURITY PRIVACY CONTRACT: internalCode, internalName, costPrice, stockQuantity are NOT selected
         },
       }),
@@ -174,6 +175,7 @@ export class ProductService {
       },
       isOdooLinked: true,
       odooProductId: true,
+      showPrice: true,
     };
 
     let product = null;
@@ -408,6 +410,7 @@ export class ProductService {
         categoryId: input.categoryId,
         brandId: finalBrandId,
         price: input.price,
+        showPrice: input.showPrice !== undefined ? input.showPrice : true,
         costPrice: input.costPrice,
         stockQuantity: input.stockQuantity,
         inStock: input.stockQuantity > 0,
@@ -512,6 +515,7 @@ export class ProductService {
         categoryId: input.categoryId,
         brandId: targetBrandId,
         price: input.price,
+        showPrice: input.showPrice !== undefined ? input.showPrice : undefined,
         costPrice: input.costPrice,
         stockQuantity: input.stockQuantity,
         inStock: input.inStock,
@@ -593,7 +597,17 @@ export class ProductService {
   /**
    * Link or Unlink Product with Odoo ERP
    */
-  static async linkOdooProduct(productId: number, odooProductId: number | null) {
+  static async linkOdooProduct(
+    productId: number,
+    options:
+      | number
+      | null
+      | {
+          odooProductId: number | null;
+          showPrice?: boolean;
+          price?: number;
+        }
+  ) {
     const existing = await prisma.product.findUnique({
       where: { id: productId },
     });
@@ -602,13 +616,41 @@ export class ProductService {
       throw new AppError("Không tìm thấy sản phẩm trên website", 404);
     }
 
+    let odooProductId: number | null = null;
+    let showPrice: boolean | undefined = undefined;
+    let price: number | undefined = undefined;
+
+    if (options === null || typeof options === "number") {
+      odooProductId = options ? Number(options) : null;
+    } else if (typeof options === "object") {
+      odooProductId = options.odooProductId ? Number(options.odooProductId) : null;
+      showPrice = options.showPrice;
+      price = options.price !== undefined && options.price !== null ? Number(options.price) : undefined;
+    }
+
+    const updateData: any = {
+      odooProductId: odooProductId ? Number(odooProductId) : null,
+      isOdooLinked: Boolean(odooProductId),
+      odooLinkedAt: odooProductId ? new Date() : null,
+    };
+
+    // Khi hủy liên kết (odooProductId == null), đưa về trạng thái mặc định: showPrice = false, price = 0
+    if (!odooProductId) {
+      updateData.showPrice = false;
+      updateData.price = 0;
+    }
+
+    if (typeof showPrice === "boolean") {
+      updateData.showPrice = showPrice;
+    }
+
+    if (price !== undefined && !isNaN(price) && price >= 0) {
+      updateData.price = price;
+    }
+
     const updated = await prisma.product.update({
       where: { id: productId },
-      data: {
-        odooProductId: odooProductId ? Number(odooProductId) : null,
-        isOdooLinked: Boolean(odooProductId),
-        odooLinkedAt: odooProductId ? new Date() : null,
-      },
+      data: updateData,
     });
 
     return updated;
@@ -618,7 +660,7 @@ export class ProductService {
    * Batch sync products with Odoo ERP by matching SKU (internalCode <-> default_code)
    */
   static async syncOdooBySku(
-    items: Array<{ odooId: number; sku: string }>,
+    items: Array<{ odooId: number; sku: string; showPrice?: boolean; price?: number }>,
     publicBaseUrl?: string
   ) {
     if (!Array.isArray(items) || items.length === 0) {
@@ -632,13 +674,17 @@ export class ProductService {
 
     const host = (publicBaseUrl || process.env.PUBLIC_SITE_URL || "https://phutungotoquyba.com").replace(/\/+$/, "");
 
-    // Prepare map of normalized SKU -> odooId
-    const odooMap = new Map<string, number>();
+    // Prepare map of normalized SKU -> item details
+    const odooMap = new Map<string, { odooId: number; showPrice?: boolean; price?: number }>();
     for (const item of items) {
       if (item && item.sku && typeof item.sku === "string" && item.odooId) {
         const cleanSku = item.sku.trim().toUpperCase();
         if (cleanSku) {
-          odooMap.set(cleanSku, Number(item.odooId));
+          odooMap.set(cleanSku, {
+            odooId: Number(item.odooId),
+            showPrice: typeof item.showPrice === "boolean" ? item.showPrice : undefined,
+            price: item.price !== undefined && item.price !== null ? Number(item.price) : undefined,
+          });
         }
       }
     }
@@ -653,7 +699,7 @@ export class ProductService {
     }
 
     // Reset any existing stale links for incoming odooIds to guarantee no unique constraint clash
-    const incomingOdooIds = Array.from(odooMap.values());
+    const incomingOdooIds = Array.from(odooMap.values()).map((v) => v.odooId);
     if (incomingOdooIds.length > 0) {
       await prisma.product.updateMany({
         where: { odooProductId: { in: incomingOdooIds } },
@@ -693,7 +739,8 @@ export class ProductService {
     for (const wp of webProducts) {
       const cleanWebSku = (wp.internalCode || "").trim().toUpperCase();
       if (cleanWebSku && odooMap.has(cleanWebSku)) {
-        const odooId = odooMap.get(cleanWebSku)!;
+        const itemData = odooMap.get(cleanWebSku)!;
+        const odooId = itemData.odooId;
         const webUrl = `${host}/products/${wp.slug}-${wp.id}`;
 
         matched.push({
@@ -708,14 +755,24 @@ export class ProductService {
 
         matchedOdooIds.add(odooId);
 
+        const updateData: any = {
+          odooProductId: odooId,
+          isOdooLinked: true,
+          odooLinkedAt: new Date(),
+        };
+
+        if (typeof itemData.showPrice === "boolean") {
+          updateData.showPrice = itemData.showPrice;
+        }
+
+        if (itemData.price !== undefined && !isNaN(itemData.price) && itemData.price >= 0) {
+          updateData.price = itemData.price;
+        }
+
         updatePromises.push(
           prisma.product.update({
             where: { id: wp.id },
-            data: {
-              odooProductId: odooId,
-              isOdooLinked: true,
-              odooLinkedAt: new Date(),
-            },
+            data: updateData,
           })
         );
       }
@@ -776,6 +833,8 @@ export class ProductService {
         odooProductId: null,
         isOdooLinked: false,
         odooLinkedAt: null,
+        showPrice: false,
+        price: 0,
       },
     });
 

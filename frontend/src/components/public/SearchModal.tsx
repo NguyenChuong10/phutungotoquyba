@@ -72,7 +72,11 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
             categorySlug: p.category?.slug || '',
             categoryName: p.category?.name || '',
             brand: p.brand?.name || '',
-            price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString()} ₫` : 'Liên hệ Báo Giá',
+            price: p.showPrice === false
+              ? 'Liên hệ Báo Giá'
+              : p.price && Number(p.price) > 0
+              ? `${Number(p.price).toLocaleString()} ₫`
+              : 'Liên hệ Báo Giá',
             imageSrc: formatImageUrl(p.images?.[0]?.imageUrl || p.image || p.imageSrc),
             description: p.description || '',
             specifications: p.specifications || {},

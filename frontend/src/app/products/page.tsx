@@ -168,7 +168,11 @@ function ProductsContent() {
             subCategorySlug: p.category?.slug || '',
             brand: (!p.brand?.name || p.brand?.name === 'Chưa Phân Loại' || p.brand?.name === 'Chưa phân loại' || p.brand?.name === 'Không có thương hiệu' || p.brand?.name === 'Không') ? '' : p.brand.name,
             qualityStandard: p.qualityStandard || '',
-            price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString()} ₫` : 'Liên hệ Báo Giá',
+            price: p.showPrice === false
+              ? 'Liên hệ Báo Giá'
+              : p.price && Number(p.price) > 0
+              ? `${Number(p.price).toLocaleString()} ₫`
+              : 'Liên hệ Báo Giá',
             imageSrc: formatImageUrl(p.images?.[0]?.imageUrl || p.image || p.imageSrc),
             image: formatImageUrl(p.images?.[0]?.imageUrl || p.image || p.imageSrc),
             description: p.description || 'Phụ tùng chính hãng xe tải nặng Q.BA',

@@ -629,7 +629,11 @@ export default function AdminCategoriesPage() {
           brand: p.brand?.name || 'HOWO Sinotruk',
           brandId: p.brandId || p.brand?.id,
           stock: p.stockQuantity || 0,
-          price: p.price && Number(p.price) > 0 ? `${Number(p.price).toLocaleString()} ₫` : 'Liên hệ Báo Giá',
+          price: p.showPrice === false
+            ? 'Liên hệ Báo Giá'
+            : p.price && Number(p.price) > 0
+            ? `${Number(p.price).toLocaleString()} ₫`
+            : 'Liên hệ Báo Giá',
           costPrice: p.costPrice ? `${Number(p.costPrice).toLocaleString()} ₫` : '0 ₫',
           description: p.description || '',
           image: p.images?.[0]?.imageUrl || '/images/logo/logonen.png',

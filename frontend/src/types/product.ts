@@ -15,6 +15,7 @@ export interface Product {
   specifications: Record<string, string>; // Thông số kỹ thuật
   qualityStandard: string;  // Tiêu chuẩn chất lượng (vd: "Chính Hãng", "Loại 1 Cao Cấp")
   price?: string;           // Giá sản phẩm hoặc "Liên hệ Báo Giá"
+  showPrice?: boolean;      // Đồng bộ từ Odoo: true = hiện giá, false = ẩn giá ("Liên hệ Báo Giá")
   inStock: boolean;         // Trạng thái sẵn kho
 }
 

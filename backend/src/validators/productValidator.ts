@@ -28,6 +28,7 @@ export const createProductSchema = z.object({
   stockQuantity: z.number().int().nonnegative("Số lượng tồn kho không được âm").default(0),
   inStock: z.boolean().default(true),
   qualityStandard: z.string().trim().optional().default(""),
+  showPrice: z.boolean().optional().default(true),
   description: z.string().trim().optional(),
   specifications: z.record(z.string()).default({}),
   compatibility: z.array(z.string()).default([]),

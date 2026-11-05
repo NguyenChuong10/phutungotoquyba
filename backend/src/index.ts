@@ -40,7 +40,16 @@ const corsOptions: cors.CorsOptions = {
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "x-odoo-timestamp",
+    "x-odoo-signature",
+    "x-odoo-api-key",
+    "x-api-key",
+  ],
   exposedHeaders: ["Set-Cookie"],
 };
 
