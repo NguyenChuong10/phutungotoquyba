@@ -142,7 +142,7 @@ export default function VehicleCategory() {
           </div>
         </div>
 
-        <Link href="/products" className="bg-brand text-white uppercase font-bold tracking-wider py-4 px-10 rounded-full shadow-[0_0_20px_rgba(217,4,41,0.4)] hover:bg-white hover:text-brand hover:scale-105 transition-all duration-300 motion-reduce:transition-none cursor-pointer">
+        <Link href="/products" className="bg-brand hover:bg-red-700 text-white uppercase font-bold tracking-wider py-4 px-8 rounded-xl shadow-md shadow-brand/25 transition-all duration-200 active:scale-[0.98] cursor-pointer">
           Khám phá thêm
         </Link>
       </div>
@@ -157,14 +157,15 @@ export default function VehicleCategory() {
           ></div>
           
           {/* Modal Box */}
-          <div className="relative bg-[#111317] border border-brand/30 rounded-3xl w-full max-w-5xl max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-[0_0_50px_rgba(217,4,41,0.25)] flex flex-col md:flex-row animate-in fade-in zoom-in-95 duration-300">
+          <div className="relative bg-[#111317] border border-slate-800 rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-2xl shadow-black/80 flex flex-col md:flex-row animate-in fade-in zoom-in-95 duration-300">
             
             {/* Close Button */}
             <button 
               onClick={() => setSelectedProduct(null)}
-              className="absolute top-4 right-4 z-20 p-2.5 bg-black/50 hover:bg-brand text-white rounded-full transition-all duration-300 hover:rotate-90 shadow-lg"
+              className="absolute top-4 right-4 z-20 min-w-[44px] min-h-[44px] p-2.5 bg-black/60 hover:bg-brand text-white rounded-xl transition-all duration-200 shadow-md flex items-center justify-center"
+              aria-label="Đóng chi tiết"
             >
-              <X size={24} />
+              <X size={22} />
             </button>
             
             {/* Image Side with Loading Spinner */}
@@ -206,10 +207,10 @@ export default function VehicleCategory() {
                 <Link 
                   href="/products" 
                   onClick={() => setSelectedProduct(null)}
-                  className="inline-flex items-center justify-center w-full sm:w-auto bg-gradient-to-r from-brand to-orange-600 text-white font-bold py-4 px-10 rounded-full hover:shadow-[0_10px_25px_rgba(217,4,41,0.4)] transition-all duration-300 group cursor-pointer"
+                  className="inline-flex items-center justify-center w-full sm:w-auto bg-brand hover:bg-red-700 text-white font-bold py-4 px-8 rounded-xl shadow-md shadow-brand/25 transition-all duration-200 group cursor-pointer active:scale-[0.98]"
                 >
                   LIÊN HỆ BÁO GIÁ CÁC MÃ SẢN PHẨM 
-                  <span className="ml-2 group-hover:translate-x-2 transition-transform duration-300">→</span>
+                  <span className="ml-2 group-hover:translate-x-1 transition-transform duration-200">→</span>
                 </Link>
               </div>
               

@@ -108,11 +108,11 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-3xl bg-[#111317] border border-slate-700/80 rounded-2xl shadow-[0_0_50px_rgba(217,4,41,0.25)] overflow-hidden z-10 flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-3xl bg-[#111317] border border-slate-700/80 rounded-2xl shadow-2xl shadow-black/80 overflow-hidden z-10 flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
         
         {/* Search Header Input */}
         <div className="relative flex items-center px-6 py-4 border-b border-slate-800 bg-slate-900/90 gap-3">
-          <Search className="w-6 h-6 text-[#FF0000] shrink-0" />
+          <Search className="w-6 h-6 text-brand shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -133,7 +133,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
           )}
           <button
             onClick={onClose}
-            className="p-2 bg-slate-800/80 hover:bg-[#FF0000] text-slate-300 hover:text-white rounded-full transition-all shrink-0 ml-2 shadow-md cursor-pointer"
+            className="min-w-[44px] min-h-[44px] p-2 bg-slate-800 hover:bg-brand text-slate-300 hover:text-white rounded-xl transition-all shrink-0 ml-2 shadow-sm flex items-center justify-center cursor-pointer"
             aria-label="Đóng cửa sổ tìm kiếm"
             title="Đóng cửa sổ (ESC)"
           >

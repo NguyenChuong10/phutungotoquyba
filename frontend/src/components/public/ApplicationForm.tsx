@@ -111,7 +111,7 @@ export default function ApplicationForm() {
 
           <button 
             type="submit"
-            className="w-full bg-gradient-to-r from-brand to-red-700 hover:from-red-600 hover:to-brand text-white font-black py-4 px-8 rounded-xl uppercase tracking-wider text-sm flex items-center justify-center gap-3 transition-all duration-300 shadow-[0_0_25px_rgba(217,4,41,0.4)] cursor-pointer"
+            className="w-full bg-brand hover:bg-red-700 text-white font-black py-4 px-8 rounded-xl uppercase tracking-wider text-sm flex items-center justify-center gap-3 transition-all duration-200 shadow-md shadow-brand/25 cursor-pointer active:scale-[0.99]"
           >
             <Send size={18} />
             NỘP HỒ SƠ ỨNG TUYỂN 1-CLICK

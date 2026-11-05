@@ -79,14 +79,14 @@ export default function QuotationPage() {
             </p>
             <Link
               href="/products"
-              className="inline-flex items-center justify-center bg-[#FF0000] text-white font-bold py-4 px-10 rounded-full shadow-[0_0_20px_rgba(217,4,41,0.4)] hover:bg-white hover:text-[#FF0000] hover:scale-105 transition-all duration-300 uppercase tracking-wider text-sm"
+              className="inline-flex items-center justify-center bg-brand text-white font-bold py-4 px-8 rounded-xl shadow-md shadow-brand/25 hover:bg-red-700 transition-all duration-200 uppercase tracking-wider text-sm active:scale-[0.98]"
             >
               Khám phá Catalogue Phụ Tùng
             </Link>
           </div>
         ) : submitResult?.success ? (
           /* Success State */
-          <div className="bg-slate-900/90 border border-emerald-500/40 rounded-3xl p-12 text-center max-w-2xl mx-auto shadow-[0_0_50px_rgba(16,185,129,0.15)]">
+          <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-xl shadow-black/40">
             <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="w-10 h-10 text-emerald-400 animate-pulse" />
             </div>
@@ -275,7 +275,7 @@ export default function QuotationPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-gradient-to-r from-[#FF0000] to-orange-600 text-white font-black py-4 px-6 rounded-full shadow-[0_0_25px_rgba(217,4,41,0.4)] hover:shadow-[0_0_35px_rgba(217,4,41,0.6)] hover:scale-[1.02] transition-all uppercase tracking-wider text-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full bg-brand hover:bg-red-700 text-white font-black py-4 px-6 rounded-xl shadow-lg shadow-brand/30 transition-all uppercase tracking-wider text-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
                 >
                   {isSubmitting ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

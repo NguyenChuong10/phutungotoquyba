@@ -96,7 +96,7 @@ export default function SubCategoryProductsModal({
   const handleCopyCode = (e: React.MouseEvent, codeText: string, label: string, keyId: string) => {
     e.stopPropagation();
     e.preventDefault();
-    if (!codeText || codeText === '—') return;
+    if (!codeText || codeText === '-' || codeText === 'Chưa có mã') return;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(codeText);
@@ -530,7 +530,7 @@ export default function SubCategoryProductsModal({
                             className="group/sku flex items-center gap-1 font-mono text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border border-slate-200/80 transition-all cursor-pointer text-left"
                             title={`Bấm vào để copy nhanh mã SKU Kho [${prod.internalCode}]`}
                           >
-                            <span className="group-hover/sku:underline">{prod.internalCode || '—'}</span>
+                            <span className="group-hover/sku:underline">{prod.internalCode || '-'}</span>
                             {isSkuCopied ? (
                               <Check size={12} className="text-emerald-600 shrink-0" />
                             ) : (

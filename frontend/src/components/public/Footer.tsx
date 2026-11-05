@@ -153,7 +153,7 @@ export default function Footer() {
             <div className="pt-4">
               <Link
                 href="/products"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-brand to-red-700 text-white font-bold py-3 px-6 rounded-xl hover:shadow-[0_0_20px_rgba(217,4,41,0.4)] transition-all duration-300 text-xs tracking-wider uppercase cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-brand hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl shadow-md shadow-brand/20 transition-all duration-200 text-xs tracking-wider uppercase cursor-pointer active:scale-[0.98]"
               >
                 E-CATALOGUE
                 <ArrowUpRight size={16} />

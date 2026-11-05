@@ -263,7 +263,7 @@ export default async function AboutPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
             <a
               href="tel:0903588167"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-brand text-white font-black py-4 px-8 rounded-full text-base uppercase tracking-wider hover:bg-white hover:text-brand hover:scale-105 transition-all duration-300 shadow-[0_0_25px_rgba(217,4,41,0.4)]"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-brand text-white font-black py-4 px-8 rounded-xl text-base uppercase tracking-wider hover:bg-red-700 transition-all duration-200 shadow-md shadow-brand/20 active:scale-[0.98]"
             >
               <Phone size={20} />
               GỌI HOTLINE: 0903.588.167
@@ -273,7 +273,7 @@ export default async function AboutPage() {
               href="https://zalo.me/0903588167"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-blue-600 text-white font-black py-4 px-8 rounded-full text-base uppercase tracking-wider hover:bg-white hover:text-blue-600 hover:scale-105 transition-all duration-300 shadow-lg"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-blue-600 text-white font-black py-4 px-8 rounded-xl text-base uppercase tracking-wider hover:bg-blue-700 transition-all duration-200 shadow-md shadow-blue-600/20 active:scale-[0.98]"
             >
               TƯ VẤN QUA ZALO OA
               <ArrowRight size={20} />
